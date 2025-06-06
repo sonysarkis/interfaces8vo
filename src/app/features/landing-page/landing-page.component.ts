@@ -21,7 +21,7 @@ import { FooterComponent } from '../../shared/footer/footer.component';
     <app-navbar></app-navbar>
     
     <main>
-      <section class="hero">
+      <section id="inicio" class="hero">
         <div class="hero-content">
           <h1>Bienvenido a Nuestra Plataforma</h1>
           <p>Descubre soluciones innovadoras para tu negocio</p>
@@ -29,9 +29,17 @@ import { FooterComponent } from '../../shared/footer/footer.component';
         </div>
       </section>
 
-      <app-services-section></app-services-section>
-      <app-carousel></app-carousel>
-      <app-form-section></app-form-section>
+      <section id="servicios">
+        <app-services-section></app-services-section>
+      </section>
+
+      <section id="personalizacion">
+        <app-carousel></app-carousel>
+      </section>
+
+      <section id="contacto">
+        <app-form-section></app-form-section>
+      </section>
     </main>
 
     <app-footer></app-footer>
@@ -76,6 +84,10 @@ import { FooterComponent } from '../../shared/footer/footer.component';
 
     .cta-button:hover {
       background-color: #4338ca;
+    }
+
+    section {
+      scroll-margin-top: 80px; /* Ajusta este valor según la altura de tu navbar */
     }
 
     @media (max-width: 768px) {

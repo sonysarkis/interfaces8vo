@@ -10,13 +10,13 @@ import { RouterModule } from '@angular/router';
     <nav class="navbar">
       <div class="navbar-container">
         <div class="logo">
-          <a routerLink="/">Logo</a>
+          <a (click)="scrollToSection('inicio')">Logo</a>
         </div>
         <div class="nav-links">
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Inicio</a>
-          <a routerLink="/servicios" routerLinkActive="active">Servicios</a>
-          <a routerLink="/contacto" routerLinkActive="active">Contacto</a>
-          <a routerLink="/personalizacion" routerLinkActive="active">Personalización</a>
+          <a (click)="scrollToSection('inicio')">Inicio</a>
+          <a (click)="scrollToSection('servicios')">Servicios</a>
+          <a (click)="scrollToSection('contacto')">Contacto</a>
+          <a (click)="scrollToSection('personalizacion')">Personalización</a>
           <a routerLink="/login" routerLinkActive="active">Iniciar Sesión</a>
           <a routerLink="/registro" routerLinkActive="active">Registrarse</a>
         </div>
@@ -60,6 +60,7 @@ import { RouterModule } from '@angular/router';
       text-decoration: none;
       font-weight: 500;
       transition: color 0.2s;
+      cursor: pointer;
     }
 
     .nav-links a:hover {
@@ -84,4 +85,11 @@ import { RouterModule } from '@angular/router';
     }
   `]
 })
-export class NavbarComponent { } 
+export class NavbarComponent {
+  scrollToSection(sectionId: string) {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+} 
