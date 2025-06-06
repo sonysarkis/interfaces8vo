@@ -1,0 +1,165 @@
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-6">Personalización</h1>
+
+    <!-- Vista previa de colores -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div class="color-preview" [style.background-color]="(currentStyles$ | async)?.colors?.primary || '#000000'">
+        </div>
+        <div class="color-preview" [style.background-color]="(currentStyles$ | async)?.colors?.secondary || '#000000'">
+        </div>
+        <div class="color-preview" [style.background-color]="(currentStyles$ | async)?.colors?.accent || '#000000'">
+        </div>
+        <div class="color-preview" [style.background-color]="(currentStyles$ | async)?.colors?.background || '#000000'">
+        </div>
+        <div class="color-preview" [style.background-color]="(currentStyles$ | async)?.colors?.text || '#000000'"></div>
+    </div>
+
+    <!-- Vista previa de fuentes -->
+    <div class="space-y-8">
+        <div class="font-preview">
+            <p [style.font-family]="(currentStyles$ | async)?.fonts?.title?.family || 'Arial'"
+                [style.font-size]="(currentStyles$ | async)?.fonts?.title?.size || '24px'"
+                [style.color]="(currentStyles$ | async)?.fonts?.title?.color || '#000000'">
+                Título de Ejemplo
+            </p>
+        </div>
+
+        <div class="font-preview">
+            <p [style.font-family]="(currentStyles$ | async)?.fonts?.subtitle?.family || 'Arial'"
+                [style.font-size]="(currentStyles$ | async)?.fonts?.subtitle?.size || '18px'"
+                [style.color]="(currentStyles$ | async)?.fonts?.subtitle?.color || '#000000'">
+                Subtítulo de Ejemplo
+            </p>
+        </div>
+
+        <div class="font-preview">
+            <p [style.font-family]="(currentStyles$ | async)?.fonts?.paragraph?.family || 'Arial'"
+                [style.font-size]="(currentStyles$ | async)?.fonts?.paragraph?.size || '14px'"
+                [style.color]="(currentStyles$ | async)?.fonts?.paragraph?.color || '#000000'">
+                Párrafo de ejemplo
+            </p>
+        </div>
+    </div>
+
+    <!-- Controles de personalización -->
+    <div class="mt-8 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Colores -->
+            <div class="space-y-4">
+                <h2 class="text-xl font-semibold">Colores</h2>
+                <div class="space-y-2">
+                    <label class="block">Color Primario</label>
+                    <input type="color" [(ngModel)]="currentStyles.colors.primary" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Color Secundario</label>
+                    <input type="color" [(ngModel)]="currentStyles.colors.secondary" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Color de Acento</label>
+                    <input type="color" [(ngModel)]="currentStyles.colors.accent" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Color de Fondo</label>
+                    <input type="color" [(ngModel)]="currentStyles.colors.background" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Color de Texto</label>
+                    <input type="color" [(ngModel)]="currentStyles.colors.text" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+            </div>
+
+            <!-- Fuentes -->
+            <div class="space-y-4">
+                <h2 class="text-xl font-semibold">Fuentes</h2>
+                <!-- Título -->
+                <div class="space-y-2">
+                    <label class="block">Tamaño de Título</label>
+                    <input type="range" min="16" max="64" [(ngModel)]="titleFontSize"
+                        (input)="updateFontStyles('title')" class="w-full">
+                    <span class="block text-right text-sm">{{ titleFontSize }}px</span>
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Color de Título</label>
+                    <input type="color" [(ngModel)]="currentStyles.fonts.title.color" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Fuente de Título</label>
+                    <input type="file" (change)="uploadFont($event, 'title')" accept=".woff2,.woff,.ttf" class="w-full">
+                </div>
+
+                <!-- Subtítulo -->
+                <div class="space-y-2">
+                    <label class="block">Tamaño de Subtítulo</label>
+                    <input type="range" min="14" max="48" [(ngModel)]="subtitleFontSize"
+                        (input)="updateFontStyles('subtitle')" class="w-full">
+                    <span class="block text-right text-sm">{{ subtitleFontSize }}px</span>
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Color de Subtítulo</label>
+                    <input type="color" [(ngModel)]="currentStyles.fonts.subtitle.color" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Fuente de Subtítulo</label>
+                    <input type="file" (change)="uploadFont($event, 'subtitle')" accept=".woff2,.woff,.ttf"
+                        class="w-full">
+                </div>
+
+                <!-- Párrafo -->
+                <div class="space-y-2">
+                    <label class="block">Tamaño de Párrafo</label>
+                    <input type="range" min="10" max="24" [(ngModel)]="paragraphFontSize"
+                        (input)="updateFontStyles('paragraph')" class="w-full">
+                    <span class="block text-right text-sm">{{ paragraphFontSize }}px</span>
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Color de Párrafo</label>
+                    <input type="color" [(ngModel)]="currentStyles.fonts.paragraph.color" (change)="updateStyles()"
+                        class="w-full">
+                </div>
+                <div class="space-y-2">
+                    <label class="block">Fuente de Párrafo</label>
+                    <input type="file" (change)="uploadFont($event, 'paragraph')" accept=".woff2,.woff,.ttf"
+                        class="w-full">
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex justify-end space-x-4">
+            <button (click)="saveCurrentStyles()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Guardar Estilos
+            </button>
+            <button (click)="resetToDefault()" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                Restablecer
+            </button>
+        </div>
+    </div>
+
+    <!-- Presets guardados -->
+    <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-4">Presets Guardados</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div *ngFor="let preset of savedPresets$ | async" class="preset-card">
+                <h3 class="font-semibold">{{ preset.name }}</h3>
+                <div class="flex justify-end space-x-2 mt-2">
+                    <button (click)="loadPreset(preset.id)"
+                        class="px-2 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                        Cargar
+                    </button>
+                    <button (click)="deletePreset(preset.id)"
+                        class="px-2 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
