@@ -15,15 +15,6 @@ import { RouterModule } from '@angular/router';
             <p class="text-gray-400">Somos una empresa dedicada a proporcionar soluciones digitales innovadoras para tu negocio.</p>
           </div>
           <div>
-            <h3 class="text-xl font-bold mb-4">Enlaces Rápidos</h3>
-            <ul class="space-y-2">
-              <li><a routerLink="/" class="text-gray-400 hover:text-white">Inicio</a></li>
-              <li><a routerLink="/services" class="text-gray-400 hover:text-white">Servicios</a></li>
-              <li><a routerLink="/about" class="text-gray-400 hover:text-white">Nosotros</a></li>
-              <li><a routerLink="/contact" class="text-gray-400 hover:text-white">Contacto</a></li>
-            </ul>
-          </div>
-          <div>
             <h3 class="text-xl font-bold mb-4">Contacto</h3>
             <ul class="space-y-2 text-gray-400">
               <li>Email: info&#64;empresa.com</li>
@@ -54,6 +45,9 @@ import { RouterModule } from '@angular/router';
         </div>
         <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
           <p>&copy; 2024 Empresa. Todos los derechos reservados.</p>
+          <p class="mt-2 text-sm">
+            Consulta nuestras <a href="#" class="underline hover:text-white">Políticas de Privacidad</a> y <a href="#" class="underline hover:text-white">Términos Legales</a>.
+          </p>
         </div>
       </div>
     </footer>

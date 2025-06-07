@@ -16,7 +16,7 @@ import { RouterModule } from '@angular/router';
           <a (click)="scrollToSection('inicio')">Inicio</a>
           <a (click)="scrollToSection('servicios')">Servicios</a>
           <a (click)="scrollToSection('contacto')">Contacto</a>
-          <a (click)="scrollToSection('personalizacion')">Personalización</a>
+          <a (click)="scrollToSection('beneficios')">Beneficios</a>
           <a routerLink="/login" routerLinkActive="active">Iniciar Sesión</a>
           <a routerLink="/registro" routerLinkActive="active">Registrarse</a>
         </div>

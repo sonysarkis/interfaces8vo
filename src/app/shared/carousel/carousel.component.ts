@@ -141,19 +141,29 @@ import { CommonModule } from '@angular/common';
 export class CarouselComponent implements OnInit, OnDestroy {
   slides = [
     {
-      image: 'assets/images/slide1.jpg',
-      title: 'Bienvenido a Nuestra Plataforma',
-      description: 'Descubre todas las posibilidades que tenemos para ti'
+      image: 'assets/images/atencion-cliente.png',
+      title: 'Atención al Cliente',
+      description: 'Resolvemos tus dudas y problemas 24/7 para que nunca te detengas.'
     },
     {
-      image: 'assets/images/slide2.jpg',
-      title: 'Soluciones Innovadoras',
-      description: 'Tecnología de vanguardia para tu negocio'
+      image: 'assets/images/innovacion.png',
+      title: 'Innovación Constante',
+      description: 'Siempre implementamos las últimas tecnologías para tu empresa.'
     },
     {
-      image: 'assets/images/slide3.jpg',
-      title: 'Soporte 24/7',
-      description: 'Estamos aquí para ayudarte en todo momento'
+      image: 'assets/images/equipo.png',
+      title: 'Trabajo en Equipo',
+      description: 'Nuestro equipo multidisciplinario impulsa el éxito de tu proyecto.'
+    },
+    {
+      image: 'assets/images/crecimiento.png',
+      title: 'Crecimiento Asegurado',
+      description: 'Te ayudamos a escalar tu negocio y alcanzar nuevos mercados.'
+    },
+    {
+      image: 'assets/images/seguridad.png',
+      title: 'Seguridad y Confianza',
+      description: 'Protegemos tus datos y operaciones con los más altos estándares.'
     }
   ];
 

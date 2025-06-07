@@ -33,8 +33,11 @@ import { FooterComponent } from '../../shared/footer/footer.component';
         <app-services-section></app-services-section>
       </section>
 
-      <section id="personalizacion">
-        <app-carousel></app-carousel>
+      <section id="beneficios" class="benefits-section">
+        <div class="section-content">
+          <h2 class="benefits-title">Beneficios</h2>
+          <app-carousel></app-carousel>
+        </div>
       </section>
 
       <section id="contacto">
@@ -98,6 +101,15 @@ import { FooterComponent } from '../../shared/footer/footer.component';
       p {
         font-size: 1rem;
       }
+    }
+
+    .benefits-title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin: 2rem 0 2rem 0;
+      color: #4f46e5;
+      letter-spacing: 2px;
     }
   `]
 })

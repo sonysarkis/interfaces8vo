@@ -14,15 +14,8 @@ import { RouterModule } from '@angular/router';
           <p>Somos una empresa dedicada a proporcionar soluciones tecnológicas innovadoras para impulsar el crecimiento de tu negocio.</p>
         </div>
 
-        <div class="footer-section">
-          <h3>Enlaces Rápidos</h3>
-          <ul>
-            <li><a routerLink="/">Inicio</a></li>
-            <li><a routerLink="/servicios">Servicios</a></li>
-            <li><a routerLink="/contacto">Contacto</a></li>
-            <li><a routerLink="/personalizacion">Personalización</a></li>
-          </ul>
-        </div>
+
+        
 
         <div class="footer-section">
           <h3>Contacto</h3>
@@ -53,8 +46,15 @@ import { RouterModule } from '@angular/router';
         </div>
       </div>
 
+      
+
+      
+
       <div class="footer-bottom">
         <p>&copy; 2024 Tu Empresa. Todos los derechos reservados.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.95em;">
+          Consulta nuestras <a href="#" style="text-decoration: underline; color: #4f46e5;">Políticas de Privacidad</a> y <a href="#" style="text-decoration: underline; color: #4f46e5;">Términos Legales</a>.
+        </p>
       </div>
     </footer>
   `,
@@ -71,6 +71,8 @@ import { RouterModule } from '@angular/router';
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 2rem;
+      justify-items: center;
+      text-align: center;
     }
 
     .footer-section h3 {
