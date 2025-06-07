@@ -50,8 +50,7 @@ import { FooterComponent } from '../../shared/footer/footer.component';
   styles: [`
     .hero {
       height: 100vh;
-      background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-                  url('/assets/images/hero-bg.jpg') center/cover;
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
       display: flex;
       align-items: center;
       justify-content: center;

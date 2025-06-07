@@ -137,3 +137,19 @@ body {
     font-size: var(--font-paragraph-size);
     color: var(--font-paragraph-color);
 }
+
+.logo-image {
+    height: 48px;
+    /* Ajusta el tamaño del logo */
+    width: 48px;
+    background: #ffffff;
+    /* Fondo blanco */
+    border-radius: 50%;
+    /* Círculo perfecto */
+    padding: 1px;
+    /* Más espacio alrededor del logo */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 2.5px solid #ae00ff;
+    /* Borde oscuro */
+    display: block;
+}

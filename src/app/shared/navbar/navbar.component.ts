@@ -10,7 +10,9 @@ import { RouterModule } from '@angular/router';
     <nav class="navbar">
       <div class="navbar-container">
         <div class="logo">
-          <a (click)="scrollToSection('inicio')">Logo</a>
+          <a (click)="scrollToSection('inicio')" style="display: flex; align-items: center;">
+            <img src="assets/images/logo.png" alt="Logo" class="logo-image" style="height: 60px; width: auto; display: block;" />
+          </a>
         </div>
         <div class="nav-links">
           <a (click)="scrollToSection('inicio')">Inicio</a>
@@ -82,6 +84,12 @@ import { RouterModule } from '@angular/router';
         align-items: center;
         gap: 1rem;
       }
+    }
+
+    .logo-image {
+      height: 60px;
+      width: auto;
+      display: block;
     }
   `]
 })
