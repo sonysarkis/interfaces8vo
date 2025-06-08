@@ -22,13 +22,15 @@ import { CommonModule } from '@angular/common';
   styles: [`
     .services-section {
       padding: 4rem 2rem;
-      background-color: #f9fafb;
+      background-color: var(--color-background);
     }
 
     h2 {
       text-align: center;
-      font-size: 2rem;
-      color: #1f2937;
+      font-size: var(--font-title-size);
+      font-family: var(--font-title-family);
+      font-weight: var(--font-title-weight);
+      color: var(--color-primary);
       margin-bottom: 3rem;
     }
 
@@ -55,18 +57,24 @@ import { CommonModule } from '@angular/common';
 
     .service-icon {
       font-size: 2.5rem;
-      color: #4f46e5;
+      color: var(--color-secondary);
       margin-bottom: 1rem;
     }
 
     h3 {
-      color: #1f2937;
+      color: var(--color-primary);
       margin-bottom: 1rem;
+      font-family: var(--font-subtitle-family);
+      font-size: var(--font-subtitle-size);
+      font-weight: var(--font-subtitle-weight);
     }
 
     p {
-      color: #6b7280;
+      color: var(--color-text);
       line-height: 1.5;
+      font-family: var(--font-body-family);
+      font-size: var(--font-body-size);
+      font-weight: var(--font-body-weight);
     }
   `]
 })

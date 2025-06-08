@@ -10,8 +10,8 @@ import { RouterModule } from '@angular/router';
     <nav class="navbar">
       <div class="navbar-container">
         <div class="logo">
-          <a (click)="scrollToSection('inicio')" style="display: flex; align-items: center;">
-            <img src="assets/images/logo.png" alt="Logo" class="logo-image" style="height: 60px; width: auto; display: block;" />
+          <a (click)="scrollToSection('inicio')" class="logo-text">
+            Landing
           </a>
         </div>
         <div class="nav-links">
@@ -27,7 +27,7 @@ import { RouterModule } from '@angular/router';
   `,
   styles: [`
     .navbar {
-      background-color: #ffffff;
+      background-color: var(--color-background);
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       position: fixed;
       top: 0;
@@ -45,11 +45,18 @@ import { RouterModule } from '@angular/router';
       align-items: center;
     }
 
-    .logo a {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #4f46e5;
+    .logo-text {
+      font-size: var(--font-title-size);
+      font-family: var(--font-title-family);
+      font-weight: var(--font-title-weight);
+      color: var(--color-primary);
       text-decoration: none;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .logo-text:hover {
+      color: var(--color-accent);
     }
 
     .nav-links {
@@ -58,19 +65,21 @@ import { RouterModule } from '@angular/router';
     }
 
     .nav-links a {
-      color: #4b5563;
+      color: var(--color-text);
       text-decoration: none;
       font-weight: 500;
       transition: color 0.2s;
       cursor: pointer;
+      font-family: var(--font-body-family);
+      font-size: var(--font-body-size);
     }
 
     .nav-links a:hover {
-      color: #4f46e5;
+      color: var(--color-accent);
     }
 
     .nav-links a.active {
-      color: #4f46e5;
+      color: var(--color-secondary);
     }
 
     @media (max-width: 768px) {
@@ -84,12 +93,6 @@ import { RouterModule } from '@angular/router';
         align-items: center;
         gap: 1rem;
       }
-    }
-
-    .logo-image {
-      height: 60px;
-      width: auto;
-      display: block;
     }
   `]
 })

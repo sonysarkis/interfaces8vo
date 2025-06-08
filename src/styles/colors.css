@@ -1,0 +1,23 @@
+:root {
+    /* Colores principales */
+    --color-primary: #2C3E50;
+    /* Azul oscuro */
+    --color-secondary: #3498DB;
+    /* Azul claro */
+    --color-accent: #E74C3C;
+    /* Rojo */
+    --color-background: #ECF0F1;
+    /* Gris claro */
+    --color-text: #95A5A6;
+    /* Gris medio */
+
+    /* Variantes de colores */
+    --color-primary-light: #34495E;
+    --color-primary-dark: #1A252F;
+    --color-secondary-light: #5DADE2;
+    --color-secondary-dark: #2980B9;
+    --color-accent-light: #F1948A;
+    --color-accent-dark: #C0392B;
+    --color-background-dark: #BDC3C7;
+    --color-text-dark: #7F8C8D;
+}

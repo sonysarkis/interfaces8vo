@@ -12,10 +12,10 @@ import { FormsModule } from '@angular/forms'; // Necesario para `[(ngModel)]`
     FormsModule
   ],
   template: `
-    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div class="max-w-md w-full space-y-8">
         <div>
-          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 class="mt-6 text-center text-3xl font-extrabold text-primary">
             Crear una cuenta
           </h2>
         </div>
@@ -24,45 +24,72 @@ import { FormsModule } from '@angular/forms'; // Necesario para `[(ngModel)]`
             <div>
               <label for="name" class="sr-only">Nombre completo</label>
               <input id="name" name="name" type="text" required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-text placeholder-text text-primary rounded-t-md focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm"
                 placeholder="Nombre completo" [(ngModel)]="name">
             </div>
             <div>
               <label for="email" class="sr-only">Correo electrónico</label>
               <input id="email" name="email" type="email" required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-text placeholder-text text-primary focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm"
                 placeholder="Correo electrónico" [(ngModel)]="email">
             </div>
             <div>
               <label for="password" class="sr-only">Contraseña</label>
               <input id="password" name="password" type="password" required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-text placeholder-text text-primary focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm"
                 placeholder="Contraseña" [(ngModel)]="password">
             </div>
             <div>
               <label for="confirmPassword" class="sr-only">Confirmar contraseña</label>
               <input id="confirmPassword" name="confirmPassword" type="password" required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-text placeholder-text text-primary rounded-b-md focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm"
                 placeholder="Confirmar contraseña" [(ngModel)]="confirmPassword">
             </div>
           </div>
 
           <div>
             <button type="submit"
-              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-background bg-secondary hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
               Registrarse
             </button>
           </div>
         </form>
         <div class="text-center">
-          <a routerLink="/login" class="font-medium text-blue-600 hover:text-blue-500">
+          <a routerLink="/login" class="font-medium text-secondary hover:text-accent">
             ¿Ya tienes una cuenta? Inicia sesión
           </a>
         </div>
       </div>
     </div>
   `,
-  styles: []
+  styles: [`
+    :host {
+      display: block;
+      font-family: var(--font-body-family);
+    }
+
+    h2 {
+      font-family: var(--font-title-family);
+      font-size: var(--font-title-size);
+      font-weight: var(--font-title-weight);
+    }
+
+    input {
+      font-family: var(--font-body-family);
+      font-size: var(--font-body-size);
+    }
+
+    button {
+      font-family: var(--font-body-family);
+      font-size: var(--font-body-size);
+      font-weight: var(--font-body-weight);
+    }
+
+    a {
+      font-family: var(--font-body-family);
+      font-size: var(--font-body-size);
+    }
+  `]
 })
 export class RegisterComponent {
   name: string = '';

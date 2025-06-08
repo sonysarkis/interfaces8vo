@@ -50,12 +50,12 @@ import { FooterComponent } from '../../shared/footer/footer.component';
   styles: [`
     .hero {
       height: 100vh;
-      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      color: white;
+      color: var(--color-background);
       padding: 0 1rem;
     }
 
@@ -64,20 +64,27 @@ import { FooterComponent } from '../../shared/footer/footer.component';
     }
 
     h1 {
-      font-size: 3rem;
+      font-size: var(--font-title-size);
+      font-family: var(--font-title-family);
+      font-weight: var(--font-title-weight);
       margin-bottom: 1rem;
+      color: var(--color-background);
     }
 
     p {
-      font-size: 1.25rem;
+      font-size: var(--font-body-size);
+      font-family: var(--font-body-family);
+      font-weight: var(--font-body-weight);
       margin-bottom: 2rem;
+      color: var(--color-background);
     }
 
     .cta-button {
       padding: 1rem 2rem;
-      font-size: 1.125rem;
-      background-color: #4f46e5;
-      color: white;
+      font-size: var(--font-body-size);
+      font-family: var(--font-body-family);
+      background-color: var(--color-accent);
+      color: var(--color-background);
       border: none;
       border-radius: 0.375rem;
       cursor: pointer;
@@ -85,29 +92,30 @@ import { FooterComponent } from '../../shared/footer/footer.component';
     }
 
     .cta-button:hover {
-      background-color: #4338ca;
+      background-color: var(--color-secondary);
     }
 
     section {
-      scroll-margin-top: 80px; /* Ajusta este valor según la altura de tu navbar */
+      scroll-margin-top: 80px;
     }
 
     @media (max-width: 768px) {
       h1 {
-        font-size: 2rem;
+        font-size: calc(var(--font-title-size) * 0.8);
       }
 
       p {
-        font-size: 1rem;
+        font-size: calc(var(--font-body-size) * 0.9);
       }
     }
 
     .benefits-title {
       text-align: center;
-      font-size: 2.5rem;
-      font-weight: bold;
+      font-size: var(--font-subtitle-size);
+      font-family: var(--font-subtitle-family);
+      font-weight: var(--font-subtitle-weight);
       margin: 2rem 0 2rem 0;
-      color: #4f46e5;
+      color: var(--color-primary);
       letter-spacing: 2px;
     }
   `]
