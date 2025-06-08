@@ -7,7 +7,7 @@ import { PersonalizationComponent } from './features/personalization/personaliza
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
-  { path: 'registro', component: RegisterComponent },
+  { path: 'register', component: RegisterComponent },
   {
     path: 'personalization',
     component: PersonalizationComponent,

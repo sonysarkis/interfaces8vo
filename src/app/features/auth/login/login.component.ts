@@ -40,7 +40,7 @@ import { RouterModule } from '@angular/router';
         </form>
         <div class="text-center">
           <a routerLink="/register" class="font-medium text-blue-600 hover:text-blue-500">
-            ¿No tienes una cuenta? Regístrate
+            ¿No tienes una cuenta? Regístrate aquí
           </a>
         </div>
       </div>
