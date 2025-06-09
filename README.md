@@ -13,3 +13,13 @@ npm install
 
 
 Ejecutar proyecto: ng serve o npm start
+
+# Ejecucion de aplicacion usando el backend
+
+- Renderizar la app de angular usando "npm run build".
+- Ejecutar el servidor usando node index.js
+
+# Inicialización de la base de datos
+
+- Ingresa tus datos en tu archivo .env
+- Ejecuta el comando node migrate.js

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -79,8 +79,31 @@ export class LoginComponent {
   email: string = '';
   password: string = '';
 
-  onSubmit() {
-    // Implementar lógica de inicio de sesión
-    console.log('Login attempt:', { email: this.email, password: this.password });
+  constructor(private router: Router) {}
+
+  async onSubmit() {
+    const token = localStorage.getItem('token') || '';
+    console.log('Token:', token);
+    try {
+      const res = await fetch('/admin-auth/login', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ email: this.email, password: this.password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error?.error || data.error || JSON.stringify(data));
+        return;
+      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('email', data.email);
+      alert('Login exitoso');
+      this.router.navigate(['/personalization']);
+    } catch (e) {
+      alert('Error de red o del servidor');
+    }
   }
 }

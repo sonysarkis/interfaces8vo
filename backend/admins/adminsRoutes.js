@@ -6,6 +6,7 @@ export function createAdminsRouter() {
     const adminsController = new AdminsController();
 
     adminsRouter.post('/login', adminsController.login);
+    adminsRouter.post('/register', adminsController.register);
     adminsRouter.get('/auth', adminsController.getAuth);
 
     return adminsRouter;

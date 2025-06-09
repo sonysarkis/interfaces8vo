@@ -19,9 +19,14 @@
     "@angular/platform-server": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@angular/ssr": "^20.0.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "zod": "^3.25.56",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

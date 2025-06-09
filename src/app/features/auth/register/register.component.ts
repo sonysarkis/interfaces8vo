@@ -22,12 +22,6 @@ import { FormsModule } from '@angular/forms'; // Necesario para `[(ngModel)]`
         <form class="mt-8 space-y-6" (ngSubmit)="onSubmit()">
           <div class="rounded-md shadow-sm -space-y-px">
             <div>
-              <label for="name" class="sr-only">Nombre completo</label>
-              <input id="name" name="name" type="text" required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-text placeholder-text text-primary rounded-t-md focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm"
-                placeholder="Nombre completo" [(ngModel)]="name">
-            </div>
-            <div>
               <label for="email" class="sr-only">Correo electrónico</label>
               <input id="email" name="email" type="email" required
                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-text placeholder-text text-primary focus:outline-none focus:ring-secondary focus:border-secondary focus:z-10 sm:text-sm"
@@ -99,16 +93,36 @@ export class RegisterComponent {
 
   constructor() { }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.password !== this.confirmPassword) {
       alert('Las contraseñas no coinciden.');
       return;
     }
-    console.log('Register attempt:', {
-      name: this.name,
-      email: this.email,
-      password: this.password
-    });
-    // Aquí iría la lógica para enviar los datos de registro a un servicio
+
+    const token = localStorage.getItem('token') || '';
+    console.log('Token:', token);
+    try {
+      const res = await fetch('/admin-auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: this.email,
+          password: this.password
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error?.error || data.error || JSON.stringify(data));
+        return;
+      }
+      alert('Registro exitoso');
+      // Puedes redirigir o limpiar el formulario aquí
+    } catch (e) {
+      alert('Error de red o del servidor');
+    }
   }
 }

@@ -4,6 +4,26 @@ import jwt from "jsonwebtoken";
 import 'dotenv/config';
 
 class AdminsController {
+    register = async (req, res) => {
+        const authResult = await this.auth(req);
+        if (authResult.valid) {
+            return res.status(400).json({ error: "Cierra la sesión actual para poder registrarte" });
+        }
+        const result = validateLogin(req.body)
+        if (!result.success) {
+            console.log(result.error.message)
+            return res.status(400).json({ error: JSON.parse(result.error.message) })
+        }
+        const admin = result.data    
+        try {
+            const response = await AdminsModel.register({ admin })
+            return res.json(response)
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ error: 'Error al crear el administrador' });
+        }
+    }
+
     login = async (req, res) => {
         const authResult = await this.auth(req);
         if (authResult.valid) {
