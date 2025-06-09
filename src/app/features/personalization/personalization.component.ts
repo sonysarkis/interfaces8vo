@@ -1,10 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 interface SavedStyle {
-  id: string;
   name: string;
   colors: {
     primary: string;
@@ -16,17 +15,17 @@ interface SavedStyle {
   fonts: {
     title: {
       family: string;
-      size: number;
+      size: string;
       weight: string;
     };
     subtitle: {
       family: string;
-      size: number;
+      size: string;
       weight: string;
     };
     body: {
       family: string;
-      size: number;
+      size: string;
       weight: string;
     };
   };
@@ -78,42 +77,56 @@ interface SavedStyle {
               <h2 class="text-xl font-semibold text-primary">Controles de Color</h2>
             </div>
             <div class="p-4 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-text mb-1">Color Primario</label>
+              <div class="control-group">
+                <label class="block text-sm font-medium text-text mb-1">Color 1</label>
                 <div class="flex items-center gap-4">
-                  <input type="color" [(ngModel)]="colors.primary" (change)="updateColors()"
+                  <input 
+                    type="color" 
+                    [(ngModel)]="colors.primary" 
                     class="w-16 h-10 rounded border border-text">
                   <span class="text-sm text-text">{{colors.primary}}</span>
                 </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-text mb-1">Color Secundario</label>
+
+              <div class="control-group">
+                <label class="block text-sm font-medium text-text mb-1">Color 2</label>
                 <div class="flex items-center gap-4">
-                  <input type="color" [(ngModel)]="colors.secondary" (change)="updateColors()"
+                  <input 
+                    type="color" 
+                    [(ngModel)]="colors.secondary" 
                     class="w-16 h-10 rounded border border-text">
                   <span class="text-sm text-text">{{colors.secondary}}</span>
                 </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-text mb-1">Color de Acento</label>
+
+              <div class="control-group">
+                <label class="block text-sm font-medium text-text mb-1">Color 3</label>
                 <div class="flex items-center gap-4">
-                  <input type="color" [(ngModel)]="colors.accent" (change)="updateColors()"
+                  <input 
+                    type="color" 
+                    [(ngModel)]="colors.accent" 
                     class="w-16 h-10 rounded border border-text">
                   <span class="text-sm text-text">{{colors.accent}}</span>
                 </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-text mb-1">Color de Fondo</label>
+
+              <div class="control-group">
+                <label class="block text-sm font-medium text-text mb-1">Color 4</label>
                 <div class="flex items-center gap-4">
-                  <input type="color" [(ngModel)]="colors.background" (change)="updateColors()"
+                  <input 
+                    type="color" 
+                    [(ngModel)]="colors.background" 
                     class="w-16 h-10 rounded border border-text">
                   <span class="text-sm text-text">{{colors.background}}</span>
                 </div>
               </div>
-              <div>
-                <label class="block text-sm font-medium text-text mb-1">Color de Texto</label>
+
+              <div class="control-group">
+                <label class="block text-sm font-medium text-text mb-1">Color 5</label>
                 <div class="flex items-center gap-4">
-                  <input type="color" [(ngModel)]="colors.text" (change)="updateColors()"
+                  <input 
+                    type="color" 
+                    [(ngModel)]="colors.text" 
                     class="w-16 h-10 rounded border border-text">
                   <span class="text-sm text-text">{{colors.text}}</span>
                 </div>
@@ -127,33 +140,88 @@ interface SavedStyle {
               <h2 class="text-xl font-semibold text-primary">Controles de Tipografía</h2>
             </div>
             
+            <!-- Subir Tipografía -->
+            <div class="p-4 border-t border-text">
+              <h3 class="text-lg font-medium text-primary mb-3">Subir Tipografía</h3>
+              <div class="space-y-4">
+                <div class="flex items-center gap-4">
+                  <input 
+                    type="file" 
+                    accept=".ttf"
+                    (change)="onFontFileSelected($event)"
+                    class="hidden"
+                    #fontFileInput>
+                  <button 
+                    (click)="fontFileInput.click()"
+                    class="bg-primary text-background px-4 py-2 rounded hover:bg-opacity-80">
+                    Seleccionar Archivo TTF
+                  </button>
+                  <span *ngIf="selectedFontFile" class="text-sm text-text">
+                    {{selectedFontFile.name}}
+                  </span>
+                </div>
+                <div *ngIf="selectedFontFile" class="flex gap-2">
+                  <button 
+                    (click)="uploadFont()"
+                    class="bg-secondary text-background px-4 py-2 rounded hover:bg-opacity-80">
+                    Subir Tipografía
+                  </button>
+                  <button 
+                    (click)="cancelFontUpload()"
+                    class="bg-accent text-background px-4 py-2 rounded hover:bg-opacity-80">
+                    Cancelar
+                  </button>
+                </div>
+                <div *ngIf="uploadedFonts.length > 0" class="mt-4">
+                  <h4 class="text-sm font-medium text-primary mb-2">Tipografías Subidas:</h4>
+                  <div class="space-y-2">
+                    <div *ngFor="let font of uploadedFonts" 
+                         class="flex items-center justify-between p-2 bg-background rounded">
+                      <span class="text-sm text-text">{{font.name}}</span>
+                      <button 
+                        (click)="deleteFont(font)"
+                        class="text-accent hover:text-opacity-80">
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Título -->
             <div class="p-4 border-t border-text">
               <h3 class="text-lg font-medium text-primary mb-2">Título</h3>
               <div class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Fuente</label>
-                  <select [(ngModel)]="fonts.title.family" (change)="updateFonts()"
+                  <select 
+                    [(ngModel)]="fonts.title.family" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
-                    <option value="Inter">Inter</option>
-                    <option value="Roboto">Roboto</option>
-                    <option value="Open Sans">Open Sans</option>
-                    <option value="Poppins">Poppins</option>
-                    <option value="Montserrat">Montserrat</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Tamaño (px)</label>
                   <div class="flex items-center gap-4">
-                    <input type="range" [(ngModel)]="fonts.title.size" (change)="updateFonts()"
-                      min="24" max="48" step="1"
+                    <input 
+                      type="range" 
+                      [(ngModel)]="fonts.title.size" 
+                      min="24" 
+                      max="48" 
+                      step="1"
                       class="flex-1">
                     <span class="text-sm text-text w-16">{{fonts.title.size}}px</span>
                   </div>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Peso de la Fuente</label>
-                  <select [(ngModel)]="fonts.title.weight" (change)="updateFonts()"
+                  <select 
+                    [(ngModel)]="fonts.title.weight" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="400">Regular (400)</option>
                     <option value="500">Medium (500)</option>
@@ -170,27 +238,33 @@ interface SavedStyle {
               <div class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Fuente</label>
-                  <select [(ngModel)]="fonts.subtitle.family" (change)="updateFonts()"
+                  <select 
+                    [(ngModel)]="fonts.subtitle.family" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
-                    <option value="Inter">Inter</option>
-                    <option value="Roboto">Roboto</option>
-                    <option value="Open Sans">Open Sans</option>
-                    <option value="Poppins">Poppins</option>
-                    <option value="Montserrat">Montserrat</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Tamaño (px)</label>
                   <div class="flex items-center gap-4">
-                    <input type="range" [(ngModel)]="fonts.subtitle.size" (change)="updateFonts()"
-                      min="18" max="32" step="1"
+                    <input 
+                      type="range" 
+                      [(ngModel)]="fonts.subtitle.size" 
+                      min="18" 
+                      max="32" 
+                      step="1"
                       class="flex-1">
                     <span class="text-sm text-text w-16">{{fonts.subtitle.size}}px</span>
                   </div>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Peso de la Fuente</label>
-                  <select [(ngModel)]="fonts.subtitle.weight" (change)="updateFonts()"
+                  <select 
+                    [(ngModel)]="fonts.subtitle.weight" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="400">Regular (400)</option>
                     <option value="500">Medium (500)</option>
@@ -207,27 +281,33 @@ interface SavedStyle {
               <div class="space-y-3">
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Fuente</label>
-                  <select [(ngModel)]="fonts.body.family" (change)="updateFonts()"
+                  <select 
+                    [(ngModel)]="fonts.body.family" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
-                    <option value="Inter">Inter</option>
-                    <option value="Roboto">Roboto</option>
-                    <option value="Open Sans">Open Sans</option>
-                    <option value="Poppins">Poppins</option>
-                    <option value="Montserrat">Montserrat</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Tamaño (px)</label>
                   <div class="flex items-center gap-4">
-                    <input type="range" [(ngModel)]="fonts.body.size" (change)="updateFonts()"
-                      min="12" max="20" step="1"
+                    <input 
+                      type="range" 
+                      [(ngModel)]="fonts.body.size" 
+                      min="12" 
+                      max="20" 
+                      step="1"
                       class="flex-1">
                     <span class="text-sm text-text w-16">{{fonts.body.size}}px</span>
                   </div>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Peso de la Fuente</label>
-                  <select [(ngModel)]="fonts.body.weight" (change)="updateFonts()"
+                  <select 
+                    [(ngModel)]="fonts.body.weight" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="400">Regular (400)</option>
                     <option value="500">Medium (500)</option>
@@ -255,7 +335,7 @@ interface SavedStyle {
                       class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary"
                       placeholder="Ej: Tema Oscuro">
                   </div>
-                  <button (click)="saveCurrentStyle()"
+                  <button (click)="saveStyle()"
                     class="w-full bg-primary text-background px-4 py-2 rounded hover:bg-opacity-80">
                     Guardar Estilo
                   </button>
@@ -277,7 +357,7 @@ interface SavedStyle {
                         class="px-3 py-1 bg-secondary text-background rounded hover:bg-opacity-80 text-sm">
                         Aplicar
                       </button>
-                      <button (click)="deleteStyle(style.id)"
+                      <button (click)="deleteStyle(style)"
                         class="px-3 py-1 bg-accent text-background rounded hover:bg-opacity-80 text-sm">
                         Eliminar
                       </button>
@@ -301,23 +381,35 @@ interface SavedStyle {
         </div>
 
         <!-- Panel de Vista Previa -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-          <div class="p-4 border-b border-text">
-            <h2 class="text-xl font-semibold text-primary">Vista Previa</h2>
-          </div>
-          <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+        <div [style.background-color]="colors.background" class="rounded-lg p-4 overflow-y-auto">
+          <div [ngStyle]="{
+            '--color-primary': colors.primary,
+            '--color-secondary': colors.secondary,
+            '--color-accent': colors.accent,
+            '--color-background': colors.background,
+            '--color-text': colors.text,
+            '--font-title-family': fonts.title.family,
+            '--font-title-size': fonts.title.size + 'px',
+            '--font-title-weight': fonts.title.weight,
+            '--font-subtitle-family': fonts.subtitle.family,
+            '--font-subtitle-size': fonts.subtitle.size + 'px',
+            '--font-subtitle-weight': fonts.subtitle.weight,
+            '--font-body-family': fonts.body.family,
+            '--font-body-size': fonts.body.size + 'px',
+            '--font-body-weight': fonts.body.weight
+          }" class="preview-content">
             <!-- Tipografía -->
             <div class="mb-6">
-              <h3 class="text-lg font-medium text-primary mb-3">Tipografía</h3>
+              <h3 [style.color]="colors.primary" class="text-lg font-medium mb-3">Tipografía</h3>
               <div class="space-y-4">
                 <div>
                   <h1 [style.font-family]="fonts.title.family"
                       [style.font-size.px]="fonts.title.size"
                       [style.font-weight]="fonts.title.weight"
-                      class="text-primary">
+                      [style.color]="colors.primary">
                     Título Principal
                   </h1>
-                  <p class="text-sm text-text mt-1">
+                  <p [style.color]="colors.text" class="text-sm mt-1">
                     Fuente: {{fonts.title.family}} | Tamaño: {{fonts.title.size}}px | Peso: {{fonts.title.weight}}
                   </p>
                 </div>
@@ -325,10 +417,10 @@ interface SavedStyle {
                   <h2 [style.font-family]="fonts.subtitle.family"
                       [style.font-size.px]="fonts.subtitle.size"
                       [style.font-weight]="fonts.subtitle.weight"
-                      class="text-primary">
+                      [style.color]="colors.primary">
                     Subtítulo
                   </h2>
-                  <p class="text-sm text-text mt-1">
+                  <p [style.color]="colors.text" class="text-sm mt-1">
                     Fuente: {{fonts.subtitle.family}} | Tamaño: {{fonts.subtitle.size}}px | Peso: {{fonts.subtitle.weight}}
                   </p>
                 </div>
@@ -336,10 +428,10 @@ interface SavedStyle {
                   <p [style.font-family]="fonts.body.family"
                      [style.font-size.px]="fonts.body.size"
                      [style.font-weight]="fonts.body.weight"
-                     class="text-text">
+                     [style.color]="colors.text">
                     Este es un párrafo de texto normal. Aquí puedes ver cómo se ve el texto con la fuente, tamaño y peso seleccionados.
                   </p>
-                  <p class="text-sm text-text mt-1">
+                  <p [style.color]="colors.text" class="text-sm mt-1">
                     Fuente: {{fonts.body.family}} | Tamaño: {{fonts.body.size}}px | Peso: {{fonts.body.weight}}
                   </p>
                 </div>
@@ -350,14 +442,31 @@ interface SavedStyle {
             <div class="space-y-6">
               <!-- Navbar -->
               <div>
-                <h3 class="text-lg font-medium text-primary mb-3">Navbar</h3>
-                <nav class="bg-primary p-4 rounded-lg">
+                <h3 [style.color]="colors.primary" class="text-lg font-medium mb-3">Navbar</h3>
+                <nav [style.background-color]="colors.primary" class="p-4 rounded-lg">
                   <div class="flex justify-between items-center">
-                    <div class="text-background font-bold">Logo</div>
+                    <div [style.font-family]="fonts.title.family"
+                         [style.font-size.px]="fonts.title.size"
+                         [style.font-weight]="fonts.title.weight"
+                         [style.color]="colors.background">
+                      Logo
+                    </div>
                     <div class="flex space-x-4">
-                      <a class="text-background hover:text-accent">Inicio</a>
-                      <a class="text-background hover:text-accent">Servicios</a>
-                      <button class="bg-accent text-background px-4 py-2 rounded hover:bg-opacity-80">
+                      <a [style.color]="colors.background" 
+                         [style.font-family]="fonts.body.family"
+                         [style.font-size.px]="fonts.body.size"
+                         [style.hover-color]="colors.accent"
+                         class="hover:opacity-80">Inicio</a>
+                      <a [style.color]="colors.background"
+                         [style.font-family]="fonts.body.family"
+                         [style.font-size.px]="fonts.body.size"
+                         [style.hover-color]="colors.accent"
+                         class="hover:opacity-80">Servicios</a>
+                      <button [style.background-color]="colors.accent"
+                              [style.color]="colors.background"
+                              [style.font-family]="fonts.body.family"
+                              [style.font-size.px]="fonts.body.size"
+                              class="px-4 py-2 rounded hover:opacity-80">
                         Login
                       </button>
                     </div>
@@ -367,15 +476,27 @@ interface SavedStyle {
 
               <!-- Botones -->
               <div>
-                <h3 class="text-lg font-medium text-primary mb-3">Botones</h3>
+                <h3 [style.color]="colors.primary" class="text-lg font-medium mb-3">Botones</h3>
                 <div class="flex flex-wrap gap-4">
-                  <button class="bg-primary text-background px-4 py-2 rounded hover:bg-opacity-80">
+                  <button [style.background-color]="colors.primary"
+                          [style.color]="colors.background"
+                          [style.font-family]="fonts.body.family"
+                          [style.font-size.px]="fonts.body.size"
+                          class="px-4 py-2 rounded hover:opacity-80">
                     Botón Primario
                   </button>
-                  <button class="bg-secondary text-background px-4 py-2 rounded hover:bg-opacity-80">
+                  <button [style.background-color]="colors.secondary"
+                          [style.color]="colors.background"
+                          [style.font-family]="fonts.body.family"
+                          [style.font-size.px]="fonts.body.size"
+                          class="px-4 py-2 rounded hover:opacity-80">
                     Botón Secundario
                   </button>
-                  <button class="bg-accent text-background px-4 py-2 rounded hover:bg-opacity-80">
+                  <button [style.background-color]="colors.accent"
+                          [style.color]="colors.background"
+                          [style.font-family]="fonts.body.family"
+                          [style.font-size.px]="fonts.body.size"
+                          class="px-4 py-2 rounded hover:opacity-80">
                     Botón de Acento
                   </button>
                 </div>
@@ -383,35 +504,70 @@ interface SavedStyle {
 
               <!-- Formulario -->
               <div>
-                <h3 class="text-lg font-medium text-primary mb-3">Formulario</h3>
-                <div class="space-y-4">
+                <h3 [style.color]="colors.primary" class="text-lg font-medium mb-3">Formulario</h3>
+                <div [style.background-color]="colors.background" class="p-4 rounded-lg space-y-4">
                   <div>
-                    <label class="block text-sm font-medium text-text mb-1">Campo de Texto</label>
+                    <label [style.font-family]="fonts.body.family"
+                           [style.font-size.px]="fonts.body.size"
+                           [style.color]="colors.text"
+                           class="block mb-1">Campo de Texto</label>
                     <input type="text" 
-                      class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary"
-                      placeholder="Escribe algo...">
+                           [style.font-family]="fonts.body.family"
+                           [style.font-size.px]="fonts.body.size"
+                           [style.color]="colors.text"
+                           [style.background-color]="colors.background"
+                           [style.border-color]="colors.text"
+                           class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                           [style.focus-ring-color]="colors.secondary"
+                           placeholder="Escribe algo...">
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-text mb-1">Área de Texto</label>
-                    <textarea 
-                      class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary"
-                      rows="3"
-                      placeholder="Escribe un mensaje..."></textarea>
+                    <label [style.font-family]="fonts.body.family"
+                           [style.font-size.px]="fonts.body.size"
+                           [style.color]="colors.text"
+                           class="block mb-1">Área de Texto</label>
+                    <textarea [style.font-family]="fonts.body.family"
+                              [style.font-size.px]="fonts.body.size"
+                              [style.color]="colors.text"
+                              [style.background-color]="colors.background"
+                              [style.border-color]="colors.text"
+                              class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                              [style.focus-ring-color]="colors.secondary"
+                              rows="3"
+                              placeholder="Escribe un mensaje..."></textarea>
                   </div>
                 </div>
               </div>
 
               <!-- Tarjetas -->
               <div>
-                <h3 class="text-lg font-medium text-primary mb-3">Tarjetas</h3>
+                <h3 [style.color]="colors.primary" class="text-lg font-medium mb-3">Tarjetas</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="border border-text rounded-lg p-4">
-                    <h3 class="text-lg font-semibold text-primary mb-2">Tarjeta de Contenido</h3>
-                    <p class="text-text">Este es un ejemplo de cómo se verá el contenido en una tarjeta con los colores seleccionados.</p>
+                  <div [style.border-color]="colors.text" 
+                       [style.background-color]="colors.background"
+                       class="border rounded-lg p-4">
+                    <h3 [style.font-family]="fonts.subtitle.family"
+                        [style.font-size.px]="fonts.subtitle.size"
+                        [style.font-weight]="fonts.subtitle.weight"
+                        [style.color]="colors.primary"
+                        class="mb-2">Tarjeta de Contenido</h3>
+                    <p [style.font-family]="fonts.body.family"
+                       [style.font-size.px]="fonts.body.size"
+                       [style.color]="colors.text">
+                      Este es un ejemplo de cómo se verá el contenido en una tarjeta con los colores seleccionados.
+                    </p>
                   </div>
-                  <div class="bg-primary rounded-lg p-4">
-                    <h3 class="text-lg font-semibold text-background mb-2">Tarjeta Invertida</h3>
-                    <p class="text-background">Esta tarjeta usa el color primario como fondo y texto claro.</p>
+                  <div [style.background-color]="colors.primary" class="rounded-lg p-4">
+                    <h3 [style.font-family]="fonts.subtitle.family"
+                        [style.font-size.px]="fonts.subtitle.size"
+                        [style.font-weight]="fonts.subtitle.weight"
+                        [style.color]="colors.background"
+                        class="mb-2">Tarjeta Invertida</h3>
+                    <p [style.font-family]="fonts.body.family"
+                       [style.font-size.px]="fonts.body.size"
+                       [style.color]="colors.background">
+                      Esta tarjeta usa el color primario como fondo y texto claro.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -437,10 +593,13 @@ interface SavedStyle {
     }
   `]
 })
-export class PersonalizationComponent {
+export class PersonalizationComponent implements OnInit {
   activeTab: 'colors' | 'typography' | 'saved' = 'colors';
   newStyleName: string = '';
   savedStyles: SavedStyle[] = [];
+  previewStyles: string = '';
+  selectedFontFile: File | null = null;
+  uploadedFonts: { name: string; url: string }[] = [];
 
   colors = {
     primary: '#2C3E50',
@@ -453,56 +612,29 @@ export class PersonalizationComponent {
   fonts = {
     title: {
       family: 'Inter',
-      size: 36,
+      size: '36px',
       weight: '700'
     },
     subtitle: {
       family: 'Inter',
-      size: 24,
+      size: '24px',
       weight: '600'
     },
     body: {
       family: 'Inter',
-      size: 16,
+      size: '16px',
       weight: '400'
     }
   };
 
-  updateColors() {
-    const root = document.documentElement;
-    root.style.setProperty('--color-primary', this.colors.primary);
-    root.style.setProperty('--color-secondary', this.colors.secondary);
-    root.style.setProperty('--color-accent', this.colors.accent);
-    root.style.setProperty('--color-background', this.colors.background);
-    root.style.setProperty('--color-text', this.colors.text);
+  ngOnInit() {
+    this.loadSavedStyles();
   }
 
-  updateFonts() {
-    const root = document.documentElement;
-    // Actualizar fuentes
-    root.style.setProperty('--font-title-family', this.fonts.title.family);
-    root.style.setProperty('--font-subtitle-family', this.fonts.subtitle.family);
-    root.style.setProperty('--font-body-family', this.fonts.body.family);
-
-    // Actualizar tamaños
-    root.style.setProperty('--font-title-size', `${this.fonts.title.size}px`);
-    root.style.setProperty('--font-subtitle-size', `${this.fonts.subtitle.size}px`);
-    root.style.setProperty('--font-body-size', `${this.fonts.body.size}px`);
-
-    // Actualizar pesos
-    root.style.setProperty('--font-title-weight', this.fonts.title.weight);
-    root.style.setProperty('--font-subtitle-weight', this.fonts.subtitle.weight);
-    root.style.setProperty('--font-body-weight', this.fonts.body.weight);
-  }
-
-  saveCurrentStyle() {
-    if (!this.newStyleName.trim()) {
-      alert('Por favor, ingresa un nombre para el estilo');
-      return;
-    }
+  saveStyle() {
+    if (!this.newStyleName) return;
 
     const newStyle: SavedStyle = {
-      id: Date.now().toString(),
       name: this.newStyleName,
       colors: { ...this.colors },
       fonts: {
@@ -513,10 +645,8 @@ export class PersonalizationComponent {
     };
 
     this.savedStyles.push(newStyle);
+    this.saveToLocalStorage();
     this.newStyleName = '';
-
-    // Guardar en localStorage
-    localStorage.setItem('savedStyles', JSON.stringify(this.savedStyles));
   }
 
   applyStyle(style: SavedStyle) {
@@ -526,22 +656,125 @@ export class PersonalizationComponent {
       subtitle: { ...style.fonts.subtitle },
       body: { ...style.fonts.body }
     };
-    this.updateColors();
-    this.updateFonts();
   }
 
-  deleteStyle(id: string) {
+  deleteStyle(style: SavedStyle) {
     if (confirm('¿Estás seguro de que deseas eliminar este estilo?')) {
-      this.savedStyles = this.savedStyles.filter(style => style.id !== id);
-      localStorage.setItem('savedStyles', JSON.stringify(this.savedStyles));
+      this.savedStyles = this.savedStyles.filter(s => s.name !== style.name);
+      this.saveToLocalStorage();
     }
   }
 
-  ngOnInit() {
-    // Cargar estilos guardados del localStorage
-    const savedStyles = localStorage.getItem('savedStyles');
-    if (savedStyles) {
-      this.savedStyles = JSON.parse(savedStyles);
+  private loadSavedStyles() {
+    const saved = localStorage.getItem('savedStyles');
+    if (saved) {
+      this.savedStyles = JSON.parse(saved);
+    }
+  }
+
+  private saveToLocalStorage() {
+    localStorage.setItem('savedStyles', JSON.stringify(this.savedStyles));
+  }
+
+  onFontFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.type === 'font/ttf' || file.name.endsWith('.ttf')) {
+        this.selectedFontFile = file;
+      } else {
+        alert('Por favor, selecciona un archivo TTF válido');
+        input.value = '';
+      }
+    }
+  }
+
+  uploadFont() {
+    if (!this.selectedFontFile) return;
+
+    // Crear un nombre único para la fuente
+    const fontName = this.selectedFontFile.name.replace('.ttf', '');
+
+    // Crear una URL para la fuente
+    const fontUrl = URL.createObjectURL(this.selectedFontFile);
+
+    // Agregar la fuente a la lista de fuentes subidas
+    this.uploadedFonts.push({
+      name: fontName,
+      url: fontUrl
+    });
+
+    // Agregar la fuente a las opciones de selección
+    this.addFontToSelectOptions(fontName);
+
+    // Limpiar la selección
+    this.selectedFontFile = null;
+  }
+
+  cancelFontUpload() {
+    this.selectedFontFile = null;
+  }
+
+  deleteFont(font: { name: string; url: string }) {
+    // Revocar la URL del objeto
+    URL.revokeObjectURL(font.url);
+
+    // Eliminar la fuente de la lista
+    this.uploadedFonts = this.uploadedFonts.filter(f => f.name !== font.name);
+
+    // Eliminar la fuente de las opciones de selección
+    this.removeFontFromSelectOptions(font.name);
+  }
+
+  private addFontToSelectOptions(fontName: string) {
+    // Agregar la fuente a las opciones de selección de título
+    const titleSelect = document.querySelector('select[ng-model="fonts.title.family"]') as HTMLSelectElement;
+    if (titleSelect) {
+      const option = document.createElement('option');
+      option.value = fontName;
+      option.textContent = fontName;
+      titleSelect.appendChild(option);
+    }
+
+    // Agregar la fuente a las opciones de selección de subtítulo
+    const subtitleSelect = document.querySelector('select[ng-model="fonts.subtitle.family"]') as HTMLSelectElement;
+    if (subtitleSelect) {
+      const option = document.createElement('option');
+      option.value = fontName;
+      option.textContent = fontName;
+      subtitleSelect.appendChild(option);
+    }
+
+    // Agregar la fuente a las opciones de selección de texto
+    const bodySelect = document.querySelector('select[ng-model="fonts.body.family"]') as HTMLSelectElement;
+    if (bodySelect) {
+      const option = document.createElement('option');
+      option.value = fontName;
+      option.textContent = fontName;
+      bodySelect.appendChild(option);
+    }
+  }
+
+  private removeFontFromSelectOptions(fontName: string) {
+    // Eliminar la fuente de las opciones de selección de título
+    const titleSelect = document.querySelector('select[ng-model="fonts.title.family"]') as HTMLSelectElement;
+    if (titleSelect) {
+      const option = titleSelect.querySelector(`option[value="${fontName}"]`);
+      if (option) option.remove();
+    }
+
+    // Eliminar la fuente de las opciones de selección de subtítulo
+    const subtitleSelect = document.querySelector('select[ng-model="fonts.subtitle.family"]') as HTMLSelectElement;
+    if (subtitleSelect) {
+      const option = subtitleSelect.querySelector(`option[value="${fontName}"]`);
+      if (option) option.remove();
+    }
+
+    // Eliminar la fuente de las opciones de selección de texto
+    const bodySelect = document.querySelector('select[ng-model="fonts.body.family"]') as HTMLSelectElement;
+    if (bodySelect) {
+      const option = bodySelect.querySelector(`option[value="${fontName}"]`);
+      if (option) option.remove();
     }
   }
 }
