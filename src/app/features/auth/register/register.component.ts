@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Necesario para directivas comunes de Angular
-import { RouterModule } from '@angular/router'; // Necesario para `routerLink`
+import { RouterModule, Router } from '@angular/router'; // Necesario para `routerLink`
 import { FormsModule } from '@angular/forms'; // Necesario para `[(ngModel)]`
 
 @Component({
@@ -91,7 +91,7 @@ export class RegisterComponent {
   password: string = '';
   confirmPassword: string = '';
 
-  constructor() { }
+  constructor(private router: Router) {}
 
   async onSubmit(): Promise<void> {
     if (this.password !== this.confirmPassword) {
@@ -120,6 +120,7 @@ export class RegisterComponent {
         return;
       }
       alert('Registro exitoso');
+      this.router.navigate(['/personalization']);
       // Puedes redirigir o limpiar el formulario aquí
     } catch (e) {
       alert('Error de red o del servidor');
