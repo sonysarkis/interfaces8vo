@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -19,8 +19,14 @@ import { RouterModule } from '@angular/router';
           <a (click)="scrollToSection('servicios')">Servicios</a>
           <a (click)="scrollToSection('contacto')">Contacto</a>
           <a (click)="scrollToSection('beneficios')">Beneficios</a>
-          <a routerLink="/login" routerLinkActive="active">Iniciar Sesión</a>
-          <a routerLink="/registro" routerLinkActive="active">Registrarse</a>
+          <ng-container *ngIf="!isLoggedIn; else logged">
+            <a routerLink="/login" routerLinkActive="active">Iniciar Sesión</a>
+            <a routerLink="/registro" routerLinkActive="active">Registrarse</a>
+          </ng-container>
+          <ng-template #logged>
+            <a routerLink="/personalization" routerLinkActive="active">Personalización</a>
+            <button class="logout-btn" (click)="logout()">Cerrar sesión</button>
+          </ng-template>
         </div>
       </div>
     </nav>
@@ -64,7 +70,7 @@ import { RouterModule } from '@angular/router';
       gap: 1.5rem;
     }
 
-    .nav-links a {
+    .nav-links a, .nav-links button {
       color: var(--color-text);
       text-decoration: none;
       font-weight: 500;
@@ -72,14 +78,32 @@ import { RouterModule } from '@angular/router';
       cursor: pointer;
       font-family: var(--font-body-family);
       font-size: var(--font-body-size);
+      background: none;
+      border: none;
+      padding: 0;
     }
 
-    .nav-links a:hover {
+    .nav-links a:hover, .nav-links button:hover {
       color: var(--color-accent);
     }
 
     .nav-links a.active {
       color: var(--color-secondary);
+    }
+
+    .logout-btn {
+      color: var(--color-text);
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body-family);
+      font-size: var(--font-body-size);
+      transition: color 0.2s;
+    }
+
+    .logout-btn:hover {
+      color: var(--color-accent);
     }
 
     @media (max-width: 768px) {
@@ -97,10 +121,30 @@ import { RouterModule } from '@angular/router';
   `]
 })
 export class NavbarComponent {
+  isLoggedIn = false;
+
+  constructor(private router: Router) {}
+
+  ngOnInit() {
+    this.checkLogin();
+    window.addEventListener('storage', () => this.checkLogin());
+  }
+
+  checkLogin() {
+    this.isLoggedIn = !!localStorage.getItem('token');
+  }
+
+  logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('email');
+    this.isLoggedIn = false;
+    this.router.navigate(['/']);
+  }
+
   scrollToSection(sectionId: string) {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   }
-} 
+}
