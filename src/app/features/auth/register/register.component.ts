@@ -120,7 +120,7 @@ export class RegisterComponent {
         return;
       }
       alert('Registro exitoso');
-      this.router.navigate(['/personalization']);
+      this.router.navigate(['/login']);
       // Puedes redirigir o limpiar el formulario aquí
     } catch (e) {
       alert('Error de red o del servidor');
