@@ -1,5 +1,7 @@
 import { validateStyle } from "./stylesValidate.js";
 import { StylesModel } from "./stylesModel.js";
+import fs from 'fs';
+import path from 'path';
 
 class StylesController {
     create = async (req, res) => {
@@ -62,6 +64,35 @@ class StylesController {
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Error al obtener el estilo seleccionado' });
+        }
+    }
+    
+    uploadFont = async (req, res) => {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No se ha subido ningún archivo' });
+        }
+        try {
+            // Ruta destino para guardar la fuente
+            const fontsDir = path.resolve('dist/application/browser/fonts');
+            // Crear el directorio si no existe
+            if (!fs.existsSync(fontsDir)) {
+                fs.mkdirSync(fontsDir, { recursive: true });
+            }
+            // Ruta final del archivo
+            const destPath = path.join(fontsDir, req.file.originalname);
+            // Mover el archivo subido a la carpeta de fuentes
+            fs.renameSync(req.file.path, destPath);
+    
+            return res.json({
+                message: 'Archivo subido correctamente',
+                file: {
+                    name: req.file.originalname,
+                    path: `fonts/${req.file.originalname}`
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: error.message });
         }
     }
 }

@@ -859,24 +859,49 @@ export class PersonalizationComponent implements OnInit {
     }
   }
 
-  uploadFont() {
+  async uploadFont() {
     if (!this.selectedFontFile) return;
-
-    // Crear un nombre único para la fuente
-    const fontName = this.selectedFontFile.name.replace('.ttf', '');
-
-    // Crear una URL para la fuente
-    const fontUrl = URL.createObjectURL(this.selectedFontFile);
-
-    // Agregar la fuente a la lista de fuentes subidas
-    this.uploadedFonts.push({
-      name: fontName,
-      url: fontUrl
-    });
-
-    // Agregar la fuente a las opciones de selección
-    this.addFontToSelectOptions(fontName);
-
+  
+    const formData = new FormData();
+    formData.append('file', this.selectedFontFile);
+  
+    try {
+      const res = await fetch('/styles/upload-font', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.error || 'No se pudo subir la fuente.',
+          confirmButtonColor: '#e11d48'
+        });
+        return;
+      }
+  
+      // Agregar la fuente a la lista de fuentes subidas
+      this.uploadedFonts.push({
+        name: data.file.name,
+        url: data.file.path
+      });
+  
+      await Swal.fire({
+        icon: 'success',
+        title: 'Fuente subida',
+        text: 'La fuente se subió correctamente.',
+        confirmButtonColor: '#6366f1'
+      });
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de red',
+        text: 'No se pudo conectar con el servidor.',
+        confirmButtonColor: '#e11d48'
+      });
+    }
+  
     // Limpiar la selección
     this.selectedFontFile = null;
   }
@@ -891,60 +916,5 @@ export class PersonalizationComponent implements OnInit {
 
     // Eliminar la fuente de la lista
     this.uploadedFonts = this.uploadedFonts.filter(f => f.name !== font.name);
-
-    // Eliminar la fuente de las opciones de selección
-    this.removeFontFromSelectOptions(font.name);
-  }
-
-  private addFontToSelectOptions(fontName: string) {
-    // Agregar la fuente a las opciones de selección de título
-    const titleSelect = document.querySelector('select[ng-model="fonts.title.family"]') as HTMLSelectElement;
-    if (titleSelect) {
-      const option = document.createElement('option');
-      option.value = fontName;
-      option.textContent = fontName;
-      titleSelect.appendChild(option);
-    }
-
-    // Agregar la fuente a las opciones de selección de subtítulo
-    const subtitleSelect = document.querySelector('select[ng-model="fonts.subtitle.family"]') as HTMLSelectElement;
-    if (subtitleSelect) {
-      const option = document.createElement('option');
-      option.value = fontName;
-      option.textContent = fontName;
-      subtitleSelect.appendChild(option);
-    }
-
-    // Agregar la fuente a las opciones de selección de texto
-    const bodySelect = document.querySelector('select[ng-model="fonts.body.family"]') as HTMLSelectElement;
-    if (bodySelect) {
-      const option = document.createElement('option');
-      option.value = fontName;
-      option.textContent = fontName;
-      bodySelect.appendChild(option);
-    }
-  }
-
-  private removeFontFromSelectOptions(fontName: string) {
-    // Eliminar la fuente de las opciones de selección de título
-    const titleSelect = document.querySelector('select[ng-model="fonts.title.family"]') as HTMLSelectElement;
-    if (titleSelect) {
-      const option = titleSelect.querySelector(`option[value="${fontName}"]`);
-      if (option) option.remove();
-    }
-
-    // Eliminar la fuente de las opciones de selección de subtítulo
-    const subtitleSelect = document.querySelector('select[ng-model="fonts.subtitle.family"]') as HTMLSelectElement;
-    if (subtitleSelect) {
-      const option = subtitleSelect.querySelector(`option[value="${fontName}"]`);
-      if (option) option.remove();
-    }
-
-    // Eliminar la fuente de las opciones de selección de texto
-    const bodySelect = document.querySelector('select[ng-model="fonts.body.family"]') as HTMLSelectElement;
-    if (bodySelect) {
-      const option = bodySelect.querySelector(`option[value="${fontName}"]`);
-      if (option) option.remove();
-    }
   }
 }
