@@ -167,3 +167,25 @@ body {
     /* Borde oscuro */
     display: block;
 }
+
+.swal2-confirm {
+    background-color: #8000ff !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.swal2-confirm:hover {
+    background-color: #5a00b2 !important;
+    color: #fff !important;
+}
+
+.swal2-cancel {
+    background-color: #8000ff !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.swal2-cancel:hover {
+    background-color: #5a00b2 !important;
+    color: #fff !important;
+}
