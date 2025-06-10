@@ -28,12 +28,12 @@ class StylesController {
     }
 
     delete = async (req, res) => {
-        const { id } = req.params;
-        if (!id) {
-            return res.status(400).json({ error: 'ID del estilo es requerido' });
+        const { name } = req.body;
+        if (!name) {
+            return res.status(400).json({ error: 'El nombre del estilo es requerido' });
         }
         try {
-            const response = await StylesModel.delete(id);
+            const response = await StylesModel.destroy({ name: name });
             return res.json(response);
         } catch (error) {
             console.error(error);

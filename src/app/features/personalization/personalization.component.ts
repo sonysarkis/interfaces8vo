@@ -638,9 +638,44 @@ export class PersonalizationComponent implements OnInit {
   }
 
   // Carga los estilos desde localStorage
-  loadSavedStyles(): void {
-    const data = localStorage.getItem('savedStyles');
-    this.savedStyles = data ? JSON.parse(data) : [];
+  async loadSavedStyles(): Promise<void> {
+    try {
+      const res = await fetch('/styles/index');
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        this.savedStyles = data.map((style: any) => ({
+          name: style.name,
+          colors: {
+            primary: style.primary,
+            secondary: style.secondary,
+            accent: style.accent,
+            background: style.background,
+            text: style.text
+          },
+          fonts: {
+            title: {
+              family: style.familyTitle,
+              size: style.sizeTitle,
+              weight: style.weightTitle
+            },
+            subtitle: {
+              family: style.familySubtitle,
+              size: style.sizeSubtitle,
+              weight: style.weightSubtitle
+            },
+            body: {
+              family: style.familyBody,
+              size: style.sizeBody,
+              weight: style.weightBody
+            }
+          }
+        }));
+      } else {
+        this.savedStyles = [];
+      }
+    } catch (error) {
+      this.savedStyles = [];
+    }
   }
 
   // Aplica un estilo guardado
@@ -663,26 +698,61 @@ export class PersonalizationComponent implements OnInit {
       });
       return;
     }
-
-    const newStyle: SavedStyle = {
+  
+    // Construir el objeto de estilo según espera el backend
+    const style = {
       name: this.newStyleName,
-      colors: { ...this.colors },
-      fonts: {
-        title: { ...this.fonts.title },
-        subtitle: { ...this.fonts.subtitle },
-        body: { ...this.fonts.body }
-      }
+      primary: this.colors.primary,
+      secondary: this.colors.secondary,
+      accent: this.colors.accent,
+      background: this.colors.background,
+      text: this.colors.text,
+      familyTitle: this.fonts.title.family,
+      sizeTitle: this.fonts.title.size,
+      weightTitle: this.fonts.title.weight,
+      familySubtitle: this.fonts.subtitle.family,
+      sizeSubtitle: this.fonts.subtitle.size,
+      weightSubtitle: this.fonts.subtitle.weight,
+      familyBody: this.fonts.body.family,
+      sizeBody: this.fonts.body.size,
+      weightBody: this.fonts.body.weight
     };
-
-    this.savedStyles.push(newStyle);
-    this.saveToLocalStorage();
-    this.newStyleName = '';
-    await Swal.fire({
-      icon: 'success',
-      title: 'Estilo guardado',
-      text: 'El estilo se guardó correctamente.',
-      confirmButtonColor: '#6366f1'
-    });
+  
+    try {
+      const res = await fetch('/styles/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(style)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.error?.error || data.error || 'No se pudo guardar el estilo.',
+          confirmButtonColor: '#e11d48'
+        });
+        return;
+      }
+      await Swal.fire({
+        icon: 'success',
+        title: 'Estilo guardado',
+        text: 'El estilo se guardó correctamente en la base de datos.',
+        confirmButtonColor: '#6366f1'
+      });
+      this.newStyleName = '';
+      // Opcional: recargar la lista de estilos desde la base de datos
+      await this.loadSavedStyles();
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de red',
+        text: 'No se pudo conectar con el servidor.',
+        confirmButtonColor: '#e11d48'
+      });
+    }
   }
 
   async deleteStyle(style: SavedStyle) {
@@ -697,14 +767,40 @@ export class PersonalizationComponent implements OnInit {
       cancelButtonColor: '#6366f1'
     });
     if (result.isConfirmed) {
-      this.savedStyles = this.savedStyles.filter(s => s.name !== style.name);
-      this.saveToLocalStorage();
-      await Swal.fire({
-        icon: 'success',
-        title: 'Eliminado',
-        text: 'El estilo ha sido eliminado.',
-        confirmButtonColor: '#6366f1'
-      });
+      try {
+        const res = await fetch('/styles/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name: style.name })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: data.error?.error || data.error || 'No se pudo eliminar el estilo.',
+            confirmButtonColor: '#e11d48'
+          });
+          return;
+        }
+        // Elimina del frontend
+        this.savedStyles = this.savedStyles.filter(s => s.name !== style.name);
+        await Swal.fire({
+          icon: 'success',
+          title: 'Eliminado',
+          text: 'El estilo ha sido eliminado.',
+          confirmButtonColor: '#6366f1'
+        });
+      } catch (error) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error de red',
+          text: 'No se pudo conectar con el servidor.',
+          confirmButtonColor: '#e11d48'
+        });
+      }
     }
   }
 

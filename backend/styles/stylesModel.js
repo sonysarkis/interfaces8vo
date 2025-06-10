@@ -41,11 +41,11 @@ class StylesModel {
             connection = await createConnection();
             const [result] = await connection.execute(
                 `INSERT INTO styles (
-                    name, primary, secondary, accent, background, text,
+                    name, \`primary\`, \`secondary\`, accent, background, \`text\`,
                     familyTitle, sizeTitle, weightTitle,
                     familySubtitle, sizeSubtitle, weightSubtitle,
                     familyBody, sizeBody, weightBody
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     name, primary, secondary, accent, background, text,
                     familyTitle, sizeTitle, weightTitle,
@@ -63,13 +63,13 @@ class StylesModel {
         }
     }
 
-    static async destroy({ styleName }) {
+    static async destroy({ name }) {
         let connection;
         try {
             connection = await createConnection();
             const [result] = await connection.execute(
                 `DELETE FROM styles WHERE name = ?`,
-                [styleName]
+                [name]
             );
             if (result.affectedRows === 0) {
                 throw new Error('Estilo no encontrado');
@@ -82,7 +82,7 @@ class StylesModel {
                 await connection.end();
             }
         }
-    }   
+    }
 
     static async createTable() {
         let connection;
