@@ -220,17 +220,7 @@ interface SavedStyle {
                     <span class="text-sm text-text w-16">{{fonts.title.size}}px</span>
                   </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-text mb-1">Peso de la Fuente</label>
-                  <select 
-                    [(ngModel)]="fonts.title.weight" 
-                    class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
-                    <option value="400">Regular (400)</option>
-                    <option value="500">Medium (500)</option>
-                    <option value="600">Semi Bold (600)</option>
-                    <option value="700">Bold (700)</option>
-                  </select>
-                </div>
+                
               </div>
             </div>
 
@@ -264,17 +254,7 @@ interface SavedStyle {
                     <span class="text-sm text-text w-16">{{fonts.subtitle.size}}px</span>
                   </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-text mb-1">Peso de la Fuente</label>
-                  <select 
-                    [(ngModel)]="fonts.subtitle.weight" 
-                    class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
-                    <option value="400">Regular (400)</option>
-                    <option value="500">Medium (500)</option>
-                    <option value="600">Semi Bold (600)</option>
-                    <option value="700">Bold (700)</option>
-                  </select>
-                </div>
+                
               </div>
             </div>
 
@@ -308,17 +288,7 @@ interface SavedStyle {
                     <span class="text-sm text-text w-16">{{fonts.body.size}}px</span>
                   </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-text mb-1">Peso de la Fuente</label>
-                  <select 
-                    [(ngModel)]="fonts.body.weight" 
-                    class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
-                    <option value="400">Regular (400)</option>
-                    <option value="500">Medium (500)</option>
-                    <option value="600">Semi Bold (600)</option>
-                    <option value="700">Bold (700)</option>
-                  </select>
-                </div>
+                
               </div>
             </div>
           </div>
@@ -706,7 +676,7 @@ export class PersonalizationComponent implements OnInit {
       subtitle: { ...style.fonts.subtitle },
       body: { ...style.fonts.body }
     };
-  
+
     // Marcar como seleccionado en la base de datos
     try {
       const res = await fetch('/styles/apply', {
@@ -733,7 +703,7 @@ export class PersonalizationComponent implements OnInit {
       });
       return;
     }
-  
+
     Swal.fire({
       icon: 'success',
       title: 'Estilo Aplicado',
@@ -755,7 +725,7 @@ export class PersonalizationComponent implements OnInit {
       });
       return;
     }
-  
+
     // Construir el objeto de estilo según espera el backend
     const style = {
       name: this.newStyleName,
@@ -774,7 +744,7 @@ export class PersonalizationComponent implements OnInit {
       sizeBody: this.fonts.body.size,
       weightBody: this.fonts.body.weight
     };
-  
+
     try {
       const res = await fetch('/styles/create', {
         method: 'POST',
@@ -881,10 +851,10 @@ export class PersonalizationComponent implements OnInit {
 
   async uploadFont() {
     if (!this.selectedFontFile) return;
-  
+
     const formData = new FormData();
     formData.append('file', this.selectedFontFile);
-  
+
     try {
       const res = await fetch('/styles/upload-font', {
         method: 'POST',
@@ -900,13 +870,13 @@ export class PersonalizationComponent implements OnInit {
         });
         return;
       }
-  
+
       // Agregar la fuente a la lista de fuentes subidas
       this.uploadedFonts.push({
         name: data.file.name,
         url: data.file.path
       });
-  
+
       await Swal.fire({
         icon: 'success',
         title: 'Fuente subida',
@@ -923,7 +893,7 @@ export class PersonalizationComponent implements OnInit {
         confirmButtonColor: '#e11d48'
       });
     }
-  
+
     // Limpiar la selección
     this.selectedFontFile = null;
   }
@@ -943,9 +913,9 @@ export class PersonalizationComponent implements OnInit {
       confirmButtonColor: '#e11d48',
       cancelButtonColor: '#6366f1'
     });
-  
+
     if (!result.isConfirmed) return;
-  
+
     try {
       const res = await fetch('/styles/delete-font', {
         method: 'POST',
@@ -962,10 +932,10 @@ export class PersonalizationComponent implements OnInit {
         });
         return;
       }
-  
+
       // Eliminar la fuente de la lista
       this.uploadedFonts = this.uploadedFonts.filter(f => f.name !== font.name);
-  
+
       await Swal.fire({
         icon: 'success',
         title: 'Fuente eliminada',
