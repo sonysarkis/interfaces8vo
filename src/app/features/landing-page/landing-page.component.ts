@@ -5,6 +5,7 @@ import { ServicesSectionComponent } from '../../shared/services-section/services
 import { CarouselComponent } from '../../shared/carousel/carousel.component';
 import { FormSectionComponent } from '../../shared/form-section/form-section.component';
 import { FooterComponent } from '../../shared/footer/footer.component';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-landing-page',
@@ -18,7 +19,7 @@ import { FooterComponent } from '../../shared/footer/footer.component';
     FooterComponent
   ],
   template: `
-    <app-navbar></app-navbar>
+    <app-navbar (logout)="logout()"></app-navbar>
     
     <main>
       <section id="inicio" class="hero">
@@ -120,4 +121,26 @@ import { FooterComponent } from '../../shared/footer/footer.component';
     }
   `]
 })
-export class LandingPageComponent { }
+export class LandingPageComponent {
+  async logout() {
+    const result = await Swal.fire({
+      title: '¿Cerrar sesión?',
+      text: '¿Estás seguro de que deseas cerrar sesión?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cerrar sesión',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('email');
+      await Swal.fire({
+        icon: 'success',
+        title: 'Sesión cerrada',
+        text: 'Has cerrado sesión correctamente.'
+      });
+      window.location.href = '/login';
+    }
+  }
+}

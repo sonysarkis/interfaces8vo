@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 
@@ -25,7 +25,7 @@ import { RouterModule, Router } from '@angular/router';
           </ng-container>
           <ng-template #logged>
             <a routerLink="/personalization" routerLinkActive="active">Personalización</a>
-            <button class="logout-btn" (click)="logout()">Cerrar sesión</button>
+            <button class="logout-btn" (click)="onLogoutClick()">Cerrar sesión</button>
           </ng-template>
         </div>
       </div>
@@ -121,6 +121,7 @@ import { RouterModule, Router } from '@angular/router';
   `]
 })
 export class NavbarComponent {
+  @Output() logout = new EventEmitter<void>();
   isLoggedIn = false;
 
   constructor(private router: Router) {}
@@ -134,11 +135,8 @@ export class NavbarComponent {
     this.isLoggedIn = !!localStorage.getItem('token');
   }
 
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('email');
-    this.isLoggedIn = false;
-    this.router.navigate(['/']);
+  onLogoutClick() {
+    this.logout.emit();
   }
 
   scrollToSection(sectionId: string) {
