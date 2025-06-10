@@ -101,12 +101,24 @@ import Swal from 'sweetalert2';
     }
 
     @media (max-width: 768px) {
-      h1 {
-        font-size: calc(var(--font-title-size) * 0.8);
+      .hero {
+        height: auto;
+        min-height: 100vh;
+        padding: 2rem 0.5rem;
       }
-
+      .hero-content {
+        max-width: 100%;
+      }
+      h1 {
+        font-size: 2rem;
+      }
       p {
-        font-size: calc(var(--font-body-size) * 0.9);
+        font-size: 1rem;
+      }
+      .cta-button {
+        width: 100%;
+        max-width: 320px;
+        padding: 1rem;
       }
     }
 

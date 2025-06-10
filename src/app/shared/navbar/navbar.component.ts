@@ -10,22 +10,27 @@ import { RouterModule, Router } from '@angular/router';
     <nav class="navbar">
       <div class="navbar-container">
         <div class="logo">
-          <a (click)="scrollToSection('inicio')" class="logo-text">
+          <a (click)="handleNavClick('inicio')" class="logo-text">
             Landing
           </a>
         </div>
-        <div class="nav-links">
-          <a (click)="scrollToSection('inicio')">Inicio</a>
-          <a (click)="scrollToSection('servicios')">Servicios</a>
-          <a (click)="scrollToSection('contacto')">Contacto</a>
-          <a (click)="scrollToSection('beneficios')">Beneficios</a>
+        <button class="hamburger" (click)="toggleMenu()" aria-label="Abrir menú" *ngIf="true">
+          <span [class.open]="isMenuOpen"></span>
+          <span [class.open]="isMenuOpen"></span>
+          <span [class.open]="isMenuOpen"></span>
+        </button>
+        <div class="nav-links" [class.open]="isMenuOpen">
+          <a (click)="handleNavClick('inicio')">Inicio</a>
+          <a (click)="handleNavClick('servicios')">Servicios</a>
+          <a (click)="handleNavClick('contacto')">Contacto</a>
+          <a (click)="handleNavClick('beneficios')">Beneficios</a>
           <ng-container *ngIf="!isLoggedIn; else logged">
-            <a routerLink="/login" routerLinkActive="active">Iniciar Sesión</a>
-            <a routerLink="/registro" routerLinkActive="active">Registrarse</a>
+            <a routerLink="/login" routerLinkActive="active" (click)="closeMenu()">Iniciar Sesión</a>
+            <a routerLink="/registro" routerLinkActive="active" (click)="closeMenu()">Registrarse</a>
           </ng-container>
           <ng-template #logged>
-            <a routerLink="/personalization" routerLinkActive="active">Personalización</a>
-            <button class="logout-btn" (click)="onLogoutClick()">Cerrar sesión</button>
+            <a routerLink="/personalization" routerLinkActive="active" (click)="closeMenu()">Personalización</a>
+            <button class="logout-btn" (click)="onLogoutClick(); closeMenu()">Cerrar sesión</button>
           </ng-template>
         </div>
       </div>
@@ -49,6 +54,7 @@ import { RouterModule, Router } from '@angular/router';
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: relative;
     }
 
     .logo-text {
@@ -68,6 +74,7 @@ import { RouterModule, Router } from '@angular/router';
     .nav-links {
       display: flex;
       gap: 1.5rem;
+      transition: all 0.3s;
     }
 
     .nav-links a, .nav-links button {
@@ -106,16 +113,56 @@ import { RouterModule, Router } from '@angular/router';
       color: var(--color-accent);
     }
 
-    @media (max-width: 768px) {
-      .navbar-container {
-        flex-direction: column;
-        gap: 1rem;
-      }
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 1100;
+    }
+    .hamburger span {
+      display: block;
+      width: 28px;
+      height: 4px;
+      margin: 4px 0;
+      background: var(--color-primary);
+      border-radius: 2px;
+      transition: 0.4s;
+    }
+    .hamburger span.open:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    .hamburger span.open:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger span.open:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
 
+    @media (max-width: 900px) {
+      .hamburger {
+        display: flex;
+      }
       .nav-links {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--color-background);
         flex-direction: column;
         align-items: center;
-        gap: 1rem;
+        gap: 1.5rem;
+        padding: 2rem 0 1rem 0;
+        display: none;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      }
+      .nav-links.open {
+        display: flex;
       }
     }
   `]
@@ -123,6 +170,7 @@ import { RouterModule, Router } from '@angular/router';
 export class NavbarComponent {
   @Output() logout = new EventEmitter<void>();
   isLoggedIn = false;
+  isMenuOpen = false;
 
   constructor(private router: Router) { }
 
@@ -137,6 +185,19 @@ export class NavbarComponent {
 
   onLogoutClick() {
     this.logout.emit();
+  }
+
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
+
+  handleNavClick(sectionId: string) {
+    this.scrollToSection(sectionId);
+    this.closeMenu();
   }
 
   scrollToSection(sectionId: string) {

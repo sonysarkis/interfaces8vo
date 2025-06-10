@@ -37,32 +37,29 @@ interface SavedStyle {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="h-screen bg-background flex flex-col">
-      <div class="flex-none px-4 pt-4">
-        <h1 class="text-3xl font-bold text-primary">Personalización</h1>
+    <div class="h-screen flex flex-col" style="background:#fff !important;">
+      <div class="flex-none px-4 pt-4" style="background:#fff !important;">
+        <h1 class="text-3xl font-bold" style="color:#111 !important; background:#fff !important;">Personalización</h1>
         
         <!-- Pestañas de Navegación -->
-        <div class="mt-4 border-b border-text">
-          <div class="flex space-x-8">
+        <div class="mt-4 border-b" style="background:#fff !important; border-color:#eee !important;">
+          <div class="flex space-x-8" style="background:#fff !important;">
             <button 
               (click)="activeTab = 'colors'"
-              [class.text-primary]="activeTab === 'colors'"
-              [class.border-primary]="activeTab === 'colors'"
-              class="pb-2 border-b-2 border-transparent hover:text-primary transition-colors">
+              [ngStyle]="{color: '#111', background: '#fff', 'border-bottom': activeTab === 'colors' ? '2px solid #111' : '2px solid transparent'}"
+              class="pb-2 border-b-2 border-transparent transition-colors">
               Colores
             </button>
             <button 
               (click)="activeTab = 'typography'"
-              [class.text-primary]="activeTab === 'typography'"
-              [class.border-primary]="activeTab === 'typography'"
-              class="pb-2 border-b-2 border-transparent hover:text-primary transition-colors">
+              [ngStyle]="{color: '#111', background: '#fff', 'border-bottom': activeTab === 'typography' ? '2px solid #111' : '2px solid transparent'}"
+              class="pb-2 border-b-2 border-transparent transition-colors">
               Tipografía
             </button>
             <button 
               (click)="activeTab = 'saved'"
-              [class.text-primary]="activeTab === 'saved'"
-              [class.border-primary]="activeTab === 'saved'"
-              class="pb-2 border-b-2 border-transparent hover:text-primary transition-colors">
+              [ngStyle]="{color: '#111', background: '#fff', 'border-bottom': activeTab === 'saved' ? '2px solid #111' : '2px solid transparent'}"
+              class="pb-2 border-b-2 border-transparent transition-colors">
               Estilos Guardados
             </button>
           </div>

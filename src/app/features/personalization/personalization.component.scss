@@ -30,3 +30,65 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 }
+
+/* Forzar fondo blanco y texto negro en la cabecera y pestañas de la vista de admin */
+.container h1,
+.container .text-2xl,
+.container .font-bold,
+.container .text-xl,
+.container .font-semibold,
+.container .text-lg,
+.container .font-medium,
+.container .tab,
+.container .tabs,
+.container .tablist,
+.container .tab,
+.container .tab-active,
+.container .tab-inactive {
+    background: #fff !important;
+    color: #111 !important;
+}
+
+/* Forzar fondo blanco en la barra de pestañas */
+.container .tablist,
+.container .tabs {
+    background: #fff !important;
+}
+
+/* Botón Guardar Estilo (solo admin) */
+.container button,
+.container input[type="submit"] {
+    background: #3c74c8 !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.container button:hover,
+.container input[type="submit"]:hover {
+    background: #3371c8 !important;
+    color: #fff !important;
+}
+
+/* Botón Aplicar (solo admin) */
+.container button:contains('Aplicar') {
+    background: #3498db !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.container button:contains('Aplicar'):hover {
+    background: #217dbb !important;
+    color: #fff !important;
+}
+
+/* Botón Eliminar (solo admin) */
+.container button:contains('Eliminar') {
+    background: #060606 !important;
+    color: #d9d4d4 !important;
+    border: none !important;
+}
+
+.container button:contains('Eliminar'):hover {
+    background: #121212 !important;
+    color: #fff !important;
+}
