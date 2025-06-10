@@ -2,6 +2,7 @@ import { validateStyle } from "./stylesValidate.js";
 import { StylesModel } from "./stylesModel.js";
 import fs from 'fs';
 import path from 'path';
+import { buildFonts } from "./buildFonts.js";
 
 class StylesController {
     create = async (req, res) => {
@@ -107,6 +108,8 @@ class StylesController {
             const destPath = path.join(fontsDir, newFileName);
             // Mover el archivo subido a la carpeta de fuentes
             fs.renameSync(req.file.path, destPath);
+
+            buildFonts(); // Regenerar los @font-face en el CSS
     
             return res.json({
                 message: 'Archivo subido correctamente',

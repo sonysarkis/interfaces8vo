@@ -197,7 +197,7 @@ interface SavedStyle {
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Fuente</label>
                   <select 
-                    [(ngModel)]="fonts.body.family" 
+                    [(ngModel)]="fonts.title.family" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
@@ -241,7 +241,7 @@ interface SavedStyle {
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Fuente</label>
                   <select 
-                    [(ngModel)]="fonts.body.family" 
+                    [(ngModel)]="fonts.subtitle.family" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
@@ -913,6 +913,8 @@ export class PersonalizationComponent implements OnInit {
         text: 'La fuente se subió correctamente.',
         confirmButtonColor: '#6366f1'
       });
+
+      window.location.reload();
     } catch (error) {
       await Swal.fire({
         icon: 'error',
