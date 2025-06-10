@@ -197,13 +197,14 @@ interface SavedStyle {
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Fuente</label>
                   <select 
-                    [(ngModel)]="fonts.title.family" 
+                    [(ngModel)]="fonts.body.family" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
                     <option value="'Courier New', monospace">Courier New</option>
                     <option value="Georgia, serif">Georgia</option>
                     <option value="Verdana, sans-serif">Verdana</option>
+                    <option *ngFor="let font of uploadedFonts" [value]="font.name">{{ font.name }}</option>
                   </select>
                 </div>
                 <div>
@@ -240,13 +241,14 @@ interface SavedStyle {
                 <div>
                   <label class="block text-sm font-medium text-text mb-1">Fuente</label>
                   <select 
-                    [(ngModel)]="fonts.subtitle.family" 
+                    [(ngModel)]="fonts.body.family" 
                     class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
                     <option value="'Courier New', monospace">Courier New</option>
                     <option value="Georgia, serif">Georgia</option>
                     <option value="Verdana, sans-serif">Verdana</option>
+                    <option *ngFor="let font of uploadedFonts" [value]="font.name">{{ font.name }}</option>
                   </select>
                 </div>
                 <div>
@@ -290,6 +292,7 @@ interface SavedStyle {
                     <option value="'Courier New', monospace">Courier New</option>
                     <option value="Georgia, serif">Georgia</option>
                     <option value="Verdana, sans-serif">Verdana</option>
+                    <option *ngFor="let font of uploadedFonts" [value]="font.name">{{ font.name }}</option>
                   </select>
                 </div>
                 <div>
@@ -630,6 +633,7 @@ export class PersonalizationComponent implements OnInit {
 
   ngOnInit() {
     this.loadSavedStyles();
+    this.loadUploadedFonts();
   }
 
   // Guarda los estilos en localStorage
@@ -637,6 +641,22 @@ export class PersonalizationComponent implements OnInit {
     localStorage.setItem('savedStyles', JSON.stringify(this.savedStyles));
   }
 
+  async loadUploadedFonts() {
+    try {
+      const res = await fetch('/styles/fonts');
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        this.uploadedFonts = data.map((font: string) => ({
+          name: font,
+          url: `fonts/${font}`
+        }));
+      } else {
+        this.uploadedFonts = [];
+      }
+    } catch (error) {
+      this.uploadedFonts = [];
+    }
+  }
   // Carga los estilos desde localStorage
   async loadSavedStyles(): Promise<void> {
     try {
@@ -910,11 +930,53 @@ export class PersonalizationComponent implements OnInit {
     this.selectedFontFile = null;
   }
 
-  deleteFont(font: { name: string; url: string }) {
-    // Revocar la URL del objeto
-    URL.revokeObjectURL(font.url);
-
-    // Eliminar la fuente de la lista
-    this.uploadedFonts = this.uploadedFonts.filter(f => f.name !== font.name);
+  async deleteFont(font: { name: string; url: string }) {
+    const result = await Swal.fire({
+      title: '¿Eliminar fuente?',
+      text: `¿Estás seguro de que deseas eliminar la fuente "${font.name}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#e11d48',
+      cancelButtonColor: '#6366f1'
+    });
+  
+    if (!result.isConfirmed) return;
+  
+    try {
+      const res = await fetch('/styles/delete-font', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fontName: font.name })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.error || 'No se pudo eliminar la fuente.',
+          confirmButtonColor: '#e11d48'
+        });
+        return;
+      }
+  
+      // Eliminar la fuente de la lista
+      this.uploadedFonts = this.uploadedFonts.filter(f => f.name !== font.name);
+  
+      await Swal.fire({
+        icon: 'success',
+        title: 'Fuente eliminada',
+        text: 'La fuente ha sido eliminada correctamente.',
+        confirmButtonColor: '#6366f1'
+      });
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de red',
+        text: 'No se pudo conectar con el servidor.',
+        confirmButtonColor: '#e11d48'
+      });
+    }
   }
 }

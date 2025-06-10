@@ -66,6 +66,28 @@ class StylesController {
             return res.status(500).json({ error: 'Error al obtener el estilo seleccionado' });
         }
     }
+
+    getFonts = async (req, res) => {
+        try {
+            // Ruta de la carpeta de fuentes
+            const fontsDir = path.resolve('dist/application/browser/fonts');
+            // Verificar si la carpeta existe
+            if (!fs.existsSync(fontsDir)) {
+                return res.status(404).json({ error: 'No se encontraron fuentes' });
+            }
+            // Leer los archivos de la carpeta
+            const files = fs.readdirSync(fontsDir);
+            // Filtrar solo los archivos de fuentes y quitar la extensión
+            const fonts = files
+                .filter(file => /\.(ttf|otf|woff|woff2)$/i.test(file))
+                .map(file => path.basename(file, path.extname(file)));
+
+            return res.json(fonts);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
     
     uploadFont = async (req, res) => {
         if (!req.file) {
@@ -79,17 +101,42 @@ class StylesController {
                 fs.mkdirSync(fontsDir, { recursive: true });
             }
             // Ruta final del archivo
-            const destPath = path.join(fontsDir, req.file.originalname);
+            const ext = path.extname(req.file.originalname);
+            const baseName = path.basename(req.file.originalname, ext);
+            const newFileName = ext === '.ttf' ? `${baseName}C${ext}` : req.file.originalname;
+            const destPath = path.join(fontsDir, newFileName);
             // Mover el archivo subido a la carpeta de fuentes
             fs.renameSync(req.file.path, destPath);
     
             return res.json({
                 message: 'Archivo subido correctamente',
                 file: {
-                    name: req.file.originalname,
-                    path: `fonts/${req.file.originalname}`
+                    name: `${baseName}C`, // remove the .ttf extension
+                    path: `fonts/${newFileName}`
                 }
             });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    deleteFont = async (req, res) => {
+        const { fontName } = req.body;
+        if (!fontName) {
+            return res.status(400).json({ error: 'El nombre de la fuente es requerido' });
+        }
+        try {
+            // Ruta de la carpeta de fuentes
+            const fontsDir = path.resolve('dist/application/browser/fonts');
+            const fontPath = path.join(fontsDir, fontName);
+            // Verificar si el archivo existe
+            if (!fs.existsSync(fontPath)) {
+                return res.status(404).json({ error: 'Fuente no encontrada' });
+            }
+            // Eliminar el archivo
+            fs.unlinkSync(fontPath);
+            return res.json({ message: 'Fuente eliminada correctamente' });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: error.message });

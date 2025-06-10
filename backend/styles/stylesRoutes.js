@@ -15,8 +15,9 @@ export function createStylesRouter() {
     stylesRouter.get('/index', stylesController.index);
     stylesRouter.post('/apply', stylesController.apply);
     stylesRouter.get('/selected', stylesController.selected);
-    // Usa multer aquí:
+    stylesRouter.get('/fonts', stylesController.getFonts);
     stylesRouter.post('/upload-font', upload.single('file'), stylesController.uploadFont);
+    stylesRouter.post('/delete-font', stylesController.deleteFont);
 
     return stylesRouter;
 }
