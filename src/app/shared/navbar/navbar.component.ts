@@ -34,7 +34,7 @@ import { RouterModule, Router } from '@angular/router';
   styles: [`
     .navbar {
       background-color: var(--color-background);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: none;
       position: fixed;
       top: 0;
       left: 0;
@@ -124,7 +124,7 @@ export class NavbarComponent {
   @Output() logout = new EventEmitter<void>();
   isLoggedIn = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   ngOnInit() {
     this.checkLogin();

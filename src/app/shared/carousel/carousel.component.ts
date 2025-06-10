@@ -77,8 +77,12 @@ import { CommonModule } from '@angular/common';
       left: 0;
       right: 0;
       padding: 2rem;
-      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-      color: white;
+      background: var(--color-primary);
+      color: var(--color-background);
+    }
+
+    .slide-content h2, .slide-content p {
+      color: var(--color-background);
     }
 
     .slide-content h2 {
@@ -90,8 +94,8 @@ import { CommonModule } from '@angular/common';
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(255, 255, 255, 0.5);
-      border: none;
+      background: var(--color-primary);
+      border: 2px solid var(--color-primary);
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -100,10 +104,13 @@ import { CommonModule } from '@angular/common';
       align-items: center;
       justify-content: center;
       transition: background-color 0.2s;
+      color: var(--color-background);
     }
 
     .carousel-control:hover {
-      background: rgba(255, 255, 255, 0.8);
+      background: var(--color-background);
+      color: var(--color-primary);
+      border: 2px solid var(--color-background);
     }
 
     .carousel-control.prev {
@@ -127,14 +134,15 @@ import { CommonModule } from '@angular/common';
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      border: none;
-      background: rgba(255, 255, 255, 0.5);
+      border: 2px solid var(--color-primary);
+      background: var(--color-background);
       cursor: pointer;
       transition: background-color 0.2s;
     }
 
     .carousel-indicators button.active {
-      background: white;
+      background: var(--color-primary);
+      border: 2px solid var(--color-background);
     }
   `]
 })

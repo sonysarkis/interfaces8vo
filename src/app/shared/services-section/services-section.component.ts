@@ -43,12 +43,13 @@ import { CommonModule } from '@angular/common';
     }
 
     .service-card {
-      background: white;
-      padding: 2rem;
+      background: var(--color-primary);
+      color: var(--color-background);
       border-radius: 0.5rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: none;
       text-align: center;
       transition: transform 0.2s;
+      border: 2px solid var(--color-primary);
     }
 
     .service-card:hover {
@@ -57,12 +58,12 @@ import { CommonModule } from '@angular/common';
 
     .service-icon {
       font-size: 2.5rem;
-      color: var(--color-secondary);
+      color: var(--color-background);
       margin-bottom: 1rem;
     }
 
     h3 {
-      color: var(--color-primary);
+      color: var(--color-background);
       margin-bottom: 1rem;
       font-family: var(--font-subtitle-family);
       font-size: var(--font-subtitle-size);
@@ -70,7 +71,7 @@ import { CommonModule } from '@angular/common';
     }
 
     p {
-      color: var(--color-text);
+      color: var(--color-background);
       line-height: 1.5;
       font-family: var(--font-body-family);
       font-size: var(--font-body-size);

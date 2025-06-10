@@ -66,28 +66,21 @@ import { FormsModule } from '@angular/forms';
   styles: [`
     .form-section {
       padding: 4rem 2rem;
-      background-color: #f9fafb;
+      background-color: var(--color-primary);
     }
 
     .form-container {
       max-width: 600px;
       margin: 0 auto;
-      background: white;
+      background: var(--color-primary);
       padding: 2rem;
       border-radius: 0.5rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: none;
+      border: 2px solid var(--color-primary);
     }
 
-    h2 {
-      text-align: center;
-      color: #1f2937;
-      margin-bottom: 0.5rem;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #6b7280;
-      margin-bottom: 2rem;
+    h2, .subtitle, label, .error-message {
+      color: var(--color-background);
     }
 
     .form-group {
@@ -97,27 +90,28 @@ import { FormsModule } from '@angular/forms';
     label {
       display: block;
       margin-bottom: 0.5rem;
-      color: #4b5563;
       font-weight: 500;
     }
 
     input, textarea {
       width: 100%;
       padding: 0.75rem;
-      border: 1px solid #e5e7eb;
+      border: 2px solid var(--color-background);
       border-radius: 0.375rem;
       font-size: 1rem;
+      background: var(--color-primary);
+      color: var(--color-background);
       transition: border-color 0.2s;
+      resize: none;
     }
 
     input:focus, textarea:focus {
       outline: none;
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      border-color: var(--color-background);
+      box-shadow: 0 0 0 3px rgba(236, 240, 241, 0.1);
     }
 
     .error-message {
-      color: #ef4444;
       font-size: 0.875rem;
       margin-top: 0.25rem;
     }
@@ -125,22 +119,26 @@ import { FormsModule } from '@angular/forms';
     button {
       width: 100%;
       padding: 0.75rem;
-      background-color: #4f46e5;
-      color: white;
-      border: none;
+      background-color: var(--color-background);
+      color: var(--color-primary);
+      border: 2px solid var(--color-background);
       border-radius: 0.375rem;
       font-size: 1rem;
       font-weight: 500;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background-color 0.2s, color 0.2s;
     }
 
     button:hover:not(:disabled) {
-      background-color: #4338ca;
+      background-color: var(--color-primary);
+      color: var(--color-background);
+      border: 2px solid var(--color-background);
     }
 
     button:disabled {
-      background-color: #9ca3af;
+      background-color: var(--color-background);
+      color: var(--color-primary);
+      opacity: 0.5;
       cursor: not-allowed;
     }
   `]
