@@ -17,6 +17,7 @@ export function buildFonts() {
 
   if (!cssFile) {
     console.error('No se encontró un archivo CSS que comience con "style"');
+    return;
   }
 
   const cssPath = path.join(browserDir, cssFile);
