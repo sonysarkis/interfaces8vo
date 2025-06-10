@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import Swal from 'sweetalert2';
 
 interface SavedStyle {
   name: string;
@@ -631,8 +632,37 @@ export class PersonalizationComponent implements OnInit {
     this.loadSavedStyles();
   }
 
-  saveStyle() {
-    if (!this.newStyleName) return;
+  // Guarda los estilos en localStorage
+  saveToLocalStorage(): void {
+    localStorage.setItem('savedStyles', JSON.stringify(this.savedStyles));
+  }
+
+  // Carga los estilos desde localStorage
+  loadSavedStyles(): void {
+    const data = localStorage.getItem('savedStyles');
+    this.savedStyles = data ? JSON.parse(data) : [];
+  }
+
+  // Aplica un estilo guardado
+  applyStyle(style: SavedStyle): void {
+    this.colors = { ...style.colors };
+    this.fonts = {
+      title: { ...style.fonts.title },
+      subtitle: { ...style.fonts.subtitle },
+      body: { ...style.fonts.body }
+    };
+  }
+
+  async saveStyle() {
+    if (!this.newStyleName) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Nombre requerido',
+        text: 'Por favor, ingresa un nombre para el estilo.',
+        confirmButtonColor: '#6366f1'
+      });
+      return;
+    }
 
     const newStyle: SavedStyle = {
       name: this.newStyleName,
@@ -647,33 +677,35 @@ export class PersonalizationComponent implements OnInit {
     this.savedStyles.push(newStyle);
     this.saveToLocalStorage();
     this.newStyleName = '';
+    await Swal.fire({
+      icon: 'success',
+      title: 'Estilo guardado',
+      text: 'El estilo se guardó correctamente.',
+      confirmButtonColor: '#6366f1'
+    });
   }
 
-  applyStyle(style: SavedStyle) {
-    this.colors = { ...style.colors };
-    this.fonts = {
-      title: { ...style.fonts.title },
-      subtitle: { ...style.fonts.subtitle },
-      body: { ...style.fonts.body }
-    };
-  }
-
-  deleteStyle(style: SavedStyle) {
-    if (confirm('¿Estás seguro de que deseas eliminar este estilo?')) {
+  async deleteStyle(style: SavedStyle) {
+    const result = await Swal.fire({
+      title: '¿Eliminar estilo?',
+      text: '¿Estás seguro de que deseas eliminar este estilo?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#e11d48',
+      cancelButtonColor: '#6366f1'
+    });
+    if (result.isConfirmed) {
       this.savedStyles = this.savedStyles.filter(s => s.name !== style.name);
       this.saveToLocalStorage();
+      await Swal.fire({
+        icon: 'success',
+        title: 'Eliminado',
+        text: 'El estilo ha sido eliminado.',
+        confirmButtonColor: '#6366f1'
+      });
     }
-  }
-
-  private loadSavedStyles() {
-    const saved = localStorage.getItem('savedStyles');
-    if (saved) {
-      this.savedStyles = JSON.parse(saved);
-    }
-  }
-
-  private saveToLocalStorage() {
-    localStorage.setItem('savedStyles', JSON.stringify(this.savedStyles));
   }
 
   onFontFileSelected(event: Event) {
@@ -683,7 +715,12 @@ export class PersonalizationComponent implements OnInit {
       if (file.type === 'font/ttf' || file.name.endsWith('.ttf')) {
         this.selectedFontFile = file;
       } else {
-        alert('Por favor, selecciona un archivo TTF válido');
+        Swal.fire({
+          icon: 'error',
+          title: 'Archivo inválido',
+          text: 'Por favor, selecciona un archivo TTF válido.',
+          confirmButtonColor: '#e11d48'
+        });
         input.value = '';
       }
     }
