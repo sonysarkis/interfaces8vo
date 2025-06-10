@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Necesario para directivas comunes de Angular
 import { RouterModule, Router } from '@angular/router'; // Necesario para `routerLink`
 import { FormsModule } from '@angular/forms'; // Necesario para `[(ngModel)]`
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-register',
@@ -95,7 +96,11 @@ export class RegisterComponent {
 
   async onSubmit(): Promise<void> {
     if (this.password !== this.confirmPassword) {
-      alert('Las contraseñas no coinciden.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Las contraseñas no coinciden.'
+      });
       return;
     }
 
@@ -116,14 +121,26 @@ export class RegisterComponent {
 
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error?.error || data.error || JSON.stringify(data));
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.error?.error || data.error || JSON.stringify(data)
+        });
         return;
       }
-      alert('Registro exitoso');
+      await Swal.fire({
+        icon: 'success',
+        title: 'Registro exitoso',
+        text: 'Tu cuenta ha sido creada correctamente.'
+      });
       this.router.navigate(['/login']);
       // Puedes redirigir o limpiar el formulario aquí
     } catch (e) {
-      alert('Error de red o del servidor');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error de red o del servidor'
+      });
     }
   }
 }
