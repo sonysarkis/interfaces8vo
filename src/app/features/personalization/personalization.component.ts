@@ -720,6 +720,9 @@ export class PersonalizationComponent implements OnInit {
       text: `El estilo "${style.name}" ha sido aplicado correctamente.`,
       confirmButtonColor: '#6366f1'
     });
+
+    // reload the page to apply the new styles
+    window.location.reload();
   }
 
   async saveStyle() {
