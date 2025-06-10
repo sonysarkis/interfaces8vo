@@ -679,13 +679,47 @@ export class PersonalizationComponent implements OnInit {
   }
 
   // Aplica un estilo guardado
-  applyStyle(style: SavedStyle): void {
+  async applyStyle(style: SavedStyle): Promise<void> {
     this.colors = { ...style.colors };
     this.fonts = {
       title: { ...style.fonts.title },
       subtitle: { ...style.fonts.subtitle },
       body: { ...style.fonts.body }
     };
+  
+    // Marcar como seleccionado en la base de datos
+    try {
+      const res = await fetch('/styles/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: style.name })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.error?.error || data.error || 'No se pudo marcar el estilo como seleccionado.',
+          confirmButtonColor: '#e11d48'
+        });
+        return;
+      }
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de red',
+        text: 'No se pudo conectar con el servidor.',
+        confirmButtonColor: '#e11d48'
+      });
+      return;
+    }
+  
+    Swal.fire({
+      icon: 'success',
+      title: 'Estilo Aplicado',
+      text: `El estilo "${style.name}" ha sido aplicado correctamente.`,
+      confirmButtonColor: '#6366f1'
+    });
   }
 
   async saveStyle() {

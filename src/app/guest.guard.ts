@@ -6,7 +6,10 @@ export class GuestGuard implements CanActivate {
   constructor(private router: Router) {}
 
   async canActivate(): Promise<boolean | UrlTree> {
-    const token = localStorage.getItem('token');
+    let token: string | null = null;
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('token');
+    }
     if (!token) return true;
     try {
       const res = await fetch('/admin-auth/auth', {

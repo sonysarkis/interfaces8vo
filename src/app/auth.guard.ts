@@ -6,7 +6,10 @@ export class AuthGuard implements CanActivate {
   constructor(private router: Router) {}
 
   async canActivate(): Promise<boolean | UrlTree> {
-    const token = localStorage.getItem('token');
+    let token: string | null = null;
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('token');
+    }
     if (!token) {
       return this.router.createUrlTree(['/']);
     }
@@ -18,11 +21,15 @@ export class AuthGuard implements CanActivate {
       if (data.valid) {
         return true;
       } else {
-        localStorage.removeItem('token');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+        }
         return this.router.createUrlTree(['/']);
       }
     } catch {
-      localStorage.removeItem('token');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+      }
       return this.router.createUrlTree(['/']);
     }
   }

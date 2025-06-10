@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import createConnection from '../connection.js';
+import { changeStyle } from './stylesChange.js';
 
 class StylesModel {
     static async getAll() {
@@ -10,6 +11,24 @@ class StylesModel {
             return rows;
         } catch (error) {
             throw new Error(`Error al obtener los estilos: ${error.message}`);
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
+    static async getSelected() {
+        let connection;
+        try {
+            connection = await createConnection();
+            const [rows] = await connection.execute(`SELECT * FROM styles WHERE selected = TRUE`);
+            if (rows.length === 0) {
+                throw new Error('No hay estilos seleccionados');
+            }
+            return rows[0];
+        } catch (error) {
+            throw new Error(`Error al obtener el estilo seleccionado: ${error.message}`);
         } finally {
             if (connection) {
                 await connection.end();
@@ -84,10 +103,39 @@ class StylesModel {
         }
     }
 
+    static async select({ name }) {
+        let connection;
+        try {
+            connection = await createConnection();
+            // Primero deselecciona todos
+            await connection.execute(
+                `UPDATE styles SET selected = FALSE WHERE selected = TRUE`
+            );
+            // Luego selecciona el nuevo
+            const [result] = await connection.execute(
+                `UPDATE styles SET selected = TRUE WHERE name = ?`,
+                [name]
+            );
+            if (result.affectedRows === 0) {
+                throw new Error('Estilo no encontrado');
+            }
+            await changeStyle();
+            return { message: 'Estilo seleccionado correctamente' };
+        } catch (error) {
+            throw new Error(`Error al seleccionar el estilo: ${error.message}`);
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
     static async createTable() {
         let connection;
         try {
             connection = await createConnection();
+            const dropTableQuery = `DROP TABLE IF EXISTS styles;`;
+            await connection.execute(dropTableQuery);
             const createTableQuery = `
                 CREATE TABLE IF NOT EXISTS styles (
                     name VARCHAR(500) PRIMARY KEY,
@@ -104,7 +152,8 @@ class StylesModel {
                     weightSubtitle VARCHAR(500) NOT NULL,
                     familyBody VARCHAR(500) NOT NULL,
                     sizeBody VARCHAR(500) NOT NULL,
-                    weightBody VARCHAR(500) NOT NULL
+                    weightBody VARCHAR(500) NOT NULL,
+                    selected BOOLEAN DEFAULT FALSE
                 );
             `;
             await connection.execute(createTableQuery);
