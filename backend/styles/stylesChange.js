@@ -17,7 +17,6 @@ export async function changeStyle() {
 
   if (!cssFile) {
     console.error('No se encontró un archivo CSS que comience con "styles"');
-    process.exit(1);
   }
 
   const cssPath = path.join(cssDir, cssFile);
@@ -29,7 +28,6 @@ export async function changeStyle() {
     selectedStyle = await StylesModel.getSelected();
   } catch (error) {
     console.error('No se pudo obtener el estilo seleccionado:', error.message);
-    process.exit(1);
   }
 
   // Construir el nuevo bloque de variables CSS
