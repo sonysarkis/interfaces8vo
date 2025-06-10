@@ -159,7 +159,7 @@ class StylesController {
         try {
             // Ruta de la carpeta de fuentes
             const fontsDir = path.resolve('dist/application/browser/fonts');
-            const fontPath = path.join(fontsDir, fontName);
+            const fontPath = path.join(fontsDir, `${fontName}.ttf`);
             // Verificar si el archivo existe
             if (!fs.existsSync(fontPath)) {
                 return res.status(404).json({ error: 'Fuente no encontrada' });
