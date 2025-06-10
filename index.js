@@ -16,6 +16,13 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'dist/application/browser/')));
 
+const FrontRoutes = ['/', '/login', '/registro', '/personalization', "/personalization/landing", "/personalization/login-preview"];
+FrontRoutes.forEach(route => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, 'dist/application/browser/index.html'));
+  });
+});
+
 app.use("/admin-auth", createAdminsRouter());
 app.use("/styles", createStylesRouter());
 

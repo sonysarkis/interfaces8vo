@@ -598,9 +598,17 @@ export class PersonalizationComponent implements OnInit {
     }
   };
 
-  ngOnInit() {
-    this.loadSavedStyles();
-    this.loadUploadedFonts();
+  async ngOnInit() {
+    await this.loadSavedStyles();
+    await this.loadUploadedFonts();
+    const res = await fetch('/styles/default', {
+      method: 'GET'
+    });
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+      window.location.reload();
+    };
   }
 
   // Guarda los estilos en localStorage
@@ -708,8 +716,8 @@ export class PersonalizationComponent implements OnInit {
       confirmButtonColor: '#6366f1'
     });
 
-    // reload the page to apply the new styles
-    window.location.reload();
+    // Llevar a home page
+    window.location.href = '/';
   }
 
   async saveStyle() {

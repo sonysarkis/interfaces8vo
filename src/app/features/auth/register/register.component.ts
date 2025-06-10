@@ -94,6 +94,17 @@ export class RegisterComponent {
 
   constructor(private router: Router) {}
 
+  async ngOnInit() {
+    const res = await fetch('/styles/default', {
+      method: 'GET'
+    });
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+      window.location.reload();
+    };
+  }
+
   async onSubmit(): Promise<void> {
     if (this.password !== this.confirmPassword) {
       Swal.fire({

@@ -18,6 +18,8 @@ export function createStylesRouter() {
     stylesRouter.get('/fonts', stylesController.getFonts);
     stylesRouter.post('/upload-font', upload.single('file'), stylesController.uploadFont);
     stylesRouter.post('/delete-font', stylesController.deleteFont);
+    stylesRouter.get('/confirm', stylesController.confirmStyle);
+    stylesRouter.get('/default', stylesController.defaultStyle);
 
     return stylesRouter;
 }

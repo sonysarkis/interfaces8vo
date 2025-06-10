@@ -3,6 +3,7 @@ import { StylesModel } from "./stylesModel.js";
 import fs from 'fs';
 import path from 'path';
 import { buildFonts } from "./buildFonts.js";
+import { changeStyle, resetStyle } from "./stylesChange.js";
 
 class StylesController {
     create = async (req, res) => {
@@ -41,6 +42,32 @@ class StylesController {
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: error.message });
+        }
+    }
+
+    confirmStyle = async (req, res) => {
+        try {
+            const result = await changeStyle();
+            if (result){
+                res.json({ success: true });
+            } else {
+                res.json({ success: false });
+            }
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    defaultStyle = (req, res) => {
+        try {
+            const result = resetStyle();
+            if (result){
+                res.json({ success: true });
+            } else {
+                res.json({ success: false });
+            }
+        } catch (error) {
+            res.status(500).json({ error: error.message });
         }
     }
 

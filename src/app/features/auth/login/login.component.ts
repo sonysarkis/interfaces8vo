@@ -82,6 +82,17 @@ export class LoginComponent {
 
   constructor(private router: Router) {}
 
+  async ngOnInit() {
+    const res = await fetch('/styles/default', {
+      method: 'GET'
+    });
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+      window.location.reload();
+    };
+  }
+
   async onSubmit() {
     const token = localStorage.getItem('token') || '';
     console.log('Token:', token);

@@ -134,6 +134,17 @@ import Swal from 'sweetalert2';
   `]
 })
 export class LandingPageComponent {
+  async ngOnInit() {
+    const res = await fetch('/styles/confirm', {
+      method: 'GET'
+    });
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+      window.location.reload();
+    };
+  }
+
   async logout() {
     const result = await Swal.fire({
       title: '¿Cerrar sesión?',

@@ -8,7 +8,7 @@ import { GuestGuard } from './guest.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
-  { path: 'login', component: LoginComponent, canActivate: [GuestGuard] },
+  { path: 'login', component: LoginComponent, canActivate: [GuestGuard]},
   { path: 'registro', component: RegisterComponent, canActivate: [GuestGuard] },
   {
     path: 'personalization',
