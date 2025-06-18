@@ -66,6 +66,10 @@ export async function changeStyle() {
     --font-paragraph-family: ${selectedStyle.familyBody};
     --font-paragraph-size: ${selectedStyle.sizeBody}px;
     --font-paragraph-color: var(--text-color);
+
+    --font-body-family: ${selectedStyle.familyBody};
+    --font-body-size: ${selectedStyle.sizeBody}px;
+    --font-body-color: var(--text-color);
   `;
 
   // Valores por defecto
@@ -96,7 +100,10 @@ export async function changeStyle() {
     '--font-subtitle-color': `var(--text-color)`,
     '--font-paragraph-family': selectedStyle.familyBody,
     '--font-paragraph-size': `${selectedStyle.sizeBody}px`,
-    '--font-paragraph-color': `var(--text-color)`
+    '--font-paragraph-color': `var(--text-color)`,
+    '--font-body-family': selectedStyle.familyBody,
+    '--font-body-size': `${selectedStyle.sizeBody}px`,
+    '--font-body-color': `var(--text-color)`
   };
 
   // Extrae el bloque :root {...} del CSS
@@ -166,7 +173,9 @@ export function resetStyle() {
     '--font-subtitle-family': "'Arial', sans-serif",
     '--font-subtitle-size': '1.8rem',
     '--font-paragraph-family': "'Arial', sans-serif",
-    '--font-paragraph-size': '1rem'
+    '--font-paragraph-size': '1rem',
+    '--font-body-family': "'Arial', sans-serif",
+    '--font-body-size': '1rem'
   };
 
   // Extrae el bloque :root {...} del CSS
@@ -221,6 +230,10 @@ export function resetStyle() {
     --font-paragraph-family: 'Arial', sans-serif;
     --font-paragraph-size: 1rem;
     --font-paragraph-color: var(--text-color);
+
+    --font-body-family: 'Arial', sans-serif;
+    --font-body-size: 1rem;
+    --font-body-color: var(--text-color);
   `;
 
   // Reemplazar el bloque de variables en :root
