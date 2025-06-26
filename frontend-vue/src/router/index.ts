@@ -44,6 +44,21 @@ const router = createRouter({
       ]
     },
     {
+      path: '/usuarios',
+      name: 'user-list',
+      component: () => import('../views/UserList.vue')
+    },
+    {
+      path: '/usuarios/:id',
+      name: 'user-detail',
+      component: () => import('../views/UserDetail.vue')
+    },
+    {
+      path: '/perfil',
+      name: 'user-profile',
+      component: () => import('../views/UserProfile.vue')
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/'
     }
