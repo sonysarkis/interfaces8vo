@@ -188,9 +188,81 @@ onMounted(async () => {
 
     <div v-if="selectedUser" class="modal-overlay">
       <div class="modal-content">
+        <button class="close-btn" @click="closeModal">&times;</button>
         <h2>Detalles del Usuario</h2>
-        <pre>{{ selectedUser }}</pre>
-        <button @click="closeModal">Cerrar</button>
+        <div class="modal-scroll">
+          <div class="user-section">
+            <h3>Datos Personales</h3>
+            <ul>
+              <li><b>ID:</b> {{ selectedUser.id }}</li>
+              <li><b>Nombre:</b> {{ selectedUser.firstName }}</li>
+              <li><b>Apellido:</b> {{ selectedUser.lastName }}</li>
+              <li><b>Segundo Apellido:</b> {{ selectedUser.maidenName }}</li>
+              <li><b>Edad:</b> {{ selectedUser.age }}</li>
+              <li><b>Género:</b> {{ selectedUser.gender }}</li>
+              <li><b>Email:</b> {{ selectedUser.email }}</li>
+              <li><b>Teléfono:</b> {{ selectedUser.phone }}</li>
+              <li><b>Username:</b> {{ selectedUser.username }}</li>
+              <li><b>Password:</b> {{ selectedUser.password }}</li>
+              <li><b>Fecha de nacimiento:</b> {{ selectedUser.birthDate }}</li>
+              <li><b>Grupo sanguíneo:</b> {{ selectedUser.bloodGroup }}</li>
+              <li><b>Altura:</b> {{ selectedUser.height }}</li>
+              <li><b>Peso:</b> {{ selectedUser.weight }}</li>
+              <li><b>Color de ojos:</b> {{ selectedUser.eyeColor }}</li>
+              <li><b>Pelo:</b> {{ selectedUser.hair.color }} ({{ selectedUser.hair.type }})</li>
+              <li><b>IP:</b> {{ selectedUser.ip }}</li>
+              <li><b>Imagen:</b> <img :src="selectedUser.image" alt="Foto" width="60" style="vertical-align:middle; border-radius:50%;" /></li>
+            </ul>
+          </div>
+          <div class="user-section">
+            <h3>Dirección</h3>
+            <ul>
+              <li><b>Dirección:</b> {{ selectedUser.address.address }}</li>
+              <li><b>Ciudad:</b> {{ selectedUser.address.city }}</li>
+              <li><b>Estado:</b> {{ selectedUser.address.state }} ({{ selectedUser.address.stateCode }})</li>
+              <li><b>País:</b> {{ selectedUser.address.country }}</li>
+              <li><b>Código Postal:</b> {{ selectedUser.address.postalCode }}</li>
+              <li><b>Coordenadas:</b> Lat: {{ selectedUser.address.coordinates.lat }}, Lng: {{ selectedUser.address.coordinates.lng }}</li>
+            </ul>
+          </div>
+          <div class="user-section">
+            <h3>Banco</h3>
+            <ul>
+              <li><b>Tipo de tarjeta:</b> {{ selectedUser.bank.cardType }}</li>
+              <li><b>Número de tarjeta:</b> {{ selectedUser.bank.cardNumber }}</li>
+              <li><b>Expiración:</b> {{ selectedUser.bank.cardExpire }}</li>
+              <li><b>IBAN:</b> {{ selectedUser.bank.iban }}</li>
+              <li><b>Moneda:</b> {{ selectedUser.bank.currency }}</li>
+            </ul>
+          </div>
+          <div class="user-section">
+            <h3>Compañía</h3>
+            <ul>
+              <li><b>Nombre:</b> {{ selectedUser.company.name }}</li>
+              <li><b>Departamento:</b> {{ selectedUser.company.department }}</li>
+              <li><b>Título:</b> {{ selectedUser.company.title }}</li>
+              <li><b>Dirección:</b> {{ selectedUser.company.address.address }}</li>
+              <li><b>Ciudad:</b> {{ selectedUser.company.address.city }}</li>
+              <li><b>Estado:</b> {{ selectedUser.company.address.state }} ({{ selectedUser.company.address.stateCode }})</li>
+              <li><b>País:</b> {{ selectedUser.company.address.country }}</li>
+              <li><b>Código Postal:</b> {{ selectedUser.company.address.postalCode }}</li>
+              <li><b>Coordenadas:</b> Lat: {{ selectedUser.company.address.coordinates.lat }}, Lng: {{ selectedUser.company.address.coordinates.lng }}</li>
+            </ul>
+          </div>
+          <div class="user-section">
+            <h3>Otros Datos</h3>
+            <ul>
+              <li><b>MAC:</b> {{ selectedUser.macAddress }}</li>
+              <li><b>Universidad:</b> {{ selectedUser.university }}</li>
+              <li><b>EIN:</b> {{ selectedUser.ein }}</li>
+              <li><b>SSN:</b> {{ selectedUser.ssn }}</li>
+              <li><b>User Agent:</b> {{ selectedUser.userAgent }}</li>
+              <li><b>Cripto:</b> {{ selectedUser.crypto.coin }} ({{ selectedUser.crypto.network }}) - Wallet: {{ selectedUser.crypto.wallet }}</li>
+              <li><b>Rol:</b> {{ selectedUser.role }}</li>
+              <li><b>Estado:</b> <span v-if="selectedUser.disabled" class="disabled">Deshabilitado</span><span v-else class="enabled">Activo</span></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -235,11 +307,66 @@ button {
 }
 .modal-content {
   background: #fff;
-  padding: 2rem;
+  padding: 2rem 2.5rem 2rem 2.5rem;
   border-radius: 8px;
-  min-width: 300px;
-  max-width: 90vw;
-  max-height: 80vh;
-  overflow: auto;
+  min-width: 350px;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+}
+.modal-content .close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.close-btn:hover {
+  background: #c0392b;
+}
+.modal-content h2 {
+  margin-top: 0;
+}
+.modal-content .modal-scroll {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  padding-right: 0.5rem;
+}
+.user-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+.user-section:last-child {
+  border-bottom: none;
+}
+.user-section h3 {
+  margin-bottom: 0.5rem;
+  color: var(--color-primary, #2c3e50);
+  font-size: 1.1rem;
+}
+.user-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.user-section li {
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
 }
 </style> 
