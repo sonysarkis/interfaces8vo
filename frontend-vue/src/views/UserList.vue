@@ -12,6 +12,7 @@ import jszip from 'jszip';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import Swal from 'sweetalert2';
+import logo from '@/assets/image.png';
 
 pdfMake.vfs = pdfFonts.vfs;
 // @ts-ignore
@@ -119,6 +120,135 @@ function enableUser(id: number) {
   }
 }
 
+function getBase64Image(imgUrl: string, callback: (base64: string) => void) {
+  const img = new window.Image();
+  img.crossOrigin = 'Anonymous';
+  img.src = imgUrl;
+  img.onload = function () {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx && ctx.drawImage(img, 0, 0);
+    const dataURL = canvas.toDataURL('image/png');
+    callback(dataURL);
+  };
+}
+
+function downloadUserPDF(user: any) {
+  getBase64Image(logo, (logoBase64: string) => {
+    const docDefinition = {
+      content: [
+        {
+          columns: [
+            {
+              image: logoBase64,
+              fit: [60, 60],
+              margin: [0, 0, 10, 0]
+            },
+            [
+              { text: 'EMPRESA DEMO S.A.', style: 'header' },
+              { text: 'Av. Principal 123, Ciudad, País', style: 'subheader' },
+              { text: 'Tel: (000) 123-4567 | contacto@empresademo.com', style: 'subheader' },
+              { text: 'RIF: J-12345678-9', style: 'subheader' }
+            ]
+          ]
+        },
+        { text: ' ', margin: [0, 0, 0, 10] },
+        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#aaa' } ] },
+        { text: 'Reporte de Usuario', style: 'title', margin: [0, 15, 0, 10] },
+        {
+          columns: [
+            { width: 'auto', text: 'Fecha de generación:' },
+            { width: '*', text: new Date().toLocaleString() }
+          ],
+          margin: [0, 0, 0, 10]
+        },
+        { text: 'Datos Personales', style: 'section' },
+        {
+          ul: [
+            `ID: ${user.id}`,
+            `Nombre: ${user.firstName}`,
+            `Apellido: ${user.lastName}`,
+            `Segundo Apellido: ${user.maidenName}`,
+            `Edad: ${user.age}`,
+            `Género: ${user.gender}`,
+            `Email: ${user.email}`,
+            `Teléfono: ${user.phone}`,
+            `Username: ${user.username}`,
+            `Password: ${user.password}`,
+            `Fecha de nacimiento: ${user.birthDate}`,
+            `Grupo sanguíneo: ${user.bloodGroup}`,
+            `Altura: ${user.height}`,
+            `Peso: ${user.weight}`,
+            `Color de ojos: ${user.eyeColor}`,
+            `Pelo: ${user.hair.color} (${user.hair.type})`,
+            `IP: ${user.ip}`
+          ]
+        },
+        { text: 'Dirección', style: 'section' },
+        {
+          ul: [
+            `Dirección: ${user.address.address}`,
+            `Ciudad: ${user.address.city}`,
+            `Estado: ${user.address.state} (${user.address.stateCode})`,
+            `País: ${user.address.country}`,
+            `Código Postal: ${user.address.postalCode}`,
+            `Coordenadas: Lat: ${user.address.coordinates.lat}, Lng: ${user.address.coordinates.lng}`
+          ]
+        },
+        { text: 'Banco', style: 'section' },
+        {
+          ul: [
+            `Tipo de tarjeta: ${user.bank.cardType}`,
+            `Número de tarjeta: ${user.bank.cardNumber}`,
+            `Expiración: ${user.bank.cardExpire}`,
+            `IBAN: ${user.bank.iban}`,
+            `Moneda: ${user.bank.currency}`
+          ]
+        },
+        { text: 'Compañía', style: 'section' },
+        {
+          ul: [
+            `Nombre: ${user.company.name}`,
+            `Departamento: ${user.company.department}`,
+            `Título: ${user.company.title}`,
+            `Dirección: ${user.company.address.address}`,
+            `Ciudad: ${user.company.address.city}`,
+            `Estado: ${user.company.address.state} (${user.company.address.stateCode})`,
+            `País: ${user.company.address.country}`,
+            `Código Postal: ${user.company.address.postalCode}`,
+            `Coordenadas: Lat: ${user.company.address.coordinates.lat}, Lng: ${user.company.address.coordinates.lng}`
+          ]
+        },
+        { text: 'Otros Datos', style: 'section' },
+        {
+          ul: [
+            `MAC: ${user.macAddress}`,
+            `Universidad: ${user.university}`,
+            `EIN: ${user.ein}`,
+            `SSN: ${user.ssn}`,
+            `User Agent: ${user.userAgent}`,
+            `Cripto: ${user.crypto.coin} (${user.crypto.network}) - Wallet: ${user.crypto.wallet}`,
+            `Rol: ${user.role}`,
+            `Estado: ${user.disabled ? 'Deshabilitado' : 'Activo'}`
+          ]
+        }
+      ],
+      styles: {
+        header: { fontSize: 18, bold: true, color: '#2c3e50' },
+        subheader: { fontSize: 10, color: '#555' },
+        title: { fontSize: 16, bold: true, margin: [0, 10, 0, 10], color: '#2c3e50' },
+        section: { fontSize: 13, bold: true, margin: [0, 10, 0, 4], color: '#2c3e50' }
+      },
+      defaultStyle: {
+        fontSize: 11
+      }
+    };
+    pdfMake.createPdf(docDefinition).download(`usuario_${user.id}.pdf`);
+  });
+}
+
 onMounted(async () => {
   await nextTick();
 
@@ -181,6 +311,7 @@ onMounted(async () => {
             <button @click="showDetails(user)">Ver más</button>
             <button v-if="!user.disabled" @click="disableUser(user.id)">Deshabilitar</button>
             <button v-else @click="enableUser(user.id)">Habilitar</button>
+            <button @click="downloadUserPDF(user)">Descargar PDF</button>
           </td>
         </tr>
       </tbody>
