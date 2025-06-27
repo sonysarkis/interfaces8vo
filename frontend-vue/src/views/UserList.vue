@@ -13,6 +13,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import Swal from 'sweetalert2';
 import logo from '@/assets/image.png';
+import * as XLSX from 'xlsx';
 
 pdfMake.vfs = pdfFonts.vfs;
 // @ts-ignore
@@ -249,6 +250,61 @@ function downloadUserPDF(user: any) {
   });
 }
 
+function downloadUserExcel(user) {
+  // Prepara los datos en formato plano
+  const data = [
+    { Campo: 'ID', Valor: user.id },
+    { Campo: 'Nombre', Valor: user.firstName },
+    { Campo: 'Apellido', Valor: user.lastName },
+    { Campo: 'Segundo Apellido', Valor: user.maidenName },
+    { Campo: 'Edad', Valor: user.age },
+    { Campo: 'Género', Valor: user.gender },
+    { Campo: 'Email', Valor: user.email },
+    { Campo: 'Teléfono', Valor: user.phone },
+    { Campo: 'Username', Valor: user.username },
+    { Campo: 'Password', Valor: user.password },
+    { Campo: 'Fecha de nacimiento', Valor: user.birthDate },
+    { Campo: 'Grupo sanguíneo', Valor: user.bloodGroup },
+    { Campo: 'Altura', Valor: user.height },
+    { Campo: 'Peso', Valor: user.weight },
+    { Campo: 'Color de ojos', Valor: user.eyeColor },
+    { Campo: 'Pelo', Valor: `${user.hair.color} (${user.hair.type})` },
+    { Campo: 'IP', Valor: user.ip },
+    { Campo: 'Dirección', Valor: user.address.address },
+    { Campo: 'Ciudad', Valor: user.address.city },
+    { Campo: 'Estado', Valor: `${user.address.state} (${user.address.stateCode})` },
+    { Campo: 'País', Valor: user.address.country },
+    { Campo: 'Código Postal', Valor: user.address.postalCode },
+    { Campo: 'Coordenadas', Valor: `Lat: ${user.address.coordinates.lat}, Lng: ${user.address.coordinates.lng}` },
+    { Campo: 'Tipo de tarjeta', Valor: user.bank.cardType },
+    { Campo: 'Número de tarjeta', Valor: user.bank.cardNumber },
+    { Campo: 'Expiración', Valor: user.bank.cardExpire },
+    { Campo: 'IBAN', Valor: user.bank.iban },
+    { Campo: 'Moneda', Valor: user.bank.currency },
+    { Campo: 'Nombre Compañía', Valor: user.company.name },
+    { Campo: 'Departamento', Valor: user.company.department },
+    { Campo: 'Título', Valor: user.company.title },
+    { Campo: 'Dirección Compañía', Valor: user.company.address.address },
+    { Campo: 'Ciudad Compañía', Valor: user.company.address.city },
+    { Campo: 'Estado Compañía', Valor: `${user.company.address.state} (${user.company.address.stateCode})` },
+    { Campo: 'País Compañía', Valor: user.company.address.country },
+    { Campo: 'Código Postal Compañía', Valor: user.company.address.postalCode },
+    { Campo: 'Coordenadas Compañía', Valor: `Lat: ${user.company.address.coordinates.lat}, Lng: ${user.company.address.coordinates.lng}` },
+    { Campo: 'MAC', Valor: user.macAddress },
+    { Campo: 'Universidad', Valor: user.university },
+    { Campo: 'EIN', Valor: user.ein },
+    { Campo: 'SSN', Valor: user.ssn },
+    { Campo: 'User Agent', Valor: user.userAgent },
+    { Campo: 'Cripto', Valor: `${user.crypto.coin} (${user.crypto.network}) - Wallet: ${user.crypto.wallet}` },
+    { Campo: 'Rol', Valor: user.role },
+    { Campo: 'Estado', Valor: user.disabled ? 'Deshabilitado' : 'Activo' }
+  ];
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'ReporteUsuario');
+  XLSX.writeFile(wb, `usuario_${user.id}.xlsx`);
+}
+
 onMounted(async () => {
   await nextTick();
 
@@ -311,7 +367,8 @@ onMounted(async () => {
             <button @click="showDetails(user)">Ver más</button>
             <button v-if="!user.disabled" @click="disableUser(user.id)">Deshabilitar</button>
             <button v-else @click="enableUser(user.id)">Habilitar</button>
-            <button @click="downloadUserPDF(user)">Descargar PDF</button>
+            <button @click="downloadUserPDF(user)">Reporte en PDF</button>
+            <button @click="downloadUserExcel(user)">Reporte en EXCEL</button>
           </td>
         </tr>
       </tbody>
