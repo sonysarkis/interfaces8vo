@@ -1,6 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
+// import 'datatables.net-dt/css/jquery.dataTables.css';
+// import 'datatables.net-buttons-dt/css/buttons.dataTables.css';
+import $ from 'jquery';
+import dt from 'datatables.net-dt';
+import dtButtons from 'datatables.net-buttons-dt';
+// import 'datatables.net-buttons/js/buttons.html5.js';
+// import 'datatables.net-buttons/js/buttons.print.js';
+import jszip from 'jszip';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+import Swal from 'sweetalert2';
+
+pdfMake.vfs = pdfFonts.vfs;
+// @ts-ignore
+window.JSZip = jszip;
 
 const router = useRouter();
 
@@ -70,20 +85,81 @@ const users = ref([
   // Puedes agregar más usuarios aquí si lo deseas
 ]);
 
-function goToDetail(id: number) {
-  router.push(`/usuarios/${id}`);
+const selectedUser = ref(null);
+
+function showDetails(user: any) {
+  selectedUser.value = user;
+}
+
+function closeModal() {
+  selectedUser.value = null;
 }
 
 function disableUser(id: number) {
   const user = users.value.find(u => u.id === id);
-  if (user) user.disabled = true;
+  if (user) {
+    user.disabled = true;
+    Swal.fire({
+      icon: 'success',
+      title: 'Usuario deshabilitado',
+      text: 'El usuario ha sido deshabilitado correctamente.'
+    });
+  }
 }
+
+function enableUser(id: number) {
+  const user = users.value.find(u => u.id === id);
+  if (user) {
+    user.disabled = false;
+    Swal.fire({
+      icon: 'success',
+      title: 'Usuario habilitado',
+      text: 'El usuario ha sido habilitado correctamente.'
+    });
+  }
+}
+
+onMounted(async () => {
+  await nextTick();
+
+  // Importa dinámicamente los botones solo en el cliente
+  if (typeof window !== 'undefined') {
+    require('datatables.net-buttons/js/buttons.html5.js');
+    require('datatables.net-buttons/js/buttons.print.js');
+  }
+
+  setTimeout(() => {
+    if ($.fn.dataTable.isDataTable('#userTable')) {
+      $('#userTable').DataTable().destroy();
+    }
+    $('#userTable').DataTable({
+      dom: 'Bfrtip',
+      buttons: [
+        {
+          extend: 'excelHtml5',
+          text: 'Exportar a Excel',
+          title: 'Usuarios'
+        },
+        {
+          extend: 'pdfHtml5',
+          text: 'Exportar a PDF',
+          title: 'Usuarios',
+          orientation: 'landscape',
+          pageSize: 'A4'
+        }
+      ],
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
+      }
+    });
+  }, 0);
+});
 </script>
 
 <template>
   <div class="container">
     <h1>Listado de Usuarios</h1>
-    <table class="user-table">
+    <table id="userTable" class="display">
       <thead>
         <tr>
           <th>ID</th>
@@ -91,8 +167,7 @@ function disableUser(id: number) {
           <th>Apellido</th>
           <th>Email</th>
           <th>Rol</th>
-          <th>Estado</th>
-          <th>Acciones</th>
+          <th>Ver más</th>
         </tr>
       </thead>
       <tbody>
@@ -103,16 +178,21 @@ function disableUser(id: number) {
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
           <td>
-            <span v-if="user.disabled" class="disabled">Deshabilitado</span>
-            <span v-else class="enabled">Activo</span>
-          </td>
-          <td>
-            <button @click="goToDetail(user.id)">Ver Detalles</button>
-            <button @click="disableUser(user.id)" :disabled="user.disabled">Deshabilitar</button>
+            <button @click="showDetails(user)">Ver más</button>
+            <button v-if="!user.disabled" @click="disableUser(user.id)">Deshabilitar</button>
+            <button v-else @click="enableUser(user.id)">Habilitar</button>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <div v-if="selectedUser" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Detalles del Usuario</h2>
+        <pre>{{ selectedUser }}</pre>
+        <button @click="closeModal">Cerrar</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -125,26 +205,41 @@ function disableUser(id: number) {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
-.user-table {
+.display {
   width: 100%;
   border-collapse: collapse;
 }
-.user-table th, .user-table td {
+.display th, .display td {
   border: 1px solid #ccc;
   padding: 0.5rem;
   text-align: left;
 }
-.user-table th {
+.display th {
   background: var(--color-primary);
   color: var(--color-background);
 }
-.enabled {
-  color: green;
-}
-.disabled {
-  color: red;
-}
 button {
   margin-right: 0.5rem;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: auto;
 }
 </style> 

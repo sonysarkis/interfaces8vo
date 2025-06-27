@@ -9,6 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "datatables.net": "^2.3.2",
+    "datatables.net-buttons": "^3.2.3",
+    "datatables.net-buttons-dt": "^3.2.3",
+    "datatables.net-dt": "^2.3.2",
+    "jszip": "^3.10.1",
+    "pdfmake": "^0.2.20",
     "sweetalert2": "^11.22.0",
     "vue": "^3.5.13"
   },
