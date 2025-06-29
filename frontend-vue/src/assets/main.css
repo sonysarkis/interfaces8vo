@@ -2,25 +2,11 @@
 
 /* Estilos globales */
 :root {
-    --primary-color: #2C3E50;
     --color-primary: #2C3E50;
-    --secondary-color: #3498DB;
     --color-secondary: #3498DB;
-    --accent-color: #E74C3C;
     --color-accent: #E74C3C;
-    --background-color: #ECF0F1;
     --color-background: #ECF0F1;
-    --text-color: #95A5A6;
     --color-text: #95A5A6;
-
-    --color-primary-light: #2C3E50;
-    --color-primary-dark: #2C3E50;
-    --color-secondary-light: #3498DB;
-    --color-secondary-dark: #3498DB;
-    --color-accent-light: #E74C3C;
-    --color-accent-dark: #E74C3C;
-    --color-background-dark: #ECF0F1;
-    --color-text-dark: #95A5A6;
 
     /* Fuentes */
     --font-title-family: 'Arial', sans-serif;
