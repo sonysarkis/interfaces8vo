@@ -356,15 +356,15 @@ watch(currentStyles, () => {
           <div class="space-y-3">
             <div class="control-group">
               <label class="control-label">Tamaño</label>
-              <div class="range-group">
+              <div class="input-group">
                 <input 
-                  type="range" 
+                  type="number" 
                   min="24" 
                   max="72" 
                   v-model="titleFontSize"
                   @input="updateFontStyles('title')" 
-                  class="range-slider">
-                <span class="range-value">{{ titleFontSize }}px</span>
+                  class="number-input">
+                <span class="input-suffix">px</span>
               </div>
             </div>
             
@@ -385,15 +385,15 @@ watch(currentStyles, () => {
           <div class="space-y-3">
             <div class="control-group">
               <label class="control-label">Tamaño</label>
-              <div class="range-group">
+              <div class="input-group">
                 <input 
-                  type="range" 
+                  type="number" 
                   min="16" 
                   max="48" 
                   v-model="subtitleFontSize"
                   @input="updateFontStyles('subtitle')" 
-                  class="range-slider">
-                <span class="range-value">{{ subtitleFontSize }}px</span>
+                  class="number-input">
+                <span class="input-suffix">px</span>
               </div>
             </div>
             
@@ -414,15 +414,15 @@ watch(currentStyles, () => {
           <div class="space-y-3">
             <div class="control-group">
               <label class="control-label">Tamaño</label>
-              <div class="range-group">
+              <div class="input-group">
                 <input 
-                  type="range" 
+                  type="number" 
                   min="12" 
                   max="24" 
                   v-model="bodyFontSize"
                   @input="updateFontStyles('body')" 
-                  class="range-slider">
-                <span class="range-value">{{ bodyFontSize }}px</span>
+                  class="number-input">
+                <span class="input-suffix">px</span>
               </div>
             </div>
             
@@ -689,34 +689,31 @@ watch(currentStyles, () => {
   margin-bottom: 1rem;
 }
 
-.range-group {
+.input-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.range-slider {
+.number-input {
   flex: 1;
-  height: 6px;
-  border-radius: 3px;
-  background: #d1d5db;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  width: 80px;
+}
+
+.number-input:focus {
   outline: none;
-  cursor: pointer;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.range-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #3b82f6;
-  cursor: pointer;
-}
-
-.range-value {
+.input-suffix {
   font-size: 0.875rem;
   color: #6b7280;
-  min-width: 50px;
+  font-weight: 500;
 }
 
 .file-input {
