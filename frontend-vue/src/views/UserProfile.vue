@@ -161,7 +161,7 @@ function addSearchControl() {
         <div style="background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.4);">
           <input type="text" id="search-input" placeholder="Buscar ubicación..." 
                  style="width: 200px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-          <button id="search-btn" style="margin-left: 5px; padding: 5px 10px; background: var(--color-primary); color: white; border: none; border-radius: 3px; cursor: pointer;">
+          <button type="button" id="search-btn" style="margin-left: 5px; padding: 5px 10px; background: var(--color-primary); color: white; border: none; border-radius: 3px; cursor: pointer;">
             Buscar
           </button>
         </div>
@@ -171,7 +171,9 @@ function addSearchControl() {
       const searchBtn = container.querySelector('#search-btn') as HTMLButtonElement;
       
       // Evento de búsqueda
-      const performSearch = async () => {
+      const performSearch = async (e: Event) => {
+        e.preventDefault(); // Prevenir el submit del formulario
+        e.stopPropagation(); // Detener la propagación del evento
         const query = searchInput.value.trim();
         if (query) {
           await searchLocation(query);
@@ -181,7 +183,8 @@ function addSearchControl() {
       searchBtn.addEventListener('click', performSearch);
       searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-          performSearch();
+          e.preventDefault(); // Prevenir el submit del formulario
+          performSearch(e);
         }
       });
       
@@ -419,158 +422,323 @@ function saveProfile() {
 
 <template>
   <div class="container">
-    <h1>Mi Perfil</h1>
-    <form @submit.prevent="saveProfile">
+    <h1 class="page-title">Mi Perfil</h1>
+    <form @submit.prevent="saveProfile" class="profile-form">
       <!-- Paso 1: Datos personales 1/3 -->
-      <div v-if="step === 1">
-        <h2>Datos personales (1/3)</h2>
-        <div class="form-group"><label>Nombre</label><input v-model="user.firstName" />
-          <span class="error" v-if="errors.firstName">{{ errors.firstName }}</span></div>
-        <div class="form-group"><label>Apellido</label><input v-model="user.lastName" />
-          <span class="error" v-if="errors.lastName">{{ errors.lastName }}</span></div>
-        <div class="form-group"><label>Segundo Nombre</label><input v-model="user.maidenName" />
-          <span class="error" v-if="errors.maidenName">{{ errors.maidenName }}</span></div>
-        <div class="form-group"><label>Edad</label><input v-model="user.age" type="number" />
-          <span class="error" v-if="errors.age">{{ errors.age }}</span></div>
-        <div class="form-group">
-          <label>Género</label>
-          <div>
-            <label v-for="opt in genderOptions" :key="opt.value" style="margin-right:1rem;">
-              <input type="radio" v-model="user.gender" :value="opt.value" /> {{ opt.label }}
-            </label>
+      <div v-if="step === 1" class="form-step">
+        <h2 class="step-title">Datos personales (1/3)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre</label>
+            <input v-model="user.firstName" class="form-input" />
+            <span class="error-message" v-if="errors.firstName">{{ errors.firstName }}</span>
           </div>
-          <span class="error" v-if="errors.gender">{{ errors.gender }}</span>
+          <div class="form-group">
+            <label class="form-label">Apellido</label>
+            <input v-model="user.lastName" class="form-input" />
+            <span class="error-message" v-if="errors.lastName">{{ errors.lastName }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Segundo Nombre</label>
+            <input v-model="user.maidenName" class="form-input" />
+            <span class="error-message" v-if="errors.maidenName">{{ errors.maidenName }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Edad</label>
+            <input v-model="user.age" type="number" class="form-input" />
+            <span class="error-message" v-if="errors.age">{{ errors.age }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Género</label>
+            <div class="radio-group">
+              <label v-for="opt in genderOptions" :key="opt.value" class="radio-option">
+                <input type="radio" v-model="user.gender" :value="opt.value" class="radio-input" />
+                <span class="radio-label">{{ opt.label }}</span>
+              </label>
+            </div>
+            <span class="error-message" v-if="errors.gender">{{ errors.gender }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Correo electrónico</label>
+            <input v-model="user.email" class="form-input" />
+            <span class="error-message" v-if="errors.email">{{ errors.email }}</span>
+          </div>
         </div>
-        <div class="form-group"><label>Correo electrónico</label><input v-model="user.email" />
-          <span class="error" v-if="errors.email">{{ errors.email }}</span></div>
       </div>
+
       <!-- Paso 2: Datos personales 2/3 -->
-      <div v-if="step === 2">
-        <h2>Datos personales (2/3)</h2>
-        <div class="form-group"><label>Teléfono</label><input v-model="user.phone" />
-          <span class="error" v-if="errors.phone">{{ errors.phone }}</span></div>
-        <div class="form-group"><label>Nombre de usuario</label><input v-model="user.username" />
-          <span class="error" v-if="errors.username">{{ errors.username }}</span></div>
-        <div class="form-group"><label>Contraseña</label><input v-model="user.password" type="text" />
-          <span class="error" v-if="errors.password">{{ errors.password }}</span></div>
-        <div class="form-group"><label>Fecha de nacimiento</label><input v-model="user.birthDate" type="date" />
-          <span class="error" v-if="errors.birthDate">{{ errors.birthDate }}</span></div>
-        <div class="form-group"><label>Grupo sanguíneo</label><select v-model="user.bloodGroup"><option v-for="g in bloodGroups" :key="g" :value="g">{{ g }}</option></select>
-          <span class="error" v-if="errors.bloodGroup">{{ errors.bloodGroup }}</span></div>
-        <div class="form-group"><label>Altura</label><input v-model="user.height" type="number" step="0.01" />
-          <span class="error" v-if="errors.height">{{ errors.height }}</span></div>
+      <div v-if="step === 2" class="form-step">
+        <h2 class="step-title">Datos personales (2/3)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input v-model="user.phone" class="form-input" />
+            <span class="error-message" v-if="errors.phone">{{ errors.phone }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nombre de usuario</label>
+            <input v-model="user.username" class="form-input" />
+            <span class="error-message" v-if="errors.username">{{ errors.username }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contraseña</label>
+            <input v-model="user.password" type="text" class="form-input" />
+            <span class="error-message" v-if="errors.password">{{ errors.password }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de nacimiento</label>
+            <input v-model="user.birthDate" type="date" class="form-input" />
+            <span class="error-message" v-if="errors.birthDate">{{ errors.birthDate }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Grupo sanguíneo</label>
+            <select v-model="user.bloodGroup" class="form-select">
+              <option v-for="g in bloodGroups" :key="g" :value="g">{{ g }}</option>
+            </select>
+            <span class="error-message" v-if="errors.bloodGroup">{{ errors.bloodGroup }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Altura</label>
+            <input v-model="user.height" type="number" step="0.01" class="form-input" />
+            <span class="error-message" v-if="errors.height">{{ errors.height }}</span>
+          </div>
+        </div>
       </div>
+
       <!-- Paso 3: Datos personales 3/3 -->
-      <div v-if="step === 3">
-        <h2>Datos personales (3/3)</h2>
-        <div class="form-group"><label>Peso (KG)</label><input v-model="user.weight" type="number" step="0.01" />
-          <span class="error" v-if="errors.weight">{{ errors.weight }}</span></div>
-        <div class="form-group"><label>Color de ojos</label><input v-model="user.eyeColor" />
-          <span class="error" v-if="errors.eyeColor">{{ errors.eyeColor }}</span></div>
-        <div class="form-group"><label>Pelo (color)</label><input v-model="user.hair.color" />
-          <span class="error" v-if="errors['hair.color']">{{ errors['hair.color'] }}</span></div>
-        <div class="form-group"><label>Pelo (tipo)</label><input v-model="user.hair.type" />
-          <span class="error" v-if="errors['hair.type']">{{ errors['hair.type'] }}</span></div>
-        <div class="form-group"><label>Dirección</label><input v-model="user.address.address" />
-          <span class="error" v-if="errors['address.address']">{{ errors['address.address'] }}</span></div>
-        <div class="form-group"><label>Ciudad</label><input v-model="user.address.city" />
-          <span class="error" v-if="errors['address.city']">{{ errors['address.city'] }}</span></div>
+      <div v-if="step === 3" class="form-step">
+        <h2 class="step-title">Datos personales (3/3)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Peso (KG)</label>
+            <input v-model="user.weight" type="number" step="0.01" class="form-input" />
+            <span class="error-message" v-if="errors.weight">{{ errors.weight }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color de ojos</label>
+            <input v-model="user.eyeColor" class="form-input" />
+            <span class="error-message" v-if="errors.eyeColor">{{ errors.eyeColor }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pelo (color)</label>
+            <input v-model="user.hair.color" class="form-input" />
+            <span class="error-message" v-if="errors['hair.color']">{{ errors['hair.color'] }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pelo (tipo)</label>
+            <input v-model="user.hair.type" class="form-input" />
+            <span class="error-message" v-if="errors['hair.type']">{{ errors['hair.type'] }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dirección</label>
+            <input v-model="user.address.address" class="form-input" />
+            <span class="error-message" v-if="errors['address.address']">{{ errors['address.address'] }}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ciudad</label>
+            <input v-model="user.address.city" class="form-input" />
+            <span class="error-message" v-if="errors['address.city']">{{ errors['address.city'] }}</span>
+          </div>
+        </div>
       </div>
+
       <!-- Paso 4: Ubicación y dirección con mapa -->
-      <div v-if="step === 4" class="solo-mapa">
-        <div id="map" class="map"></div>
-        <button type="button" class="info-btn" @click="showModal = true">
-          Ver información de ubicación
-        </button>
+      <div v-if="step === 4" class="map-step">
+        <h2 class="step-title">Ubicación</h2>
+        <div class="map-container">
+          <div id="map" class="map"></div>
+          <div class="map-actions">
+            <button type="button" class="info-btn" @click="showModal = true">
+              Ver información de ubicación
+            </button>
+          </div>
+        </div>
+        
         <!-- Modal -->
         <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
           <div class="modal-content">
-            <h2>Información de ubicación</h2>
-            <div class="info-group">
-              <label>Latitud</label>
-              <div class="readonly-field">{{ user.address.coordinates.lat || 'No seleccionada' }}</div>
-            </div>
-            <div class="info-group">
-              <label>Longitud</label>
-              <div class="readonly-field">{{ user.address.coordinates.lng || 'No seleccionada' }}</div>
-            </div>
-            <div class="info-group">
-              <label>Dirección MAC</label>
-              <input v-model="user.macAddress" placeholder="Ej: 47:fa:41:18:ec:eb" />
-            </div>
-            <div class="info-group">
-              <label>Dirección</label>
-              <div class="readonly-field">{{ user.address.address || 'No seleccionada' }}</div>
-            </div>
-            <div class="info-group">
-              <label>Ciudad</label>
-              <div class="readonly-field">{{ user.address.city || 'No seleccionada' }}</div>
-            </div>
-            <div class="info-group">
-              <label>Estado</label>
-              <div class="readonly-field">{{ user.address.state || 'No seleccionado' }}</div>
-            </div>
-            <div class="info-group">
-              <label>Código postal</label>
-              <div class="readonly-field">{{ user.address.postalCode || 'No seleccionado' }}</div>
-            </div>
-            <div class="info-group">
-              <label>País</label>
-              <div class="readonly-field">{{ user.address.country || 'No seleccionado' }}</div>
+            <h2 class="modal-title">Información de ubicación</h2>
+            <div class="modal-grid">
+              <div class="info-group">
+                <label class="info-label">Latitud</label>
+                <div class="readonly-field">{{ user.address.coordinates.lat || 'No seleccionada' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Longitud</label>
+                <div class="readonly-field">{{ user.address.coordinates.lng || 'No seleccionada' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Dirección MAC</label>
+                <input v-model="user.macAddress" placeholder="Ej: 47:fa:41:18:ec:eb" class="form-input" />
+              </div>
+              <div class="info-group">
+                <label class="info-label">Dirección</label>
+                <div class="readonly-field">{{ user.address.address || 'No seleccionada' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Ciudad</label>
+                <div class="readonly-field">{{ user.address.city || 'No seleccionada' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Estado</label>
+                <div class="readonly-field">{{ user.address.state || 'No seleccionado' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Código postal</label>
+                <div class="readonly-field">{{ user.address.postalCode || 'No seleccionado' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">País</label>
+                <div class="readonly-field">{{ user.address.country || 'No seleccionado' }}</div>
+              </div>
             </div>
             <button type="button" class="close-btn" @click="showModal = false">Cerrar</button>
           </div>
         </div>
       </div>
+
       <!-- Paso 5: Profesional y bancaria 1/3 -->
-      <div v-if="step === 5">
-        <h2>Profesional y bancaria (1/3)</h2>
-        <div class="form-group"><label>Universidad</label><input v-model="user.university" /></div>
-        <div class="form-group"><label>Tipo de banco</label><input v-model="user.bank.cardType" /></div>
-        <div class="form-group"><label>Número de banco</label><input v-model="user.bank.cardNumber" /></div>
-        <div class="form-group"><label>Expiración del banco</label><input v-model="user.bank.cardExpire" /></div>
-        <div class="form-group"><label>Banco (IBAN)</label><input v-model="user.bank.iban" /></div>
-        <div class="form-group"><label>Moneda del banco</label><input v-model="user.bank.currency" /></div>
+      <div v-if="step === 5" class="form-step">
+        <h2 class="step-title">Profesional y bancaria (1/3)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Universidad</label>
+            <input v-model="user.university" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de banco</label>
+            <input v-model="user.bank.cardType" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Número de banco</label>
+            <input v-model="user.bank.cardNumber" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Expiración del banco</label>
+            <input v-model="user.bank.cardExpire" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Banco (IBAN)</label>
+            <input v-model="user.bank.iban" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Moneda del banco</label>
+            <input v-model="user.bank.currency" class="form-input" />
+          </div>
+        </div>
       </div>
+
       <!-- Paso 6: Profesional y bancaria 2/3 -->
-      <div v-if="step === 6">
-        <h2>Profesional y bancaria (2/3)</h2>
-        <div class="form-group"><label>Compañía</label><input v-model="user.company.name" /></div>
-        <div class="form-group"><label>Departamento</label><input v-model="user.company.department" /></div>
-        <div class="form-group"><label>Título</label><input v-model="user.company.title" /></div>
-        <div class="form-group"><label>Dirección Compañía</label><input v-model="user.company.address.address" /></div>
-        <div class="form-group"><label>Ciudad Compañía</label><input v-model="user.company.address.city" /></div>
-        <div class="form-group"><label>Estado Compañía</label><input v-model="user.company.address.state" /></div>
+      <div v-if="step === 6" class="form-step">
+        <h2 class="step-title">Profesional y bancaria (2/3)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Compañía</label>
+            <input v-model="user.company.name" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Departamento</label>
+            <input v-model="user.company.department" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Título</label>
+            <input v-model="user.company.title" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dirección Compañía</label>
+            <input v-model="user.company.address.address" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ciudad Compañía</label>
+            <input v-model="user.company.address.city" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado Compañía</label>
+            <input v-model="user.company.address.state" class="form-input" />
+          </div>
+        </div>
       </div>
+
       <!-- Paso 7: Profesional y bancaria 3/3 -->
-      <div v-if="step === 7">
-        <h2>Profesional y bancaria (3/3)</h2>
-        <div class="form-group"><label>Código Postal Compañía</label><input v-model="user.company.address.postalCode" /></div>
-        <div class="form-group"><label>País Compañía</label><input v-model="user.company.address.country" /></div>
-        <div class="form-group"><label>Latitud Compañía</label><input v-model="user.company.address.coordinates.lat" type="number" step="0.00001" /></div>
-        <div class="form-group"><label>Longitud Compañía</label><input v-model="user.company.address.coordinates.lng" type="number" step="0.00001" /></div>
-        <div class="form-group"><label>EIN</label><input v-model="user.ein" /></div>
-        <div class="form-group"><label>SSN</label><input v-model="user.ssn" /></div>
+      <div v-if="step === 7" class="form-step">
+        <h2 class="step-title">Profesional y bancaria (3/3)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Código Postal Compañía</label>
+            <input v-model="user.company.address.postalCode" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">País Compañía</label>
+            <input v-model="user.company.address.country" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Latitud Compañía</label>
+            <input v-model="user.company.address.coordinates.lat" type="number" step="0.00001" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Longitud Compañía</label>
+            <input v-model="user.company.address.coordinates.lng" type="number" step="0.00001" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">EIN</label>
+            <input v-model="user.ein" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">SSN</label>
+            <input v-model="user.ssn" class="form-input" />
+          </div>
+        </div>
       </div>
+
       <!-- Paso 8: Seguridad y otros datos 1/2 -->
-      <div v-if="step === 8">
-        <h2>Seguridad y otros datos (1/2)</h2>
-        <div class="form-group"><label>User Agent</label><input v-model="user.userAgent" /></div>
-        <div class="form-group"><label>Cripto (moneda)</label><input v-model="user.crypto.coin" /></div>
-        <div class="form-group"><label>Cripto (wallet)</label><input v-model="user.crypto.wallet" /></div>
-        <div class="form-group"><label>Cripto (network)</label><input v-model="user.crypto.network" /></div>
-        <div class="form-group"><label>Rol</label><input v-model="user.role" /></div>
-        <div class="form-group"><label>Estado</label><input v-model="user.disabled" type="checkbox" /> Deshabilitado</div>
+      <div v-if="step === 8" class="form-step">
+        <h2 class="step-title">Seguridad y otros datos (1/2)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">User Agent</label>
+            <input v-model="user.userAgent" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cripto (moneda)</label>
+            <input v-model="user.crypto.coin" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cripto (wallet)</label>
+            <input v-model="user.crypto.wallet" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cripto (network)</label>
+            <input v-model="user.crypto.network" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol</label>
+            <input v-model="user.role" class="form-input" />
+          </div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input v-model="user.disabled" type="checkbox" class="checkbox-input" />
+              <span class="checkbox-text">Deshabilitado</span>
+            </label>
+          </div>
+        </div>
       </div>
+
       <!-- Paso 9: Confirmación -->
-      <div v-if="step === 9">
-        <h2>Confirmar y guardar</h2>
-        <p>Revisa tus datos y haz clic en Guardar para finalizar.</p>
+      <div v-if="step === 9" class="confirmation-step">
+        <h2 class="step-title">Confirmar y guardar</h2>
+        <p class="confirmation-text">Revisa tus datos y haz clic en Guardar para finalizar.</p>
       </div>
+
       <div class="wizard-nav">
-        <button type="button" @click="prevStep" :disabled="step === 1">Anterior</button>
-        <button type="button" @click="nextStep" :disabled="step === totalSteps || !isStepValid">Siguiente</button>
-        <button v-if="step === totalSteps" type="submit" :disabled="!isStepValid">Guardar</button>
+        <button type="button" @click="prevStep" :disabled="step === 1" class="nav-btn nav-btn-secondary">
+          Anterior
+        </button>
+        <button type="button" @click="nextStep" :disabled="step === totalSteps || !isStepValid" class="nav-btn nav-btn-primary">
+          Siguiente
+        </button>
+        <button v-if="step === totalSteps" type="submit" :disabled="!isStepValid" class="nav-btn nav-btn-success">
+          Guardar
+        </button>
       </div>
     </form>
   </div>
@@ -578,228 +746,187 @@ function saveProfile() {
 
 <style scoped>
 .container {
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem 1rem;
   background: var(--color-background);
-  border-radius: 8px;
-  display: block;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-.step4-flex {
-  display: flex;
-  flex-direction: column;
+.page-title {
+  font-family: var(--font-title-family);
+  font-size: var(--font-title-size);
+  font-weight: var(--font-title-weight);
+  color: var(--color-primary);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.profile-form {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.form-step, .map-step, .confirmation-step {
+  margin-bottom: 2rem;
+}
+
+.step-title {
+  font-family: var(--font-subtitle-family);
+  font-size: var(--font-subtitle-size);
+  font-weight: var(--font-subtitle-weight);
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-secondary);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
 }
 
-.map-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.map {
-  width: 100%;
-  height: 50vh;
-  min-height: 250px;
-  max-height: 60vh;
-  border-radius: 8px;
-  border: 2px solid var(--color-background);
-  margin-bottom: 0.5rem;
-}
-
-.map-instructions {
-  background: var(--color-background);
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-.address-info {
-  background: var(--color-background);
-  padding: 1.2rem;
-  border-radius: 8px;
-}
-
-.address-info h3 {
-  font-family: var(--font-subtitle-family);
-  font-size: var(--font-subtitle-size);
-  font-weight: var(--font-subtitle-weight);
-  color: var(--font-subtitle-color);
-  margin-bottom: 1rem;
-}
-
-.address-display {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.address-field {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 4px;
-  border-left: 4px solid var(--color-secondary);
-}
-
-.address-field strong {
-  font-family: var(--font-paragraph-family);
-  font-size: var(--font-paragraph-size);
-  font-weight: 600;
-  color: var(--font-paragraph-color);
-  min-width: 120px;
-}
-
-.address-field span {
-  font-family: var(--font-body-family);
-  font-size: var(--font-body-size);
-  color: var(--font-body-color);
-  text-align: right;
-  flex: 1;
-}
-
-.manual-fields {
-  background: white;
-  padding: 1.2rem;
-  border-radius: 8px;
-  border: 2px solid var(--color-background);
-}
-
-.manual-fields h3 {
-  font-family: var(--font-subtitle-family);
-  font-size: var(--font-subtitle-size);
-  font-weight: var(--font-subtitle-weight);
-  color: var(--font-subtitle-color);
-  margin-bottom: 1rem;
-}
-
-.coordinates-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
 .form-group {
-  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
 }
 
-.form-group label {
+.form-label {
   font-family: var(--font-paragraph-family);
   font-size: var(--font-paragraph-size);
   font-weight: 600;
-  color: var(--font-paragraph-color);
+  color: var(--color-primary);
   margin-bottom: 0.5rem;
 }
 
-.form-group input {
+.form-input, .form-select {
   padding: 0.75rem;
   border: 2px solid var(--color-background);
   border-radius: 8px;
   font-family: var(--font-body-family);
   font-size: var(--font-body-size);
-  color: var(--font-body-color);
-  transition: border-color 0.3s ease;
+  color: var(--color-text);
+  background: white;
+  transition: all 0.3s ease;
 }
 
-.form-group input:focus {
+.form-input:focus, .form-select:focus {
   outline: none;
   border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
-.form-group input::placeholder {
+.form-input::placeholder {
   color: var(--color-text);
   opacity: 0.7;
 }
 
-.error {
+.error-message {
   color: var(--color-accent);
-  font-size: 0.9em;
+  font-size: 0.85rem;
   margin-top: 0.25rem;
   font-family: var(--font-paragraph-family);
 }
 
-/* Estilos para el control de búsqueda de Leaflet */
-:deep(.leaflet-control) {
-  z-index: 1000;
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-:deep(.leaflet-control input) {
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.radio-input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-secondary);
+}
+
+.radio-label {
   font-family: var(--font-body-family);
   font-size: var(--font-body-size);
+  color: var(--color-text);
 }
 
-:deep(.leaflet-control button) {
-  font-family: var(--font-paragraph-family);
-  font-size: var(--font-paragraph-size);
-  font-weight: 600;
+.checkbox-group {
+  flex-direction: row;
+  align-items: center;
 }
 
-:deep(.leaflet-control button:hover) {
-  background-color: var(--color-secondary) !important;
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
-@media (max-width: 768px) {
-  .map {
-    height: 35vh;
-    min-height: 180px;
-  }
-  .coordinates-group {
-    grid-template-columns: 1fr;
-  }
-  .address-field {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-  .address-field strong {
-    min-width: auto;
-  }
-  .address-field span {
-    text-align: left;
-  }
+.checkbox-input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-secondary);
 }
 
-.solo-mapa {
+.checkbox-text {
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  color: var(--color-text);
+}
+
+.map-step {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  min-height: 50vh;
-  gap: 2rem;
+  height: calc(100vh - 300px);
+  min-height: 500px;
+}
+
+.map-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1rem;
 }
 
 .map {
-  width: 100%;
-  height: 50vh;
-  min-height: 300px;
+  flex: 1;
+  min-height: 400px;
   border-radius: 8px;
   border: 2px solid var(--color-background);
-  max-width: 700px;
+  max-width: 100%;
+}
+
+.map-actions {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
 }
 
 .info-btn {
-  margin-top: 1.5rem;
   padding: 0.8rem 2rem;
   background: var(--color-primary);
-  color: #fff;
+  color: white;
   border: none;
   border-radius: 8px;
-  font-family: var(--font-title-family);
-  font-size: 1.1rem;
+  font-family: var(--font-paragraph-family);
+  font-size: var(--font-paragraph-size);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-}
-.info-btn:hover {
-  background: var(--color-secondary);
+  transition: all 0.2s ease;
 }
 
-/* Modal styles */
+.info-btn:hover {
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+}
+
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -809,37 +936,45 @@ function saveProfile() {
   justify-content: center;
   z-index: 2000;
 }
+
 .modal-content {
-  background: #fff;
+  background: white;
   border-radius: 12px;
-  padding: 2rem 2.5rem;
+  padding: 2rem;
   min-width: 320px;
   max-width: 90vw;
   box-shadow: 0 8px 32px rgba(44, 62, 80, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
   max-height: 80vh;
   overflow-y: auto;
 }
-.modal-content h2 {
-  font-family: var(--font-title-family);
+
+.modal-title {
+  font-family: var(--font-subtitle-family);
   font-size: 1.3rem;
-  font-weight: var(--font-title-weight);
-  margin-bottom: 1rem;
+  font-weight: var(--font-subtitle-weight);
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
 }
+
+.modal-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
 .info-group {
-  margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
 }
-.info-group label {
+
+.info-label {
   font-family: var(--font-paragraph-family);
   font-size: var(--font-paragraph-size);
   font-weight: 600;
-  color: var(--font-paragraph-color);
-  margin-bottom: 0.2rem;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
 }
+
 .readonly-field {
   padding: 0.75rem;
   border: 2px solid var(--color-background);
@@ -847,24 +982,124 @@ function saveProfile() {
   background: #f5f5f5;
   font-family: var(--font-body-family);
   font-size: var(--font-body-size);
-  color: var(--font-body-color);
+  color: var(--color-text);
   word-break: break-all;
 }
+
 .close-btn {
-  margin-top: 1.5rem;
   padding: 0.7rem 1.5rem;
   background: var(--color-accent);
-  color: #fff;
+  color: white;
   border: none;
   border-radius: 8px;
-  font-family: var(--font-title-family);
-  font-size: 1rem;
+  font-family: var(--font-paragraph-family);
+  font-size: var(--font-paragraph-size);
   font-weight: 600;
   cursor: pointer;
-  align-self: flex-end;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
+
 .close-btn:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+}
+
+.confirmation-step {
+  text-align: center;
+  padding: 2rem;
+}
+
+.confirmation-text {
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.wizard-nav {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--color-background);
+}
+
+.nav-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-paragraph-family);
+  font-size: var(--font-paragraph-size);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.nav-btn-primary:hover:not(:disabled) {
   background: var(--color-secondary);
+  transform: translateY(-1px);
+}
+
+.nav-btn-secondary {
+  background: var(--color-secondary);
+  color: white;
+}
+
+.nav-btn-secondary:hover:not(:disabled) {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.nav-btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.nav-btn-success:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .container {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .radio-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .wizard-nav {
+    flex-direction: column;
+  }
+  
+  .map-step {
+    height: calc(100vh - 200px);
+    min-height: 400px;
+  }
+  
+  .map {
+    min-height: 300px;
+  }
 }
 </style> 
