@@ -1,29 +1,35 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
+import atencionCliente from '@/assets/images/atencion-cliente.png';
+import innovacion from '@/assets/images/innovacion.png';
+import equipo from '@/assets/images/equipo.png';
+import crecimiento from '@/assets/images/crecimiento.png';
+import seguridad from '@/assets/images/seguridad.png';
+
 const slides = [
   {
-    image: '/assets/images/atencion-cliente.png',
+    image: atencionCliente,
     title: 'Atención al Cliente',
     description: 'Resolvemos tus dudas y problemas 24/7 para que nunca te detengas.'
   },
   {
-    image: '/assets/images/innovacion.png',
+    image: innovacion,
     title: 'Innovación Constante',
     description: 'Siempre implementamos las últimas tecnologías para tu empresa.'
   },
   {
-    image: '/assets/images/equipo.png',
+    image: equipo,
     title: 'Trabajo en Equipo',
     description: 'Nuestro equipo multidisciplinario impulsa el éxito de tu proyecto.'
   },
   {
-    image: '/assets/images/crecimiento.png',
+    image: crecimiento,
     title: 'Crecimiento Asegurado',
     description: 'Te ayudamos a escalar tu negocio y alcanzar nuevos mercados.'
   },
   {
-    image: '/assets/images/seguridad.png',
+    image: seguridad,
     title: 'Seguridad y Confianza',
     description: 'Protegemos tus datos y operaciones con los más altos estándares.'
   }
@@ -210,4 +216,4 @@ onUnmounted(() => {
   background: var(--color-primary);
   border: 2px solid var(--color-background);
 }
-</style> 
+</style>
