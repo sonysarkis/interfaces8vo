@@ -728,7 +728,15 @@ watch(currentStyles, () => {
 }
 
 .saved-presets {
-  space-y: 1rem;
+  /* space-y: 1rem; */
+}
+
+.saved-presets .preset-card {
+  margin-bottom: 1rem;
+}
+
+.saved-presets .preset-card:last-child {
+  margin-bottom: 0;
 }
 
 .preset-card {
