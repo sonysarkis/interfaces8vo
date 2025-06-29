@@ -49,7 +49,7 @@
   background: white;
   padding: 2rem;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgb(from var(--color-primary) r g b / 0.15);
   width: 100%;
   max-width: 400px;
 }
