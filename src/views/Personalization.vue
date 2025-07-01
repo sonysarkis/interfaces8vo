@@ -1,60 +1,52 @@
 <template>
-  <div class="h-screen flex flex-col" style="background:#fff !important;">
+  <div class="personalization-root">
     <!-- Encabezado y pestañas -->
-    <div class="flex-none px-4 pt-4" style="background:#fff !important;">
-      <h1 class="text-3xl font-bold" style="color:#111 !important; background:#fff !important;">Personalización</h1>
-      <div class="mt-4 border-b" style="background:#fff !important; border-color:#eee !important;">
-        <div class="flex space-x-8" style="background:#fff !important;">
-          <button @click="activeTab = 'colors'"
-            :style="{ color: '#111', background: '#fff', borderBottom: activeTab === 'colors' ? '2px solid #111' : '2px solid transparent' }"
-            class="pb-2 border-b-2 border-transparent transition-colors">
-            Colores
-          </button>
-          <button @click="activeTab = 'typography'"
-            :style="{ color: '#111', background: '#fff', borderBottom: activeTab === 'typography' ? '2px solid #111' : '2px solid transparent' }"
-            class="pb-2 border-b-2 border-transparent transition-colors">
-            Tipografía
-          </button>
-          <button @click="activeTab = 'saved'"
-            :style="{ color: '#111', background: '#fff', borderBottom: activeTab === 'saved' ? '2px solid #111' : '2px solid transparent' }"
-            class="pb-2 border-b-2 border-transparent transition-colors">
-            Estilos Guardados
-          </button>
-        </div>
+    <div class="header-tabs">
+      <h1>Personalización</h1>
+      <div class="tabs">
+        <button @click="activeTab = 'colors'" :class="['tab-btn', { active: activeTab === 'colors' }]">
+          Colores
+        </button>
+        <button @click="activeTab = 'typography'" :class="['tab-btn', { active: activeTab === 'typography' }]">
+          Tipografía
+        </button>
+        <button @click="activeTab = 'saved'" :class="['tab-btn', { active: activeTab === 'saved' }]">
+          Estilos Guardados
+        </button>
       </div>
     </div>
 
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 pb-4 overflow-hidden">
+    <div class="panel-container">
       <!-- Panel de controles -->
       <div class="overflow-y-auto pr-2 custom-scrollbar">
         <!-- Colores -->
-        <div v-if="activeTab === 'colors'" class="bg-white rounded-lg shadow-lg">
-          <div class="p-4">
-            <h2 class="text-xl font-semibold text-primary">Controles de Color</h2>
+        <div v-if="activeTab === 'colors'" class="card shadow-lg">
+          <div class="card-header">
+            <h2 class="card-title">Controles de Color</h2>
           </div>
-          <div class="p-4 space-y-4">
+          <div class="card-body space-y-4">
             <div v-for="(label, key, idx) in colorLabels" :key="key" class="control-group">
-              <label class="block text-sm font-medium text-text mb-1">{{ label }}</label>
+              <label>{{ label }}</label>
               <div class="flex items-center gap-4">
-                <input type="color" v-model="colors[key]" class="w-16 h-10 rounded border border-text" />
-                <span class="text-sm text-text">{{ colors[key] }}</span>
+                <input type="color" v-model="colors[key]" />
+                <span class="text-text">{{ colors[key] }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Tipografía -->
-        <div v-if="activeTab === 'typography'" class="bg-white rounded-lg shadow-lg">
-          <div class="p-4">
-            <h2 class="text-xl font-semibold text-primary">Controles de Tipografía</h2>
+        <div v-if="activeTab === 'typography'" class="card shadow-lg">
+          <div class="card-header">
+            <h2 class="card-title">Controles de Tipografía</h2>
           </div>
           <!-- Subir Tipografía -->
-          <div class="p-4 border-t border-text">
+          <div class="card-body border-t border-text">
             <h3 class="text-lg font-medium text-primary mb-3">Subir Tipografía</h3>
             <div class="space-y-4">
               <div class="flex items-center gap-4">
                 <input ref="fontFileInput" type="file" accept=".ttf" @change="onFontFileSelected" class="hidden" />
-                <button @click="fontFileInput.click()"
+                <button @click="fontFileInput && fontFileInput.click()"
                   class="bg-primary text-background px-4 py-2 rounded hover:bg-opacity-80">
                   Seleccionar Archivo TTF
                 </button>
@@ -86,13 +78,12 @@
             </div>
           </div>
           <!-- Título -->
-          <div class="p-4 border-t border-text">
+          <div class="card-body border-t border-text">
             <h3 class="text-lg font-medium text-primary mb-2">Título</h3>
             <div class="space-y-3">
               <div>
-                <label class="block text-sm font-medium text-text mb-1">Fuente</label>
-                <select v-model="fonts.title.family"
-                  class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
+                <label>Fuente</label>
+                <select v-model="fonts.title.family">
                   <option value="Arial, sans-serif">Arial</option>
                   <option value="'Times New Roman', serif">Times New Roman</option>
                   <option value="'Courier New', monospace">Courier New</option>
@@ -102,7 +93,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-text mb-1">Tamaño (px)</label>
+                <label>Tamaño (px)</label>
                 <div class="flex items-center gap-4">
                   <input type="range" v-model="fonts.title.size" min="24" max="48" step="1" class="flex-1" />
                   <span class="text-sm text-text w-16">{{ fonts.title.size }}px</span>
@@ -111,13 +102,12 @@
             </div>
           </div>
           <!-- Subtítulo -->
-          <div class="p-4 border-t border-text">
+          <div class="card-body border-t border-text">
             <h3 class="text-lg font-medium text-primary mb-2">Subtítulo</h3>
             <div class="space-y-3">
               <div>
-                <label class="block text-sm font-medium text-text mb-1">Fuente</label>
-                <select v-model="fonts.subtitle.family"
-                  class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
+                <label>Fuente</label>
+                <select v-model="fonts.subtitle.family">
                   <option value="Arial, sans-serif">Arial</option>
                   <option value="'Times New Roman', serif">Times New Roman</option>
                   <option value="'Courier New', monospace">Courier New</option>
@@ -127,7 +117,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-text mb-1">Tamaño (px)</label>
+                <label>Tamaño (px)</label>
                 <div class="flex items-center gap-4">
                   <input type="range" v-model="fonts.subtitle.size" min="18" max="32" step="1" class="flex-1" />
                   <span class="text-sm text-text w-16">{{ fonts.subtitle.size }}px</span>
@@ -136,13 +126,12 @@
             </div>
           </div>
           <!-- Texto -->
-          <div class="p-4 border-t border-text">
+          <div class="card-body border-t border-text">
             <h3 class="text-lg font-medium text-primary mb-2">Texto</h3>
             <div class="space-y-3">
               <div>
-                <label class="block text-sm font-medium text-text mb-1">Fuente</label>
-                <select v-model="fonts.body.family"
-                  class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary">
+                <label>Fuente</label>
+                <select v-model="fonts.body.family">
                   <option value="Arial, sans-serif">Arial</option>
                   <option value="'Times New Roman', serif">Times New Roman</option>
                   <option value="'Courier New', monospace">Courier New</option>
@@ -152,7 +141,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-text mb-1">Tamaño (px)</label>
+                <label>Tamaño (px)</label>
                 <div class="flex items-center gap-4">
                   <input type="range" v-model="fonts.body.size" min="12" max="20" step="1" class="flex-1" />
                   <span class="text-sm text-text w-16">{{ fonts.body.size }}px</span>
@@ -163,23 +152,21 @@
         </div>
 
         <!-- Estilos Guardados -->
-        <div v-if="activeTab === 'saved'" class="bg-white rounded-lg shadow-lg">
-          <div class="p-4">
-            <h2 class="text-xl font-semibold text-primary">Estilos Guardados</h2>
+        <div v-if="activeTab === 'saved'" class="card shadow-lg">
+          <div class="card-header">
+            <h2 class="card-title">Estilos Guardados</h2>
           </div>
-          <div class="p-4 space-y-4">
+          <div class="card-body space-y-4">
             <!-- Formulario para guardar estilo -->
             <div class="border border-text rounded-lg p-4">
               <h3 class="text-lg font-medium text-primary mb-3">Guardar Estilo Actual</h3>
               <div class="space-y-3">
                 <div>
-                  <label class="block text-sm font-medium text-text mb-1">Nombre del Estilo</label>
+                  <label>Nombre del Estilo</label>
                   <input type="text" v-model="newStyleName"
-                    class="w-full px-3 py-2 border border-text rounded focus:outline-none focus:ring-2 focus:ring-secondary"
                     placeholder="Ej: Tema Oscuro">
                 </div>
-                <button @click="saveStyle"
-                  class="w-full bg-primary text-background px-4 py-2 rounded hover:bg-opacity-80">
+                <button @click="saveStyle" class="w-full">
                   Guardar Estilo
                 </button>
               </div>
@@ -222,7 +209,7 @@
       </div>
 
       <!-- Panel de vista previa -->
-      <div :style="{ backgroundColor: colors.background }" class="rounded-lg p-4 overflow-y-auto">
+      <div :style="{ backgroundColor: colors.background }" class="preview-content overflow-y-auto">
         <div :style="{
           '--color-primary': colors.primary,
           '--color-secondary': colors.secondary,
@@ -238,7 +225,7 @@
           '--font-body-family': fonts.body.family,
           '--font-body-size': fonts.body.size + 'px',
           '--font-body-weight': fonts.body.weight
-        }" class="preview-content">
+        }">
           <!-- Tipografía -->
           <div class="mb-6">
             <h3 :style="{ color: colors.primary }" class="text-lg font-medium mb-3">Tipografía</h3>
@@ -266,8 +253,7 @@
                   Subtítulo
                 </h2>
                 <p :style="{ color: colors.text }" class="text-sm mt-1">
-                  Fuente: {{ fonts.subtitle.family }} | Tamaño: {{ fonts.subtitle.size }}px | Peso: {{
-                    fonts.subtitle.weight }}
+                  Fuente: {{ fonts.subtitle.family }} | Tamaño: {{ fonts.subtitle.size }}px | Peso: {{ fonts.subtitle.weight }}
                 </p>
               </div>
               <div>
@@ -286,8 +272,7 @@
               </div>
             </div>
           </div>
-          <!-- Componentes: Navbar, Botones, Formulario, Tarjetas -->
-          <!-- ... (puedes copiar la estructura de tu preview aquí, igual que en Angular) ... -->
+          <!-- Aquí puedes agregar más previews de componentes si lo deseas -->
         </div>
       </div>
     </div>
@@ -665,20 +650,227 @@ async function deleteFont(font: { name: string; url: string }) {
 </script>
 
 <style scoped>
+.personalization-root {
+  min-height: 100vh;
+  background: var(--color-background);
+  display: flex;
+  flex-direction: column;
+}
+
+.header-tabs {
+  background: var(--color-background);
+  padding: 2rem 1rem 0 1rem;
+}
+
+.header-tabs h1 {
+  color: var(--color-primary);
+  font-size: var(--font-title-size);
+  font-family: var(--font-title-family);
+  font-weight: var(--font-title-weight);
+  margin-bottom: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 2rem;
+  border-bottom: 1px solid var(--color-secondary);
+  background: var(--color-background);
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--color-text);
+  font-size: 1.1rem;
+  font-family: var(--font-body-family);
+  font-weight: 500;
+  padding: 0.75rem 1.5rem 0.5rem 1.5rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-bottom 0.2s;
+  cursor: pointer;
+}
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.panel-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding: 2rem 1rem 2rem 1rem;
+  flex: 1;
+}
+@media (max-width: 1024px) {
+  .panel-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.card {
+  background: var(--color-background);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
+  border: 1.5px solid var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+}
+
+.card-title {
+  color: var(--color-primary);
+  font-size: var(--font-subtitle-size);
+  font-family: var(--font-subtitle-family);
+  font-weight: var(--font-subtitle-weight);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.control-group label {
+  color: var(--color-text);
+  font-size: 1rem;
+  font-family: var(--font-body-family);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+input[type="color"] {
+  border: 1.5px solid var(--color-primary);
+  border-radius: 0.375rem;
+  width: 48px;
+  height: 32px;
+  background: var(--color-background);
+  cursor: pointer;
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1.5px solid var(--color-primary);
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body-family);
+  margin-bottom: 0.5rem;
+  transition: border-color 0.2s;
+}
+input[type="text"]:focus, select:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+button, .btn {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-family: var(--font-body-family);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+button:hover, .btn:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-background);
+}
+.bg-secondary {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-background) !important;
+}
+.bg-accent {
+  background-color: var(--color-accent) !important;
+  color: var(--color-background) !important;
+}
+.text-primary { color: var(--color-primary) !important; }
+.text-secondary { color: var(--color-secondary) !important; }
+.text-accent { color: var(--color-accent) !important; }
+.text-background { color: var(--color-background) !important; }
+.text-text { color: var(--color-text) !important; }
+
+.rounded-lg { border-radius: 0.75rem; }
+.shadow-lg { box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08); }
+
+.preview-content {
+  background: var(--color-background);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
+  border: 1.5px solid var(--color-primary);
+}
+
+/* Scrollbar personalizada */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(44, 62, 80, 0.12);
   border-radius: 3px;
 }
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(44, 62, 80, 0.22);
+}
+
+/* Utilidades */
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-3 > * + * { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.pt-4 { padding-top: 1rem; }
+.pb-4 { padding-bottom: 1rem; }
+.p-2 { padding: 0.5rem; }
+.p-4 { padding: 1rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.flex-none { flex: none; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.w-full { width: 100%; }
+.w-16 { width: 4rem; }
+.h-8 { height: 2rem; }
+.h-10 { height: 2.5rem; }
+.grid { display: grid; }
+.grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
+.lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.overflow-y-auto { overflow-y: auto; }
+.overflow-hidden { overflow: hidden; }
+.pr-2 { padding-right: 0.5rem; }
+.rounded { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.75rem; }
+.border { border-width: 1.5px; border-style: solid; border-color: var(--color-primary); }
+.border-text { border-color: var(--color-text) !important; }
+.border-t { border-top-width: 1.5px; border-top-style: solid; border-top-color: var(--color-primary); }
+
+@media (max-width: 900px) {
+  .panel-container {
+    grid-template-columns: 1fr;
+    padding: 1rem 0.5rem;
+  }
+}
+@media (max-width: 600px) {
+  .header-tabs { padding: 1rem 0.5rem 0 0.5rem; }
+  .panel-container { padding: 1rem 0.25rem; }
+  .preview-content { padding: 1rem; }
 }
 </style>
