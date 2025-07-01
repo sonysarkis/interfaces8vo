@@ -1,80 +1,118 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
 const router = useRouter();
 
-// Mock de usuarios (igual que en UserList.vue)
-const users = [
-  {
-    id: 1,
-    firstName: "Emily",
-    lastName: "Johnson",
-    maidenName: "Smith",
-    age: 28,
-    gender: "female",
-    email: "emily.johnson@x.dummyjson.com",
-    phone: "+81 965-431-3024",
-    username: "emilys",
-    password: "emilyspass",
-    birthDate: "1996-5-30",
-    image: "https://dummyjson.com/icon/emilys/128",
-    bloodGroup: "O-",
-    height: 193.24,
-    weight: 63.16,
-    eyeColor: "Green",
-    hair: { color: "Brown", type: "Curly" },
-    ip: "42.48.100.32",
-    address: {
-      address: "626 Main Street",
-      city: "Phoenix",
-      state: "Mississippi",
-      stateCode: "MS",
-      postalCode: "29112",
-      coordinates: { lat: -77.16213, lng: -92.084824 },
-      country: "United States"
+const user = ref(null);
+const editableUser = ref(null);
+
+function backendToUser(data) {
+  return {
+    id: data.id,
+    firstName: data.nombre || '',
+    lastName: data.apellido || '',
+    maidenName: data.segundo_apellido || '',
+    age: data.edad || '',
+    gender: data.genero || '',
+    email: data.email || '',
+    phone: data.telefono || '',
+    username: data.username || '',
+    password: '', // nunca mostrar la contraseña real
+    birthDate: data.fecha_nacimiento || '',
+    image: data.imagen || '',
+    bloodGroup: data.grupo_sanguineo || '',
+    height: data.altura || '',
+    weight: data.peso || '',
+    eyeColor: data.color_ojos || '',
+    hair: {
+      color: data.pelo_color || '',
+      type: data.pelo_tipo || ''
     },
-    macAddress: "47:fa:41:18:ec:eb",
-    university: "University of Wisconsin--Madison",
+    address: {
+      address: data.direccion || '',
+      city: data.ciudad || '',
+      state: data.estado || '',
+      // stateCode removido
+      postalCode: data.codigo_postal || '',
+      coordinates: {
+        lat: data.coord_lat ?? 0,
+        lng: data.coord_lng ?? 0
+      },
+      country: data.pais || ''
+    },
+    macAddress: data.mac || '',
+    university: data.universidad || '',
     bank: {
-      cardExpire: "03/26",
-      cardNumber: "9289760655481815",
-      cardType: "Elo",
-      currency: "CNY",
-      iban: "YPUXISOBI7TTHPK2BR3HAIXL"
+      cardExpire: data.banco_expiracion || '',
+      cardNumber: data.banco_numero_tarjeta || '',
+      cardType: data.banco_tipo_tarjeta || '',
+      currency: data.banco_moneda || '',
+      iban: data.banco_iban || ''
     },
     company: {
-      department: "Engineering",
-      name: "Dooley, Kozey and Cronin",
-      title: "Sales Manager",
+      department: data.compania_departamento || '',
+      name: data.compania_nombre || '',
+      title: data.compania_titulo || '',
       address: {
-        address: "263 Tenth Street",
-        city: "San Francisco",
-        state: "Wisconsin",
-        stateCode: "WI",
-        postalCode: "37657",
-        coordinates: { lat: 71.814525, lng: -161.150263 },
-        country: "United States"
+        address: data.compania_direccion || '',
+        city: data.compania_ciudad || '',
+        state: data.compania_estado || '',
+        // stateCode removido
+        postalCode: data.compania_codigo_postal || '',
+        coordinates: {
+          lat: data.compania_coord_lat ?? 0,
+          lng: data.compania_coord_lng ?? 0
+        },
+        country: data.compania_pais || ''
       }
     },
-    ein: "977-175",
-    ssn: "900-590-289",
-    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36",
+    ein: data.ein || '',
+    ssn: data.ssn || '',
+    userAgent: data.user_agent || '',
     crypto: {
-      coin: "Bitcoin",
-      wallet: "0xb9fc2fe63b2a6c003f1c324c3bfa53259162181a",
-      network: "Ethereum (ERC20)"
+      coin: data.cripto_moneda || '',
+      wallet: data.cripto_wallet || '',
+      network: data.cripto_network || ''
     },
-    role: "admin",
-    disabled: false
-  },
-];
+    role: data.type || '',
+    disabled: data.status === 'inactive'
+  };
+}
 
-const user = ref(users.find(u => u.id === Number(route.params.id)));
-
-// Crear una copia editable del usuario
-const editableUser = ref(user.value ? { ...user.value } : null);
+async function fetchUserDetail() {
+  const id = route.params.id;
+  const token = localStorage.getItem('token');
+  const currentId = localStorage.getItem('id');
+  if (currentId && String(currentId) === String(id)) {
+    router.replace('/perfil');
+    return;
+  }
+  if (!id || !token) {
+    user.value = null;
+    editableUser.value = null;
+    return;
+  }
+  try {
+    const res = await fetch(`/admin-auth/user/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      user.value = backendToUser(data);
+      editableUser.value = { ...user.value };
+    } else {
+      user.value = null;
+      editableUser.value = null;
+    }
+  } catch (e) {
+    user.value = null;
+    editableUser.value = null;
+  }
+}
 
 function disableUser() {
   if (editableUser.value) editableUser.value.disabled = true;
@@ -88,6 +126,8 @@ function applyChanges() {
     Object.assign(user.value, editableUser.value);
   }
 }
+
+onMounted(fetchUserDetail);
 </script>
 
 <template>
@@ -200,10 +240,7 @@ function applyChanges() {
               <span class="info-label">Estado:</span>
               <input v-model="editableUser.address.state" class="info-input" />
             </div>
-            <div class="info-item">
-              <span class="info-label">Código de Estado:</span>
-              <input v-model="editableUser.address.stateCode" class="info-input" />
-            </div>
+            <!-- Código de Estado removido -->
             <div class="info-item">
               <span class="info-label">País:</span>
               <input v-model="editableUser.address.country" class="info-input" />
@@ -282,10 +319,7 @@ function applyChanges() {
         <div class="info-section">
           <h3 class="section-title">Información Técnica</h3>
           <div class="info-list">
-            <div class="info-item">
-              <span class="info-label">IP:</span>
-              <input v-model="editableUser.ip" class="info-input" />
-            </div>
+            <!-- IP removido -->
             <div class="info-item">
               <span class="info-label">MAC:</span>
               <input v-model="editableUser.macAddress" class="info-input" />
@@ -311,7 +345,6 @@ function applyChanges() {
               <select v-model="editableUser.role" class="info-input">
                 <option value="admin">Admin</option>
                 <option value="user">Usuario</option>
-                <option value="moderator">Moderador</option>
               </select>
             </div>
             <div class="info-item">
@@ -606,4 +639,4 @@ function applyChanges() {
     flex-direction: column;
   }
 }
-</style> 
+</style>
