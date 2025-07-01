@@ -16,7 +16,8 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'dist/')));
 
-const FrontRoutes = ['/', '/login', '/registro', '/personalization', "/personalization/landing", "/personalization/login-preview"];
+const FrontRoutes = ['/', '/login', '/registro', '/personalization', "/usuarios/:id", 
+  "/personalization/landing", "/personalization/login-preview", "/usuarios", "/perfil"];
 FrontRoutes.forEach(route => {
   app.get(route, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist/index.html'));

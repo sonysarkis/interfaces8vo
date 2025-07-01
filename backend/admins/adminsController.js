@@ -40,7 +40,9 @@ class AdminsController {
             return res.status(200).json({
                 message: `El administrador ${response.email} ha iniciado sesión exitosamente`,
                 token: response.token,
-                email: response.email
+                email: response.email,
+                type: response.type,
+                status: response.status
             });
         } catch (error) {
             console.log(error);

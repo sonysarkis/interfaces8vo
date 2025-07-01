@@ -58,7 +58,9 @@ class AdminsModel {
             );
             return {
                 email: user.email,
-                token: token
+                token: token,
+                type: user.type,
+                status: user.status
             };
         } catch (error) {
             throw new Error(error.message);

@@ -1,12 +1,76 @@
 <script setup lang="ts">
-// Lógica para la página de login
+
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
+
+const email = ref('');
+const password = ref('');
+const router = useRouter();
+
+const onSubmit = async (e: Event) => {
+  e.preventDefault();
+  const token = localStorage.getItem('token') || '';
+  try {
+    const res = await fetch('/admin-auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ email: email.value, password: password.value })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      // Si el error es por usuario deshabilitado
+      if (data.error && typeof data.error === 'string' && data.error.toLowerCase().includes('inactive')) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Usuario deshabilitado',
+          text: 'Su usuario ha sido deshabilitado, por favor contacte con un administrador.'
+        });
+        return;
+      }
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: data.error?.error || data.error || JSON.stringify(data)
+      });
+      return;
+    }
+    // Si el usuario está inactivo, aunque el backend no lo bloquee
+    if (data.status && data.status === 'inactive') {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Usuario deshabilitado',
+        text: 'Su usuario ha sido deshabilitado, por favor contacte con un administrador.'
+      });
+      return;
+    }
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('email', data.email);
+    localStorage.setItem('type', data.type);
+    await Swal.fire({
+      icon: 'success',
+      title: 'Login exitoso',
+      text: 'Has iniciado sesión correctamente.'
+    });
+    router.push('/personalization');
+  } catch (e) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Error de red o del servidor'
+    });
+  }
+};
 </script>
 
 <template>
   <div class="login-container">
     <div class="login-card">
       <h1 class="login-title">Iniciar Sesión</h1>
-      <form class="login-form">
+      <form class="login-form" @submit="onSubmit">
         <div class="form-group">
           <label for="email" class="form-label">Correo Electrónico</label>
           <input 
@@ -15,6 +79,7 @@
             class="form-input" 
             placeholder="tu@email.com"
             required
+            v-model="email"
           >
         </div>
         <div class="form-group">
@@ -25,6 +90,7 @@
             class="form-input" 
             placeholder="Tu contraseña"
             required
+            v-model="password"
           >
         </div>
         <button type="submit" class="login-button">

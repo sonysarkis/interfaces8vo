@@ -348,9 +348,9 @@ onMounted(async () => {
   await loadSavedStyles()
   await loadUploadedFonts()
   // Si quieres mantener la lógica de recarga, puedes hacerlo aquí
-  // const res = await fetch('/styles/default', { method: 'GET' })
-  // const data = await res.json()
-  // if (data.success) window.location.reload()
+  const res = await fetch('/styles/default', { method: 'GET' })
+  const data = await res.json()
+  if (data.success) window.location.reload()
 })
 
 async function loadUploadedFonts() {

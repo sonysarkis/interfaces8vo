@@ -67,6 +67,7 @@ const scrollToSection = (sectionId: string) => {
         </template>
         <template v-else>
           <router-link to="/personalization" @click="closeMenu">Personalización</router-link>
+          <router-link to="/usuarios" @click="closeMenu">Usuarios</router-link>
           <button class="logout-btn" @click="onLogoutClick(); closeMenu()">Cerrar sesión</button>
         </template>
       </div>
