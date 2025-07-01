@@ -73,20 +73,45 @@ const users = [
 
 const user = ref(users.find(u => u.id === Number(route.params.id)));
 
+// Crear una copia editable del usuario
+const editableUser = ref(user.value ? { ...user.value } : null);
+
 function disableUser() {
-  if (user.value) user.value.disabled = true;
+  if (editableUser.value) editableUser.value.disabled = true;
+}
+
+function applyChanges() {
+  // Aquí iría la lógica para guardar los cambios
+  console.log('Cambios aplicados:', editableUser.value);
+  // Por ahora solo actualizamos el usuario original
+  if (user.value && editableUser.value) {
+    Object.assign(user.value, editableUser.value);
+  }
 }
 </script>
 
 <template>
   <div class="container">
     <h1 class="page-title">Detalle de Usuario</h1>
-    <div v-if="user" class="user-detail">
+    <div v-if="editableUser" class="user-detail">
       <div class="user-header">
-        <img :src="user.image" alt="Foto de usuario" class="user-image" />
+        <img :src="editableUser.image" alt="Foto de usuario" class="user-image" />
         <div class="user-basic-info">
-          <h2 class="user-name">{{ user.firstName }} {{ user.lastName }}</h2>
-          <p class="user-email">{{ user.email }}</p>
+          <input 
+            v-model="editableUser.firstName" 
+            class="user-name-input"
+            placeholder="Nombre"
+          />
+          <input 
+            v-model="editableUser.lastName" 
+            class="user-name-input"
+            placeholder="Apellido"
+          />
+          <input 
+            v-model="editableUser.email" 
+            class="user-email-input"
+            placeholder="Email"
+          />
         </div>
       </div>
       
@@ -96,59 +121,66 @@ function disableUser() {
           <div class="info-list">
             <div class="info-item">
               <span class="info-label">ID:</span>
-              <span class="info-value">{{ user.id }}</span>
+              <input v-model="editableUser.id" class="info-input" type="number" />
             </div>
             <div class="info-item">
               <span class="info-label">Nombre:</span>
-              <span class="info-value">{{ user.firstName }}</span>
+              <input v-model="editableUser.firstName" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Apellido:</span>
-              <span class="info-value">{{ user.lastName }}</span>
+              <input v-model="editableUser.lastName" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Segundo Apellido:</span>
-              <span class="info-value">{{ user.maidenName }}</span>
+              <input v-model="editableUser.maidenName" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Edad:</span>
-              <span class="info-value">{{ user.age }} años</span>
+              <input v-model="editableUser.age" class="info-input" type="number" />
             </div>
             <div class="info-item">
               <span class="info-label">Género:</span>
-              <span class="info-value">{{ user.gender === 'female' ? 'Femenino' : 'Masculino' }}</span>
+              <select v-model="editableUser.gender" class="info-input">
+                <option value="female">Femenino</option>
+                <option value="male">Masculino</option>
+              </select>
             </div>
             <div class="info-item">
               <span class="info-label">Teléfono:</span>
-              <span class="info-value">{{ user.phone }}</span>
+              <input v-model="editableUser.phone" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Usuario:</span>
-              <span class="info-value">{{ user.username }}</span>
+              <input v-model="editableUser.username" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Fecha de nacimiento:</span>
-              <span class="info-value">{{ user.birthDate }}</span>
+              <input v-model="editableUser.birthDate" class="info-input" type="date" />
             </div>
             <div class="info-item">
               <span class="info-label">Grupo sanguíneo:</span>
-              <span class="info-value">{{ user.bloodGroup }}</span>
+              <input v-model="editableUser.bloodGroup" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Altura:</span>
-              <span class="info-value">{{ user.height }} cm</span>
+              <input v-model="editableUser.height" class="info-input" type="number" step="0.01" />
             </div>
             <div class="info-item">
               <span class="info-label">Peso:</span>
-              <span class="info-value">{{ user.weight }} kg</span>
+              <input v-model="editableUser.weight" class="info-input" type="number" step="0.01" />
             </div>
             <div class="info-item">
               <span class="info-label">Color de ojos:</span>
-              <span class="info-value">{{ user.eyeColor }}</span>
+              <input v-model="editableUser.eyeColor" class="info-input" />
             </div>
             <div class="info-item">
-              <span class="info-label">Pelo:</span>
-              <span class="info-value">{{ user.hair.color }} ({{ user.hair.type }})</span>
+              <span class="info-label">Color de pelo:</span>
+              <input v-model="editableUser.hair.color" class="info-input" />
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tipo de pelo:</span>
+              <input v-model="editableUser.hair.type" class="info-input" />
             </div>
           </div>
         </div>
@@ -158,27 +190,35 @@ function disableUser() {
           <div class="info-list">
             <div class="info-item">
               <span class="info-label">Dirección:</span>
-              <span class="info-value">{{ user.address.address }}</span>
+              <input v-model="editableUser.address.address" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Ciudad:</span>
-              <span class="info-value">{{ user.address.city }}</span>
+              <input v-model="editableUser.address.city" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Estado:</span>
-              <span class="info-value">{{ user.address.state }} ({{ user.address.stateCode }})</span>
+              <input v-model="editableUser.address.state" class="info-input" />
+            </div>
+            <div class="info-item">
+              <span class="info-label">Código de Estado:</span>
+              <input v-model="editableUser.address.stateCode" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">País:</span>
-              <span class="info-value">{{ user.address.country }}</span>
+              <input v-model="editableUser.address.country" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Código Postal:</span>
-              <span class="info-value">{{ user.address.postalCode }}</span>
+              <input v-model="editableUser.address.postalCode" class="info-input" />
             </div>
             <div class="info-item">
-              <span class="info-label">Coordenadas:</span>
-              <span class="info-value">Lat: {{ user.address.coordinates.lat }}, Lng: {{ user.address.coordinates.lng }}</span>
+              <span class="info-label">Latitud:</span>
+              <input v-model="editableUser.address.coordinates.lat" class="info-input" type="number" step="0.000001" />
+            </div>
+            <div class="info-item">
+              <span class="info-label">Longitud:</span>
+              <input v-model="editableUser.address.coordinates.lng" class="info-input" type="number" step="0.000001" />
             </div>
           </div>
         </div>
@@ -188,27 +228,27 @@ function disableUser() {
           <div class="info-list">
             <div class="info-item">
               <span class="info-label">Universidad:</span>
-              <span class="info-value">{{ user.university }}</span>
+              <input v-model="editableUser.university" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Compañía:</span>
-              <span class="info-value">{{ user.company.name }}</span>
+              <input v-model="editableUser.company.name" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Departamento:</span>
-              <span class="info-value">{{ user.company.department }}</span>
+              <input v-model="editableUser.company.department" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Cargo:</span>
-              <span class="info-value">{{ user.company.title }}</span>
+              <input v-model="editableUser.company.title" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">EIN:</span>
-              <span class="info-value">{{ user.ein }}</span>
+              <input v-model="editableUser.ein" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">SSN:</span>
-              <span class="info-value">{{ user.ssn }}</span>
+              <input v-model="editableUser.ssn" class="info-input" />
             </div>
           </div>
         </div>
@@ -218,23 +258,23 @@ function disableUser() {
           <div class="info-list">
             <div class="info-item">
               <span class="info-label">Tipo de tarjeta:</span>
-              <span class="info-value">{{ user.bank.cardType }}</span>
+              <input v-model="editableUser.bank.cardType" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Número:</span>
-              <span class="info-value">{{ user.bank.cardNumber }}</span>
+              <input v-model="editableUser.bank.cardNumber" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Expiración:</span>
-              <span class="info-value">{{ user.bank.cardExpire }}</span>
+              <input v-model="editableUser.bank.cardExpire" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">IBAN:</span>
-              <span class="info-value">{{ user.bank.iban }}</span>
+              <input v-model="editableUser.bank.iban" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Moneda:</span>
-              <span class="info-value">{{ user.bank.currency }}</span>
+              <input v-model="editableUser.bank.currency" class="info-input" />
             </div>
           </div>
         </div>
@@ -244,41 +284,53 @@ function disableUser() {
           <div class="info-list">
             <div class="info-item">
               <span class="info-label">IP:</span>
-              <span class="info-value">{{ user.ip }}</span>
+              <input v-model="editableUser.ip" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">MAC:</span>
-              <span class="info-value">{{ user.macAddress }}</span>
+              <input v-model="editableUser.macAddress" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">User Agent:</span>
-              <span class="info-value user-agent">{{ user.userAgent }}</span>
+              <textarea v-model="editableUser.userAgent" class="info-textarea"></textarea>
             </div>
             <div class="info-item">
               <span class="info-label">Criptomoneda:</span>
-              <span class="info-value">{{ user.crypto.coin }} ({{ user.crypto.network }})</span>
+              <input v-model="editableUser.crypto.coin" class="info-input" />
+            </div>
+            <div class="info-item">
+              <span class="info-label">Red:</span>
+              <input v-model="editableUser.crypto.network" class="info-input" />
             </div>
             <div class="info-item">
               <span class="info-label">Wallet:</span>
-              <span class="info-value wallet">{{ user.crypto.wallet }}</span>
+              <textarea v-model="editableUser.crypto.wallet" class="info-textarea"></textarea>
             </div>
             <div class="info-item">
               <span class="info-label">Rol:</span>
-              <span class="info-value role-badge">{{ user.role }}</span>
+              <select v-model="editableUser.role" class="info-input">
+                <option value="admin">Admin</option>
+                <option value="user">Usuario</option>
+                <option value="moderator">Moderador</option>
+              </select>
             </div>
             <div class="info-item">
               <span class="info-label">Estado:</span>
-              <span :class="['status-badge', user.disabled ? 'disabled' : 'enabled']">
-                {{ user.disabled ? 'Deshabilitado' : 'Activo' }}
-              </span>
+              <select v-model="editableUser.disabled" class="info-input">
+                <option :value="false">Activo</option>
+                <option :value="true">Deshabilitado</option>
+              </select>
             </div>
           </div>
         </div>
       </div>
 
       <div class="action-buttons">
-        <button @click="disableUser" :disabled="user.disabled" class="btn btn-danger">
+        <button @click="disableUser" :disabled="editableUser.disabled" class="btn btn-danger">
           Deshabilitar usuario
+        </button>
+        <button @click="applyChanges" class="btn btn-primary">
+          Aplicar Cambios
         </button>
         <button @click="router.push('/usuarios')" class="btn btn-secondary">
           Volver al listado
@@ -298,7 +350,7 @@ function disableUser() {
   padding: 2rem;
   background: var(--color-background);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(44, 62, 80, 0.1);
 }
 
 .page-title {
@@ -314,7 +366,7 @@ function disableUser() {
   background: white;
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(44, 62, 80, 0.05);
 }
 
 .user-header {
@@ -336,21 +388,44 @@ function disableUser() {
 
 .user-basic-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.user-name {
+.user-name-input {
   font-family: var(--font-subtitle-family);
   font-size: var(--font-subtitle-size);
   font-weight: var(--font-subtitle-weight);
   color: var(--color-primary);
-  margin-bottom: 0.5rem;
+  border: 2px solid var(--color-background);
+  border-radius: 6px;
+  padding: 0.5rem;
+  background: white;
+  transition: border-color 0.2s ease;
 }
 
-.user-email {
+.user-name-input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.user-email-input {
   font-family: var(--font-body-family);
   font-size: var(--font-body-size);
   color: var(--color-text);
-  margin: 0;
+  border: 2px solid var(--color-background);
+  border-radius: 6px;
+  padding: 0.5rem;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.user-email-input:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .user-info-grid {
@@ -387,7 +462,7 @@ function disableUser() {
   justify-content: space-between;
   align-items: flex-start;
   padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(44, 62, 80, 0.05);
 }
 
 .info-item:last-child {
@@ -403,50 +478,30 @@ function disableUser() {
   flex-shrink: 0;
 }
 
-.info-value {
+.info-input, .info-textarea {
   font-family: var(--font-body-family);
   font-size: var(--font-body-size);
   color: var(--color-text);
-  text-align: right;
+  border: 2px solid var(--color-background);
+  border-radius: 6px;
+  padding: 0.5rem;
+  background: white;
   flex: 1;
-  word-break: break-word;
+  transition: border-color 0.2s ease;
+  min-width: 0;
 }
 
-.user-agent, .wallet {
+.info-input:focus, .info-textarea:focus {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.info-textarea {
+  resize: vertical;
+  min-height: 60px;
   font-family: monospace;
   font-size: 0.85rem;
-  background: rgba(0,0,0,0.05);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  word-break: break-all;
-}
-
-.role-badge {
-  background: var(--color-secondary);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.enabled {
-  background: #10b981;
-  color: white;
-}
-
-.disabled {
-  background: var(--color-accent);
-  color: white;
 }
 
 .action-buttons {
@@ -476,6 +531,17 @@ function disableUser() {
   cursor: not-allowed;
 }
 
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1a252f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(44, 62, 80, 0.2);
+}
+
 .btn-secondary {
   background: var(--color-secondary);
   color: white;
@@ -484,6 +550,7 @@ function disableUser() {
 .btn-secondary:hover:not(:disabled) {
   background: #2980b9;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
 }
 
 .btn-danger {
@@ -494,6 +561,7 @@ function disableUser() {
 .btn-danger:hover:not(:disabled) {
   background: #c0392b;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
 }
 
 .not-found {
@@ -530,8 +598,8 @@ function disableUser() {
     min-width: auto;
   }
   
-  .info-value {
-    text-align: left;
+  .info-input, .info-textarea {
+    width: 100%;
   }
   
   .action-buttons {
