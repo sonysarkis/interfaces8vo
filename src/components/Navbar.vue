@@ -4,11 +4,14 @@ import { RouterLink } from 'vue-router';
 
 const emit = defineEmits(['logout']);
 
+
 const isLoggedIn = ref(false);
+const userType = ref('');
 const isMenuOpen = ref(false);
 
 const checkLogin = () => {
   isLoggedIn.value = !!localStorage.getItem('token');
+  userType.value = localStorage.getItem('type') || '';
 };
 
 onMounted(() => {
@@ -66,8 +69,13 @@ const scrollToSection = (sectionId: string) => {
           <router-link to="/registro" @click="closeMenu">Registrarse</router-link>
         </template>
         <template v-else>
-          <router-link to="/personalization" @click="closeMenu">Personalización</router-link>
-          <router-link to="/usuarios" @click="closeMenu">Usuarios</router-link>
+          <template v-if="userType === 'admin'">
+            <router-link to="/personalization" @click="closeMenu">Personalización</router-link>
+            <router-link to="/usuarios" @click="closeMenu">Usuarios</router-link>
+          </template>
+          <template v-else>
+            <router-link to="/perfil" @click="closeMenu">Perfil</router-link>
+          </template>
           <button class="logout-btn" @click="onLogoutClick(); closeMenu()">Cerrar sesión</button>
         </template>
       </div>

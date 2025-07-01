@@ -305,6 +305,10 @@ function downloadUserExcel(user) {
   XLSX.writeFile(wb, `usuario_${user.id}.xlsx`);
 }
 
+function goToUser(id: number) {
+  router.push(`/usuarios/${id}`);
+}
+
 onMounted(async () => {
   await nextTick();
 
@@ -357,18 +361,18 @@ onMounted(async () => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="user in users" :key="user.id">
+        <tr v-for="user in users" :key="user.id" @click="goToUser(user.id)" style="cursor:pointer;">
           <td>{{ user.id }}</td>
           <td>{{ user.firstName }}</td>
           <td>{{ user.lastName }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.role }}</td>
           <td>
-            <button @click="showDetails(user)">Ver más</button>
-            <button v-if="!user.disabled" @click="disableUser(user.id)">Deshabilitar</button>
-            <button v-else @click="enableUser(user.id)">Habilitar</button>
-            <button @click="downloadUserPDF(user)">Reporte en PDF</button>
-            <button @click="downloadUserExcel(user)">Reporte en EXCEL</button>
+            <button @click.stop="showDetails(user)">Ver más</button>
+            <button v-if="!user.disabled" @click.stop="disableUser(user.id)">Deshabilitar</button>
+            <button v-else @click.stop="enableUser(user.id)">Habilitar</button>
+            <button @click.stop="downloadUserPDF(user)">Reporte en PDF</button>
+            <button @click.stop="downloadUserExcel(user)">Reporte en EXCEL</button>
           </td>
         </tr>
       </tbody>
@@ -557,4 +561,4 @@ button {
   margin-bottom: 0.3rem;
   font-size: 1rem;
 }
-</style> 
+</style>
