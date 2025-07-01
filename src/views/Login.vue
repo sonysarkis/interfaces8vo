@@ -50,12 +50,17 @@ const onSubmit = async (e: Event) => {
     localStorage.setItem('token', data.token);
     localStorage.setItem('email', data.email);
     localStorage.setItem('type', data.type);
+    localStorage.setItem('id', data.id);
     await Swal.fire({
       icon: 'success',
       title: 'Login exitoso',
       text: 'Has iniciado sesión correctamente.'
     });
-    router.push('/personalization');
+    if (data.type === 'admin') {
+      router.push('/personalization');
+    } else {
+      router.push('/perfil');
+    }
   } catch (e) {
     await Swal.fire({
       icon: 'error',
@@ -195,4 +200,4 @@ const onSubmit = async (e: Event) => {
     font-size: 2rem;
   }
 }
-</style> 
+</style>

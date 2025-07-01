@@ -42,7 +42,8 @@ class AdminsController {
                 token: response.token,
                 email: response.email,
                 type: response.type,
-                status: response.status
+                status: response.status,
+                id: response.id
             });
         } catch (error) {
             console.log(error);
@@ -53,6 +54,40 @@ class AdminsController {
     getAuth = async (req, res) => {
         const authResult = await this.auth(req);
         return res.json(authResult);
+    }
+
+    update = async (req, res) => {
+        const { id } = req.params;
+        const data = req.body;
+        try {
+            const result = await AdminsModel.updateUserById(id, data);
+            return res.json({ success: true, message: 'Usuario actualizado correctamente', result });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    toggleStatus = async (req, res) => {
+        const { id } = req.params;
+        try {
+            const result = await AdminsModel.toggleStatusById(id);
+            return res.json({ success: true, message: 'Estado del usuario actualizado correctamente', result });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    get = async (req, res) => {
+        const { id } = req.params;
+        try {
+            const result = await AdminsModel.getUserDataById(id);
+            return res.json(result);
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ error: error.message });
+        }
     }
 
     async auth(req) {

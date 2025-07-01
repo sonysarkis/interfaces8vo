@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import Swal from 'sweetalert2';
 
 const user = ref({
   id: 1,
@@ -414,10 +415,158 @@ function nextStep() {
 function prevStep() {
   if (step.value > 1) step.value--;
 }
-function saveProfile() {
-  if (!isStepValid.value) return;
-  alert('Perfil guardado (simulado)');
+
+function mapUserToBackend(user) {
+  return {
+    // Datos personales
+    email: user.email,
+    nombre: user.firstName,
+    apellido: user.lastName,
+    segundo_apellido: user.maidenName,
+    edad: user.age,
+    genero: user.gender,
+    telefono: user.phone,
+    username: user.username,
+    fecha_nacimiento: user.birthDate,
+    imagen: user.image,
+    grupo_sanguineo: user.bloodGroup,
+    altura: user.height,
+    peso: user.weight,
+    color_ojos: user.eyeColor,
+    pelo_color: user.hair?.color,
+    pelo_tipo: user.hair?.type,
+    ip: user.ip,
+    direccion: user.address?.address,
+    ciudad: user.address?.city,
+    estado: user.address?.state,
+    estado_code: user.address?.stateCode,
+    pais: user.address?.country,
+    codigo_postal: user.address?.postalCode,
+    coord_lat: user.address?.coordinates?.lat,
+    coord_lng: user.address?.coordinates?.lng,
+    mac: user.macAddress,
+    universidad: user.university,
+    banco_tipo_tarjeta: user.bank?.cardType,
+    banco_numero_tarjeta: user.bank?.cardNumber,
+    banco_expiracion: user.bank?.cardExpire,
+    banco_iban: user.bank?.iban,
+    banco_moneda: user.bank?.currency,
+    compania_nombre: user.company?.name,
+    compania_departamento: user.company?.department,
+    compania_titulo: user.company?.title,
+    compania_direccion: user.company?.address?.address,
+    compania_ciudad: user.company?.address?.city,
+    compania_estado: user.company?.address?.state,
+    compania_estado_code: user.company?.address?.stateCode,
+    compania_pais: user.company?.address?.country,
+    compania_codigo_postal: user.company?.address?.postalCode,
+    compania_coord_lat: user.company?.address?.coordinates?.lat,
+    compania_coord_lng: user.company?.address?.coordinates?.lng,
+    ein: user.ein,
+    ssn: user.ssn,
+    user_agent: user.userAgent,
+    cripto_moneda: user.crypto?.coin,
+    cripto_wallet: user.crypto?.wallet,
+    cripto_network: user.crypto?.network,
+    // status y type no se actualizan aquí, solo por admin
+  };
 }
+
+async function saveProfile() {
+  if (!isStepValid.value) return;
+  const id = localStorage.getItem('id');
+  const token = localStorage.getItem('token');
+  if (!id || !token) return;
+  try {
+    const payload = mapUserToBackend(user.value);
+    const res = await fetch(`/admin-auth/${id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Perfil guardado',
+        text: 'Tus datos han sido actualizados correctamente.'
+      });
+      window.location.reload();
+    } else {
+      const data = await res.json();
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar',
+        text: data.error || 'Error desconocido'
+      });
+    }
+  } catch (e) {
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Error de red o servidor'
+    });
+  }
+}
+
+// Obtener datos del usuario al montar el componente
+onMounted(async () => {
+  const id = localStorage.getItem('id');
+  const token = localStorage.getItem('token');
+  if (id && token) {
+    try {
+      const res = await fetch(`/admin-auth/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Normalizar objetos anidados para evitar errores de acceso
+        user.value = {
+          ...data,
+          hair: {
+            color: data.hair?.color || '',
+            type: data.hair?.type || ''
+          },
+          address: {
+            ...(data.address || {}),
+            coordinates: {
+              lat: data.address?.coordinates?.lat ?? 0,
+              lng: data.address?.coordinates?.lng ?? 0
+            }
+          },
+          bank: {
+            cardExpire: data.bank?.cardExpire || '',
+            cardNumber: data.bank?.cardNumber || '',
+            cardType: data.bank?.cardType || '',
+            currency: data.bank?.currency || '',
+            iban: data.bank?.iban || ''
+          },
+          company: {
+            ...(data.company || {}),
+            address: {
+              ...(data.company?.address || {}),
+              coordinates: {
+                lat: data.company?.address?.coordinates?.lat ?? 0,
+                lng: data.company?.address?.coordinates?.lng ?? 0
+              }
+            }
+          },
+          crypto: {
+            coin: data.crypto?.coin || '',
+            wallet: data.crypto?.wallet || '',
+            network: data.crypto?.network || ''
+          }
+        };
+      }
+    } catch (e) {
+      console.error('Error al obtener datos del usuario', e);
+    }
+  }
+});
 </script>
 
 <template>
@@ -573,7 +722,7 @@ function saveProfile() {
               </div>
               <div class="info-group">
                 <label class="info-label">Dirección</label>
-                <div class="readonly-field">{{ user.address.address || 'No seleccionada' }}</div>
+                <input v-model="user.address.address" class="form-input" placeholder="Dirección manual o seleccionada" />
               </div>
               <div class="info-group">
                 <label class="info-label">Ciudad</label>
@@ -585,7 +734,7 @@ function saveProfile() {
               </div>
               <div class="info-group">
                 <label class="info-label">Código postal</label>
-                <div class="readonly-field">{{ user.address.postalCode || 'No seleccionado' }}</div>
+                <input v-model="user.address.postalCode" class="form-input" placeholder="Código postal manual o seleccionado" />
               </div>
               <div class="info-group">
                 <label class="info-label">País</label>
@@ -712,11 +861,17 @@ function saveProfile() {
           </div>
           <div class="form-group">
             <label class="form-label">Rol</label>
-            <input v-model="user.role" class="form-input" />
+            <input :value="user.type" class="form-input" readonly />
           </div>
           <div class="form-group checkbox-group">
             <label class="checkbox-label">
-              <input v-model="user.disabled" type="checkbox" class="checkbox-input" />
+              <input
+                type="checkbox"
+                :checked="user.status === 'inactive'"
+                disabled
+                readonly
+                class="checkbox-input"
+              />
               <span class="checkbox-text">Deshabilitado</span>
             </label>
           </div>
@@ -1102,4 +1257,4 @@ function saveProfile() {
     min-height: 300px;
   }
 }
-</style> 
+</style>
