@@ -1,55 +1,6 @@
-<script setup lang="ts">
-import { onMounted } from 'vue';
-import Swal from 'sweetalert2';
-
-// Importaremos los componentes compartidos aquí una vez que los creemos
-import Navbar from '@/components/Navbar.vue';
-import ServicesSection from '@/components/ServicesSection.vue';
-import Carousel from '@/components/Carousel.vue';
-import FormSection from '@/components/FormSection.vue';
-import Footer from '@/components/Footer.vue';
-
-onMounted(async () => {
-  try {
-    const res = await fetch('/styles/confirm', {
-      method: 'GET'
-    });
-    const data = await res.json();
-    console.log(data);
-    if (data.success) {
-      window.location.reload();
-    }
-  } catch (error) {
-    console.error('Error fetching styles confirm:', error);
-  }
-});
-
-async function logout() {
-  const result = await Swal.fire({
-    title: '¿Cerrar sesión?',
-    text: '¿Estás seguro de que deseas cerrar sesión?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, cerrar sesión',
-    cancelButtonText: 'Cancelar'
-  });
-
-  if (result.isConfirmed) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('email');
-    await Swal.fire({
-      icon: 'success',
-      title: 'Sesión cerrada',
-      text: 'Has cerrado sesión correctamente.'
-    });
-    window.location.href = '/login';
-  }
-}
-</script>
-
 <template>
   <Navbar @logout="logout" />
-  
+
   <main>
     <section id="inicio" class="hero">
       <div class="hero-content">
@@ -78,14 +29,49 @@ async function logout() {
   <Footer />
 </template>
 
-<style scoped>
-main, section {
-  width: 100vw;
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import Swal from 'sweetalert2'
 
+// Ajusta las rutas de importación si tus componentes están en otra carpeta
+import Navbar from '../components/Navbar.vue'
+import ServicesSection from '../components/ServicesSection.vue'
+import Carousel from '../components/Carousel.vue'
+import FormSection from '../components/FormSection.vue'
+import Footer from '../components/Footer.vue'
+
+onMounted(async () => {
+  const res = await fetch('/styles/confirm', { method: 'GET' })
+  const data = await res.json()
+  if (data.success) {
+    window.location.reload()
+  }
+})
+
+async function logout() {
+  const result = await Swal.fire({
+    title: '¿Cerrar sesión?',
+    text: '¿Estás seguro de que deseas cerrar sesión?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, cerrar sesión',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (result.isConfirmed) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('email')
+    await Swal.fire({
+      icon: 'success',
+      title: 'Sesión cerrada',
+      text: 'Has cerrado sesión correctamente.'
+    })
+    window.location.href = '/login'
+  }
+}
+</script>
+
+<style scoped>
 .hero {
   height: 100vh;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
@@ -143,15 +129,19 @@ section {
     min-height: 100vh;
     padding: 2rem 0.5rem;
   }
+
   .hero-content {
     max-width: 100%;
   }
+
   h1 {
     font-size: 2rem;
   }
+
   p {
     font-size: 1rem;
   }
+
   .cta-button {
     width: 100%;
     max-width: 320px;
