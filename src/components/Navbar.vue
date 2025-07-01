@@ -72,6 +72,7 @@ const scrollToSection = (sectionId: string) => {
           <template v-if="userType === 'admin'">
             <router-link to="/personalization" @click="closeMenu">Personalización</router-link>
             <router-link to="/usuarios" @click="closeMenu">Usuarios</router-link>
+            <router-link to="/perfil" @click="closeMenu">Perfil</router-link>
           </template>
           <template v-else>
             <router-link to="/perfil" @click="closeMenu">Perfil</router-link>

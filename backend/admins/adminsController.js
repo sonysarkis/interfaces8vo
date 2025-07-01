@@ -90,6 +90,16 @@ class AdminsController {
         }
     }
 
+    getall = async (req, res) => {
+        try {
+            const result = await AdminsModel.getallUsers();
+            return res.json(result);
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
     async auth(req) {
         const token = req.headers.authorization?.split(' ')[1];
 

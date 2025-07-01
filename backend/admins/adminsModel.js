@@ -49,6 +49,25 @@ class AdminsModel {
         }
     }
 
+    static async getallUsers() {
+        let connection;
+        try {
+            connection = await createConnection();
+            const [rows] = await connection.execute('SELECT * FROM admins');
+            return rows.map(user => {
+                // Excluir la contraseña del resultado
+                const { password, ...userWithoutPassword } = user;
+                return userWithoutPassword;
+            });
+        } catch (error) {
+            throw new Error(`Error al obtener todos los usuarios: ${error.message}`);
+        } finally {
+            if (connection) {
+                await connection.end();
+            }
+        }
+    }
+
     static async login({ admin }) {
         const {
             email,
@@ -178,14 +197,18 @@ class AdminsModel {
     }
 
     static async updateUserById(id, data) {
-        // No se permite modificar el password aquí
         const fields = [
             'email','type','status','nombre','apellido','segundo_apellido','edad','genero','telefono','username','fecha_nacimiento','grupo_sanguineo','altura','peso','color_ojos','pelo_color','pelo_tipo','ip','imagen','direccion','ciudad','estado','estado_code','pais','codigo_postal','coord_lat','coord_lng','banco_tipo_tarjeta','banco_numero_tarjeta','banco_expiracion','banco_iban','banco_moneda','compania_nombre','compania_departamento','compania_titulo','compania_direccion','compania_ciudad','compania_estado','compania_estado_code','compania_pais','compania_codigo_postal','compania_coord_lat','compania_coord_lng','mac','universidad','ein','ssn','user_agent','cripto_moneda','cripto_wallet','cripto_network'
         ];
         const updates = [];
         const values = [];
         for (const field of fields) {
-            if (field in data) {
+            if (
+                field in data &&
+                data[field] !== undefined &&
+                data[field] !== null &&
+                !(typeof data[field] === 'string' && data[field].trim() === '')
+            ) {
                 updates.push(`${field} = ?`);
                 values.push(data[field]);
             }

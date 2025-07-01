@@ -21,71 +21,81 @@ window.JSZip = jszip;
 
 const router = useRouter();
 
-const users = ref([
-  {
-    id: 1,
-    firstName: "Emily",
-    lastName: "Johnson",
-    maidenName: "Smith",
-    age: 28,
-    gender: "female",
-    email: "emily.johnson@x.dummyjson.com",
-    phone: "+81 965-431-3024",
-    username: "emilys",
-    password: "emilyspass",
-    birthDate: "1996-5-30",
-    image: "https://dummyjson.com/icon/emilys/128",
-    bloodGroup: "O-",
-    height: 193.24,
-    weight: 63.16,
-    eyeColor: "Green",
-    hair: { color: "Brown", type: "Curly" },
-    ip: "42.48.100.32",
-    address: {
-      address: "626 Main Street",
-      city: "Phoenix",
-      state: "Mississippi",
-      stateCode: "MS",
-      postalCode: "29112",
-      coordinates: { lat: -77.16213, lng: -92.084824 },
-      country: "United States"
+const users = ref([]);
+
+function backendToUser(data) {
+  return {
+    id: data.id,
+    firstName: data.nombre || '',
+    lastName: data.apellido || '',
+    maidenName: data.segundo_apellido || '',
+    age: data.edad || '',
+    gender: data.genero || '',
+    email: data.email || '',
+    phone: data.telefono || '',
+    username: data.username || '',
+    password: '', // nunca mostrar la contraseña real
+    birthDate: data.fecha_nacimiento || '',
+    image: data.imagen || '',
+    bloodGroup: data.grupo_sanguineo || '',
+    height: data.altura || '',
+    weight: data.peso || '',
+    eyeColor: data.color_ojos || '',
+    hair: {
+      color: data.pelo_color || '',
+      type: data.pelo_tipo || ''
     },
-    macAddress: "47:fa:41:18:ec:eb",
-    university: "University of Wisconsin--Madison",
+    ip: data.ip || '',
+    address: {
+      address: data.direccion || '',
+      city: data.ciudad || '',
+      state: data.estado || '',
+      stateCode: data.estado_code || '',
+      postalCode: data.codigo_postal || '',
+      coordinates: {
+        lat: data.coord_lat ?? 0,
+        lng: data.coord_lng ?? 0
+      },
+      country: data.pais || ''
+    },
+    macAddress: data.mac || '',
+    university: data.universidad || '',
     bank: {
-      cardExpire: "03/26",
-      cardNumber: "9289760655481815",
-      cardType: "Elo",
-      currency: "CNY",
-      iban: "YPUXISOBI7TTHPK2BR3HAIXL"
+      cardExpire: data.banco_expiracion || '',
+      cardNumber: data.banco_numero_tarjeta || '',
+      cardType: data.banco_tipo_tarjeta || '',
+      currency: data.banco_moneda || '',
+      iban: data.banco_iban || ''
     },
     company: {
-      department: "Engineering",
-      name: "Dooley, Kozey and Cronin",
-      title: "Sales Manager",
+      department: data.compania_departamento || '',
+      name: data.compania_nombre || '',
+      title: data.compania_titulo || '',
       address: {
-        address: "263 Tenth Street",
-        city: "San Francisco",
-        state: "Wisconsin",
-        stateCode: "WI",
-        postalCode: "37657",
-        coordinates: { lat: 71.814525, lng: -161.150263 },
-        country: "United States"
+        address: data.compania_direccion || '',
+        city: data.compania_ciudad || '',
+        state: data.compania_estado || '',
+        stateCode: data.compania_estado_code || '',
+        postalCode: data.compania_codigo_postal || '',
+        coordinates: {
+          lat: data.compania_coord_lat ?? 0,
+          lng: data.compania_coord_lng ?? 0
+        },
+        country: data.compania_pais || ''
       }
     },
-    ein: "977-175",
-    ssn: "900-590-289",
-    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36",
+    ein: data.ein || '',
+    ssn: data.ssn || '',
+    userAgent: data.user_agent || '',
     crypto: {
-      coin: "Bitcoin",
-      wallet: "0xb9fc2fe63b2a6c003f1c324c3bfa53259162181a",
-      network: "Ethereum (ERC20)"
+      coin: data.cripto_moneda || '',
+      wallet: data.cripto_wallet || '',
+      network: data.cripto_network || ''
     },
-    role: "admin",
-    disabled: false
-  },
-  // Puedes agregar más usuarios aquí si lo deseas
-]);
+    role: data.type || '',
+    disabled: data.status === 'inactive'
+  };
+}
 
 const selectedUser = ref(null);
 
@@ -97,28 +107,44 @@ function closeModal() {
   selectedUser.value = null;
 }
 
-function disableUser(id: number) {
-  const user = users.value.find(u => u.id === id);
-  if (user) {
-    user.disabled = true;
+async function toggleUserStatus(id: number) {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`/admin-auth/user/${id}/status`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const user = users.value.find(u => u.id === id);
+      if (user) {
+        user.disabled = data.result.status === 'inactive';
+        Swal.fire({
+          icon: 'success',
+          title: user.disabled ? 'Usuario deshabilitado' : 'Usuario habilitado',
+          text: user.disabled
+            ? 'El usuario ha sido deshabilitado correctamente.'
+            : 'El usuario ha sido habilitado correctamente.'
+        });
+      }
+    }
+  } catch (e) {
     Swal.fire({
-      icon: 'success',
-      title: 'Usuario deshabilitado',
-      text: 'El usuario ha sido deshabilitado correctamente.'
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo cambiar el estado del usuario.'
     });
   }
 }
 
+function disableUser(id: number) {
+  toggleUserStatus(id);
+}
+
 function enableUser(id: number) {
-  const user = users.value.find(u => u.id === id);
-  if (user) {
-    user.disabled = false;
-    Swal.fire({
-      icon: 'success',
-      title: 'Usuario habilitado',
-      text: 'El usuario ha sido habilitado correctamente.'
-    });
-  }
+  toggleUserStatus(id);
 }
 
 function getBase64Image(imgUrl: string, callback: (base64: string) => void) {
@@ -311,6 +337,25 @@ function goToUser(id: number) {
 
 onMounted(async () => {
   await nextTick();
+
+  // Obtener usuarios del backend
+  try {
+    const token = localStorage.getItem('token');
+    const currentId = Number(localStorage.getItem('id'));
+    const res = await fetch('/admin-auth/users', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      users.value = data
+        .filter(u => u.id !== currentId)
+        .map(backendToUser);
+    }
+  } catch (e) {
+    // Puedes mostrar un error si lo deseas
+  }
 
   // Importa dinámicamente los botones solo en el cliente
   if (typeof window !== 'undefined') {

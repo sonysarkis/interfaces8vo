@@ -12,6 +12,7 @@ export function createAdminsRouter() {
     adminsRouter.post('/user/:id', adminsController.update);
     adminsRouter.post('/user/:id/status', adminsController.toggleStatus);
     adminsRouter.get('/user/:id', adminsController.get);
+    adminsRouter.get('/users', adminsController.getall);
 
     // Proxy para Nominatim (GET)
     adminsRouter.get('/nominatim', async (req, res) => {

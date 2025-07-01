@@ -420,6 +420,11 @@ function prevStep() {
 }
 
 function mapUserToBackend(user) {
+  let fecha_nacimiento = user.birthDate;
+  if (fecha_nacimiento && fecha_nacimiento.length > 10) {
+    // Si viene en formato ISO, recorta a YYYY-MM-DD
+    fecha_nacimiento = fecha_nacimiento.slice(0, 10);
+  }
   return {
     email: user.email,
     type: user.type,
@@ -431,7 +436,7 @@ function mapUserToBackend(user) {
     genero: user.gender,
     telefono: user.phone,
     username: user.username,
-    fecha_nacimiento: user.birthDate,
+    fecha_nacimiento,
     imagen: user.image,
     grupo_sanguineo: user.bloodGroup,
     altura: user.height,
