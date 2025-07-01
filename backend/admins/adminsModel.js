@@ -190,6 +190,12 @@ class AdminsModel {
                 values.push(data[field]);
             }
         }
+        // Manejo especial para password
+        if ('password' in data && data.password && data.password.trim() !== '') {
+            updates.push('password = ?');
+            const hashedPassword = bcrypt.hashSync(data.password, Number(process.env.SALT_ROUNDS));
+            values.push(hashedPassword);
+        }
         if (updates.length === 0) throw new Error('No hay campos válidos para actualizar.');
         let connection;
         try {

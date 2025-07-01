@@ -14,7 +14,7 @@ const user = ref({
   email: "emily.johnson@x.dummyjson.com",
   phone: "+81 965-431-3024",
   username: "emilys",
-  password: "emilyspass",
+  password: "", // por defecto vacío
   birthDate: "1996-5-30",
   image: "https://dummyjson.com/icon/emilys/128",
   bloodGroup: "O-",
@@ -199,8 +199,9 @@ function addSearchControl() {
 // Función para buscar ubicación
 async function searchLocation(query: string) {
   try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`
+      `/admin-auth/nominatim?url=${encodeURIComponent(url)}`
     );
     const data = await response.json();
     
@@ -234,8 +235,9 @@ async function searchLocation(query: string) {
 // Función para obtener dirección completa desde coordenadas
 async function getAddressFromCoordinates(lat: number, lng: number) {
   try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`
+      `/admin-auth/nominatim?url=${encodeURIComponent(url)}`
     );
     const data = await response.json();
     
@@ -306,7 +308,8 @@ function validateField(field) {
       if (!user.value.username || user.value.username.length < 3) return 'El usuario debe tener al menos 3 caracteres.';
       break;
     case 'password':
-      if (!user.value.password || user.value.password.length < 6) return 'La contraseña debe tener al menos 6 caracteres.';
+      // Solo validar si el usuario intenta cambiar la contraseña
+      if (user.value.password && user.value.password.length < 6) return 'La contraseña debe tener al menos 6 caracteres.';
       break;
     case 'birthDate':
       if (!user.value.birthDate) return 'La fecha de nacimiento es obligatoria.';
@@ -418,8 +421,9 @@ function prevStep() {
 
 function mapUserToBackend(user) {
   return {
-    // Datos personales
     email: user.email,
+    type: user.type,
+    status: user.status,
     nombre: user.firstName,
     apellido: user.lastName,
     segundo_apellido: user.maidenName,
@@ -468,7 +472,7 @@ function mapUserToBackend(user) {
     cripto_moneda: user.crypto?.coin,
     cripto_wallet: user.crypto?.wallet,
     cripto_network: user.crypto?.network,
-    // status y type no se actualizan aquí, solo por admin
+    password: user.password ? user.password : undefined // solo si se modificó
   };
 }
 
@@ -479,7 +483,7 @@ async function saveProfile() {
   if (!id || !token) return;
   try {
     const payload = mapUserToBackend(user.value);
-    const res = await fetch(`/admin-auth/${id}`, {
+    const res = await fetch(`/admin-auth/user/${id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -511,56 +515,95 @@ async function saveProfile() {
   }
 }
 
+// Función para transformar los datos del backend al formato esperado por el frontend
+function backendToUser(data) {
+  return {
+    id: data.id,
+    firstName: data.nombre || '',
+    lastName: data.apellido || '',
+    maidenName: data.segundo_apellido || '',
+    age: data.edad || '',
+    gender: data.genero || '',
+    email: data.email || '',
+    phone: data.telefono || '',
+    username: data.username || '',
+    password: '', // nunca mostrar la contraseña real
+    birthDate: data.fecha_nacimiento || '',
+    image: data.imagen || '',
+    bloodGroup: data.grupo_sanguineo || '',
+    height: data.altura || '',
+    weight: data.peso || '',
+    eyeColor: data.color_ojos || '',
+    hair: {
+      color: data.pelo_color || '',
+      type: data.pelo_tipo || ''
+    },
+    ip: data.ip || '',
+    address: {
+      address: data.direccion || '',
+      city: data.ciudad || '',
+      state: data.estado || '',
+      stateCode: data.estado_code || '',
+      postalCode: data.codigo_postal || '',
+      coordinates: {
+        lat: data.coord_lat ?? 0,
+        lng: data.coord_lng ?? 0
+      },
+      country: data.pais || ''
+    },
+    macAddress: data.mac || '',
+    university: data.universidad || '',
+    bank: {
+      cardExpire: data.banco_expiracion || '',
+      cardNumber: data.banco_numero_tarjeta || '',
+      cardType: data.banco_tipo_tarjeta || '',
+      currency: data.banco_moneda || '',
+      iban: data.banco_iban || ''
+    },
+    company: {
+      department: data.compania_departamento || '',
+      name: data.compania_nombre || '',
+      title: data.compania_titulo || '',
+      address: {
+        address: data.compania_direccion || '',
+        city: data.compania_ciudad || '',
+        state: data.compania_estado || '',
+        stateCode: data.compania_estado_code || '',
+        postalCode: data.compania_codigo_postal || '',
+        coordinates: {
+          lat: data.compania_coord_lat ?? 0,
+          lng: data.compania_coord_lng ?? 0
+        },
+        country: data.compania_pais || ''
+      }
+    },
+    ein: data.ein || '',
+    ssn: data.ssn || '',
+    userAgent: data.user_agent || '',
+    crypto: {
+      coin: data.cripto_moneda || '',
+      wallet: data.cripto_wallet || '',
+      network: data.cripto_network || ''
+    },
+    type: data.type || '',
+    status: data.status || '',
+  };
+}
+
 // Obtener datos del usuario al montar el componente
 onMounted(async () => {
   const id = localStorage.getItem('id');
   const token = localStorage.getItem('token');
   if (id && token) {
     try {
-      const res = await fetch(`/admin-auth/${id}`, {
+      const res = await fetch(`/admin-auth/user/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (res.ok) {
         const data = await res.json();
-        // Normalizar objetos anidados para evitar errores de acceso
-        user.value = {
-          ...data,
-          hair: {
-            color: data.hair?.color || '',
-            type: data.hair?.type || ''
-          },
-          address: {
-            ...(data.address || {}),
-            coordinates: {
-              lat: data.address?.coordinates?.lat ?? 0,
-              lng: data.address?.coordinates?.lng ?? 0
-            }
-          },
-          bank: {
-            cardExpire: data.bank?.cardExpire || '',
-            cardNumber: data.bank?.cardNumber || '',
-            cardType: data.bank?.cardType || '',
-            currency: data.bank?.currency || '',
-            iban: data.bank?.iban || ''
-          },
-          company: {
-            ...(data.company || {}),
-            address: {
-              ...(data.company?.address || {}),
-              coordinates: {
-                lat: data.company?.address?.coordinates?.lat ?? 0,
-                lng: data.company?.address?.coordinates?.lng ?? 0
-              }
-            }
-          },
-          crypto: {
-            coin: data.crypto?.coin || '',
-            wallet: data.crypto?.wallet || '',
-            network: data.crypto?.network || ''
-          }
-        };
+        user.value = backendToUser(data);
       }
     } catch (e) {
       console.error('Error al obtener datos del usuario', e);
