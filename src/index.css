@@ -1,0 +1,5 @@
+/* Unificación: solo importa variables y estilos globales personalizados */
+@import url('./assets/base.css');
+@import url('./assets/main.css');
+
+/* Puedes agregar aquí utilidades específicas si lo necesitas, pero evita duplicar variables o estilos globales */
