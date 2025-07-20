@@ -696,7 +696,7 @@ const Perfil: React.FC = () => {
     for (const field of fields) {
       let value: any = field;
       if (field.includes(".")) {
-        value = field.split(".").reduce((o, k) => (o ? o[k] : undefined), user);
+        value = field.split(".").reduce((o, k) => (o ? (o as any)[k] : undefined), user);
       } else {
         value = (user as any)[field];
       }
