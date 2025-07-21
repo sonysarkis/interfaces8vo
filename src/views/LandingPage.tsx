@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import Navbar from '../components/Navbar';
 import ServicesSection from '../components/ServicesSection';
@@ -8,16 +8,28 @@ import Footer from '../components/Footer';
 import Tangram from '../tangram/tangram.tsx';
 
 const LandingPage: React.FC = () => {
+  const [showLoader, setShowLoader] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
+
   useEffect(() => {
-    const fetchConfirm = async () => {
-      const res = await fetch('/styles/confirm', { method: 'GET' });
-      const data = await res.json();
-      if (data.success) {
-        window.location.reload();
-      }
-    };
-    fetchConfirm();
+    // Revisar si el loader está activado en localStorage (por defecto true)
+    const loaderSetting = localStorage.getItem('showTangramLoader');
+    if (loaderSetting === null || loaderSetting === 'true') {
+      setShowLoader(true);
+    } else {
+      setShowLoader(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (showLoader) {
+      const timer = setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(() => setShowLoader(false), 1000); // 1s para el fade
+      }, 10000); // 10 segundos
+      return () => clearTimeout(timer);
+    }
+  }, [showLoader]);
 
   const logout = async () => {
     const result = await Swal.fire({
@@ -42,6 +54,11 @@ const LandingPage: React.FC = () => {
 
   return (
     <>
+      {showLoader && (
+        <div className={`tangram-loader${fadeOut ? ' fade-out' : ''}`}>
+          <Tangram />
+        </div>
+      )}
       <Navbar onLogout={logout} />
       <main>
         <section id="inicio" className="hero">
@@ -65,7 +82,6 @@ const LandingPage: React.FC = () => {
         </section>
       </main>
       <Footer />
-      <Tangram />
     </>
   );
 };

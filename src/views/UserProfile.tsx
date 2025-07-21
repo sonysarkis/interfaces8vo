@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import Swal from "sweetalert2";
 import "./Perfil.css"; // Copia el CSS aquí
+import Tangram from '../tangram/tangram.tsx';
 
 type UserType = {
   id: number | string;
@@ -291,6 +292,27 @@ const Perfil: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const [showLoader, setShowLoader] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    const loaderSetting = localStorage.getItem('showTangramLoader');
+    if (loaderSetting === null || loaderSetting === 'true') {
+      setShowLoader(true);
+    } else {
+      setShowLoader(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showLoader) {
+      const timer = setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(() => setShowLoader(false), 1000);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showLoader]);
 
   // Cargar datos reales del usuario al montar
   useEffect(() => {
@@ -304,7 +326,7 @@ const Perfil: React.FC = () => {
         .then((data) => {
           if (data) setUser(backendToUser(data));
         })
-        .catch(() => {});
+        .catch(() => { });
     }
     // eslint-disable-next-line
   }, []);
@@ -779,742 +801,749 @@ const Perfil: React.FC = () => {
   }
 
   return (
-    <div className="container">
-      <h1 className="page-title">Mi Perfil</h1>
-      <form onSubmit={saveProfile} className="profile-form">
-        {/* Paso 1 */}
-        {step === 1 && (
-          <div className="form-step">
-            <h2 className="step-title">Datos personales (1/3)</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Nombre</label>
-                <input
-                  value={user.firstName}
-                  onChange={(e) =>
-                    handleChange(["firstName"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.firstName && (
-                  <span className="error-message">{errors.firstName}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Apellido</label>
-                <input
-                  value={user.lastName}
-                  onChange={(e) =>
-                    handleChange(["lastName"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.lastName && (
-                  <span className="error-message">{errors.lastName}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Segundo Nombre</label>
-                <input
-                  value={user.maidenName}
-                  onChange={(e) =>
-                    handleChange(["maidenName"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.maidenName && (
-                  <span className="error-message">{errors.maidenName}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Edad</label>
-                <input
-                  value={user.age}
-                  type="number"
-                  onChange={(e) =>
-                    handleChange(["age"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.age && (
-                  <span className="error-message">{errors.age}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Género</label>
-                <div className="radio-group">
-                  {genderOptions.map((opt) => (
-                    <label key={opt.value} className="radio-option">
-                      <input
-                        type="radio"
-                        checked={user.gender === opt.value}
-                        onChange={() =>
-                          handleChange(["gender"], opt.value)
-                        }
-                        className="radio-input"
-                      />
-                      <span className="radio-label">{opt.label}</span>
-                    </label>
-                  ))}
+    <>
+      {showLoader && (
+        <div className={`tangram-loader${fadeOut ? ' fade-out' : ''}`}>
+          <Tangram />
+        </div>
+      )}
+      <div className="container">
+        <h1 className="page-title">Mi Perfil</h1>
+        <form onSubmit={saveProfile} className="profile-form">
+          {/* Paso 1 */}
+          {step === 1 && (
+            <div className="form-step">
+              <h2 className="step-title">Datos personales (1/3)</h2>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Nombre</label>
+                  <input
+                    value={user.firstName}
+                    onChange={(e) =>
+                      handleChange(["firstName"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.firstName && (
+                    <span className="error-message">{errors.firstName}</span>
+                  )}
                 </div>
-                {errors.gender && (
-                  <span className="error-message">{errors.gender}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Correo electrónico</label>
-                <input
-                  value={user.email}
-                  onChange={(e) =>
-                    handleChange(["email"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.email && (
-                  <span className="error-message">{errors.email}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Paso 2 */}
-        {step === 2 && (
-          <div className="form-step">
-            <h2 className="step-title">Datos personales (2/3)</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Teléfono</label>
-                <input
-                  value={user.phone}
-                  onChange={(e) =>
-                    handleChange(["phone"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.phone && (
-                  <span className="error-message">{errors.phone}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Nombre de usuario</label>
-                <input
-                  value={user.username}
-                  onChange={(e) =>
-                    handleChange(["username"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.username && (
-                  <span className="error-message">{errors.username}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Contraseña</label>
-                <input
-                  value={user.password}
-                  type="text"
-                  onChange={(e) =>
-                    handleChange(["password"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.password && (
-                  <span className="error-message">{errors.password}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Fecha de nacimiento</label>
-                <input
-                  value={user.birthDate}
-                  type="date"
-                  onChange={(e) =>
-                    handleChange(["birthDate"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.birthDate && (
-                  <span className="error-message">{errors.birthDate}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Grupo sanguíneo</label>
-                <select
-                  value={user.bloodGroup}
-                  onChange={(e) =>
-                    handleChange(["bloodGroup"], e.target.value)
-                  }
-                  className="form-select"
-                >
-                  {bloodGroups.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </select>
-                {errors.bloodGroup && (
-                  <span className="error-message">{errors.bloodGroup}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Altura</label>
-                <input
-                  value={user.height}
-                  type="number"
-                  step="0.01"
-                  onChange={(e) =>
-                    handleChange(["height"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.height && (
-                  <span className="error-message">{errors.height}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Paso 3 */}
-        {step === 3 && (
-          <div className="form-step">
-            <h2 className="step-title">Datos personales (3/3)</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Peso (KG)</label>
-                <input
-                  value={user.weight}
-                  type="number"
-                  step="0.01"
-                  onChange={(e) =>
-                    handleChange(["weight"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.weight && (
-                  <span className="error-message">{errors.weight}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Color de ojos</label>
-                <input
-                  value={user.eyeColor}
-                  onChange={(e) =>
-                    handleChange(["eyeColor"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors.eyeColor && (
-                  <span className="error-message">{errors.eyeColor}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Pelo (color)</label>
-                <input
-                  value={user.hair.color}
-                  onChange={(e) =>
-                    handleChange(["hair", "color"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors["hair.color"] && (
-                  <span className="error-message">{errors["hair.color"]}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Pelo (tipo)</label>
-                <input
-                  value={user.hair.type}
-                  onChange={(e) =>
-                    handleChange(["hair", "type"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors["hair.type"] && (
-                  <span className="error-message">{errors["hair.type"]}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Dirección</label>
-                <input
-                  value={user.address.address}
-                  onChange={(e) =>
-                    handleChange(["address", "address"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors["address.address"] && (
-                  <span className="error-message">
-                    {errors["address.address"]}
-                  </span>
-                )}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Ciudad</label>
-                <input
-                  value={user.address.city}
-                  onChange={(e) =>
-                    handleChange(["address", "city"], e.target.value)
-                  }
-                  className="form-input"
-                />
-                {errors["address.city"] && (
-                  <span className="error-message">
-                    {errors["address.city"]}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Paso 4: Mapa */}
-        {step === 4 && (
-          <div className="map-step">
-            <h2 className="step-title">Ubicación</h2>
-            <div className="map-container">
-              <div id="map" className="map" ref={mapRef}></div>
-              <div className="map-actions">
-                <button
-                  type="button"
-                  className="info-btn"
-                  onClick={() => setShowModal(true)}
-                >
-                  Ver información de ubicación
-                </button>
-              </div>
-            </div>
-            {/* Modal */}
-            {showModal && (
-              <div
-                className="modal-overlay"
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) setShowModal(false);
-                }}
-              >
-                <div className="modal-content">
-                  <h2 className="modal-title">Información de ubicación</h2>
-                  <div className="modal-grid">
-                    <div className="info-group">
-                      <label className="info-label">Latitud</label>
-                      <div className="readonly-field">
-                        {user.address.coordinates.lat || "No seleccionada"}
-                      </div>
-                    </div>
-                    <div className="info-group">
-                      <label className="info-label">Longitud</label>
-                      <div className="readonly-field">
-                        {user.address.coordinates.lng || "No seleccionada"}
-                      </div>
-                    </div>
-                    <div className="info-group">
-                      <label className="info-label">Dirección MAC</label>
-                      <input
-                        value={user.macAddress}
-                        onChange={(e) =>
-                          handleChange(["macAddress"], e.target.value)
-                        }
-                        placeholder="Ej: 47:fa:41:18:ec:eb"
-                        className="form-input"
-                      />
-                    </div>
-                    <div className="info-group">
-                      <label className="info-label">Dirección</label>
-                      <input
-                        value={user.address.address}
-                        onChange={(e) =>
-                          handleChange(["address", "address"], e.target.value)
-                        }
-                        className="form-input"
-                        placeholder="Dirección manual o seleccionada"
-                      />
-                    </div>
-                    <div className="info-group">
-                      <label className="info-label">Ciudad</label>
-                      <div className="readonly-field">
-                        {user.address.city || "No seleccionada"}
-                      </div>
-                    </div>
-                    <div className="info-group">
-                      <label className="info-label">Estado</label>
-                      <div className="readonly-field">
-                        {user.address.state || "No seleccionado"}
-                      </div>
-                    </div>
-                    <div className="info-group">
-                      <label className="info-label">Código postal</label>
-                      <input
-                        value={user.address.postalCode}
-                        onChange={(e) =>
-                          handleChange(
-                            ["address", "postalCode"],
-                            e.target.value
-                          )
-                        }
-                        className="form-input"
-                        placeholder="Código postal manual o seleccionado"
-                      />
-                    </div>
-                    <div className="info-group">
-                      <label className="info-label">País</label>
-                      <div className="readonly-field">
-                        {user.address.country || "No seleccionado"}
-                      </div>
-                    </div>
+                <div className="form-group">
+                  <label className="form-label">Apellido</label>
+                  <input
+                    value={user.lastName}
+                    onChange={(e) =>
+                      handleChange(["lastName"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.lastName && (
+                    <span className="error-message">{errors.lastName}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Segundo Nombre</label>
+                  <input
+                    value={user.maidenName}
+                    onChange={(e) =>
+                      handleChange(["maidenName"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.maidenName && (
+                    <span className="error-message">{errors.maidenName}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Edad</label>
+                  <input
+                    value={user.age}
+                    type="number"
+                    onChange={(e) =>
+                      handleChange(["age"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.age && (
+                    <span className="error-message">{errors.age}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Género</label>
+                  <div className="radio-group">
+                    {genderOptions.map((opt) => (
+                      <label key={opt.value} className="radio-option">
+                        <input
+                          type="radio"
+                          checked={user.gender === opt.value}
+                          onChange={() =>
+                            handleChange(["gender"], opt.value)
+                          }
+                          className="radio-input"
+                        />
+                        <span className="radio-label">{opt.label}</span>
+                      </label>
+                    ))}
                   </div>
+                  {errors.gender && (
+                    <span className="error-message">{errors.gender}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Correo electrónico</label>
+                  <input
+                    value={user.email}
+                    onChange={(e) =>
+                      handleChange(["email"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.email && (
+                    <span className="error-message">{errors.email}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paso 2 */}
+          {step === 2 && (
+            <div className="form-step">
+              <h2 className="step-title">Datos personales (2/3)</h2>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Teléfono</label>
+                  <input
+                    value={user.phone}
+                    onChange={(e) =>
+                      handleChange(["phone"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.phone && (
+                    <span className="error-message">{errors.phone}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Nombre de usuario</label>
+                  <input
+                    value={user.username}
+                    onChange={(e) =>
+                      handleChange(["username"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.username && (
+                    <span className="error-message">{errors.username}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Contraseña</label>
+                  <input
+                    value={user.password}
+                    type="text"
+                    onChange={(e) =>
+                      handleChange(["password"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.password && (
+                    <span className="error-message">{errors.password}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Fecha de nacimiento</label>
+                  <input
+                    value={user.birthDate}
+                    type="date"
+                    onChange={(e) =>
+                      handleChange(["birthDate"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.birthDate && (
+                    <span className="error-message">{errors.birthDate}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Grupo sanguíneo</label>
+                  <select
+                    value={user.bloodGroup}
+                    onChange={(e) =>
+                      handleChange(["bloodGroup"], e.target.value)
+                    }
+                    className="form-select"
+                  >
+                    {bloodGroups.map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.bloodGroup && (
+                    <span className="error-message">{errors.bloodGroup}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Altura</label>
+                  <input
+                    value={user.height}
+                    type="number"
+                    step="0.01"
+                    onChange={(e) =>
+                      handleChange(["height"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.height && (
+                    <span className="error-message">{errors.height}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paso 3 */}
+          {step === 3 && (
+            <div className="form-step">
+              <h2 className="step-title">Datos personales (3/3)</h2>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Peso (KG)</label>
+                  <input
+                    value={user.weight}
+                    type="number"
+                    step="0.01"
+                    onChange={(e) =>
+                      handleChange(["weight"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.weight && (
+                    <span className="error-message">{errors.weight}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Color de ojos</label>
+                  <input
+                    value={user.eyeColor}
+                    onChange={(e) =>
+                      handleChange(["eyeColor"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors.eyeColor && (
+                    <span className="error-message">{errors.eyeColor}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Pelo (color)</label>
+                  <input
+                    value={user.hair.color}
+                    onChange={(e) =>
+                      handleChange(["hair", "color"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors["hair.color"] && (
+                    <span className="error-message">{errors["hair.color"]}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Pelo (tipo)</label>
+                  <input
+                    value={user.hair.type}
+                    onChange={(e) =>
+                      handleChange(["hair", "type"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors["hair.type"] && (
+                    <span className="error-message">{errors["hair.type"]}</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Dirección</label>
+                  <input
+                    value={user.address.address}
+                    onChange={(e) =>
+                      handleChange(["address", "address"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors["address.address"] && (
+                    <span className="error-message">
+                      {errors["address.address"]}
+                    </span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Ciudad</label>
+                  <input
+                    value={user.address.city}
+                    onChange={(e) =>
+                      handleChange(["address", "city"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                  {errors["address.city"] && (
+                    <span className="error-message">
+                      {errors["address.city"]}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paso 4: Mapa */}
+          {step === 4 && (
+            <div className="map-step">
+              <h2 className="step-title">Ubicación</h2>
+              <div className="map-container">
+                <div id="map" className="map" ref={mapRef}></div>
+                <div className="map-actions">
                   <button
                     type="button"
-                    className="close-btn"
-                    onClick={() => setShowModal(false)}
+                    className="info-btn"
+                    onClick={() => setShowModal(true)}
                   >
-                    Cerrar
+                    Ver información de ubicación
                   </button>
                 </div>
               </div>
+              {/* Modal */}
+              {showModal && (
+                <div
+                  className="modal-overlay"
+                  onClick={(e) => {
+                    if (e.target === e.currentTarget) setShowModal(false);
+                  }}
+                >
+                  <div className="modal-content">
+                    <h2 className="modal-title">Información de ubicación</h2>
+                    <div className="modal-grid">
+                      <div className="info-group">
+                        <label className="info-label">Latitud</label>
+                        <div className="readonly-field">
+                          {user.address.coordinates.lat || "No seleccionada"}
+                        </div>
+                      </div>
+                      <div className="info-group">
+                        <label className="info-label">Longitud</label>
+                        <div className="readonly-field">
+                          {user.address.coordinates.lng || "No seleccionada"}
+                        </div>
+                      </div>
+                      <div className="info-group">
+                        <label className="info-label">Dirección MAC</label>
+                        <input
+                          value={user.macAddress}
+                          onChange={(e) =>
+                            handleChange(["macAddress"], e.target.value)
+                          }
+                          placeholder="Ej: 47:fa:41:18:ec:eb"
+                          className="form-input"
+                        />
+                      </div>
+                      <div className="info-group">
+                        <label className="info-label">Dirección</label>
+                        <input
+                          value={user.address.address}
+                          onChange={(e) =>
+                            handleChange(["address", "address"], e.target.value)
+                          }
+                          className="form-input"
+                          placeholder="Dirección manual o seleccionada"
+                        />
+                      </div>
+                      <div className="info-group">
+                        <label className="info-label">Ciudad</label>
+                        <div className="readonly-field">
+                          {user.address.city || "No seleccionada"}
+                        </div>
+                      </div>
+                      <div className="info-group">
+                        <label className="info-label">Estado</label>
+                        <div className="readonly-field">
+                          {user.address.state || "No seleccionado"}
+                        </div>
+                      </div>
+                      <div className="info-group">
+                        <label className="info-label">Código postal</label>
+                        <input
+                          value={user.address.postalCode}
+                          onChange={(e) =>
+                            handleChange(
+                              ["address", "postalCode"],
+                              e.target.value
+                            )
+                          }
+                          className="form-input"
+                          placeholder="Código postal manual o seleccionado"
+                        />
+                      </div>
+                      <div className="info-group">
+                        <label className="info-label">País</label>
+                        <div className="readonly-field">
+                          {user.address.country || "No seleccionado"}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="close-btn"
+                      onClick={() => setShowModal(false)}
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Paso 5 */}
+          {step === 5 && (
+            <div className="form-step">
+              <h2 className="step-title">Profesional y bancaria (1/3)</h2>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Universidad</label>
+                  <input
+                    value={user.university}
+                    onChange={(e) =>
+                      handleChange(["university"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Tipo de banco</label>
+                  <input
+                    value={user.bank.cardType}
+                    onChange={(e) =>
+                      handleChange(["bank", "cardType"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Número de banco</label>
+                  <input
+                    value={user.bank.cardNumber}
+                    onChange={(e) =>
+                      handleChange(["bank", "cardNumber"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Expiración del banco</label>
+                  <input
+                    value={user.bank.cardExpire}
+                    onChange={(e) =>
+                      handleChange(["bank", "cardExpire"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Banco (IBAN)</label>
+                  <input
+                    value={user.bank.iban}
+                    onChange={(e) =>
+                      handleChange(["bank", "iban"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Moneda del banco</label>
+                  <input
+                    value={user.bank.currency}
+                    onChange={(e) =>
+                      handleChange(["bank", "currency"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paso 6 */}
+          {step === 6 && (
+            <div className="form-step">
+              <h2 className="step-title">Profesional y bancaria (2/3)</h2>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Compañía</label>
+                  <input
+                    value={user.company.name}
+                    onChange={(e) =>
+                      handleChange(["company", "name"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Departamento</label>
+                  <input
+                    value={user.company.department}
+                    onChange={(e) =>
+                      handleChange(["company", "department"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Título</label>
+                  <input
+                    value={user.company.title}
+                    onChange={(e) =>
+                      handleChange(["company", "title"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Dirección Compañía</label>
+                  <input
+                    value={user.company.address.address}
+                    onChange={(e) =>
+                      handleChange(
+                        ["company", "address", "address"],
+                        e.target.value
+                      )
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Ciudad Compañía</label>
+                  <input
+                    value={user.company.address.city}
+                    onChange={(e) =>
+                      handleChange(
+                        ["company", "address", "city"],
+                        e.target.value
+                      )
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Estado Compañía</label>
+                  <input
+                    value={user.company.address.state}
+                    onChange={(e) =>
+                      handleChange(
+                        ["company", "address", "state"],
+                        e.target.value
+                      )
+                    }
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paso 7 */}
+          {step === 7 && (
+            <div className="form-step">
+              <h2 className="step-title">Profesional y bancaria (3/3)</h2>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Código Postal Compañía</label>
+                  <input
+                    value={user.company.address.postalCode}
+                    onChange={(e) =>
+                      handleChange(
+                        ["company", "address", "postalCode"],
+                        e.target.value
+                      )
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">País Compañía</label>
+                  <input
+                    value={user.company.address.country}
+                    onChange={(e) =>
+                      handleChange(
+                        ["company", "address", "country"],
+                        e.target.value
+                      )
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Latitud Compañía</label>
+                  <input
+                    value={user.company.address.coordinates.lat}
+                    type="number"
+                    step="0.00001"
+                    onChange={(e) =>
+                      handleChange(
+                        ["company", "address", "coordinates", "lat"],
+                        e.target.value
+                      )
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Longitud Compañía</label>
+                  <input
+                    value={user.company.address.coordinates.lng}
+                    type="number"
+                    step="0.00001"
+                    onChange={(e) =>
+                      handleChange(
+                        ["company", "address", "coordinates", "lng"],
+                        e.target.value
+                      )
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">EIN</label>
+                  <input
+                    value={user.ein}
+                    onChange={(e) =>
+                      handleChange(["ein"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">SSN</label>
+                  <input
+                    value={user.ssn}
+                    onChange={(e) =>
+                      handleChange(["ssn"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paso 8 */}
+          {step === 8 && (
+            <div className="form-step">
+              <h2 className="step-title">Seguridad y otros datos (1/2)</h2>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">User Agent</label>
+                  <input
+                    value={user.userAgent}
+                    onChange={(e) =>
+                      handleChange(["userAgent"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Cripto (moneda)</label>
+                  <input
+                    value={user.crypto.coin}
+                    onChange={(e) =>
+                      handleChange(["crypto", "coin"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Cripto (wallet)</label>
+                  <input
+                    value={user.crypto.wallet}
+                    onChange={(e) =>
+                      handleChange(["crypto", "wallet"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Cripto (network)</label>
+                  <input
+                    value={user.crypto.network}
+                    onChange={(e) =>
+                      handleChange(["crypto", "network"], e.target.value)
+                    }
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Rol</label>
+                  <input
+                    value={user.type}
+                    className="form-input"
+                    readOnly
+                  />
+                </div>
+                <div className="form-group checkbox-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={user.status === "inactive"}
+                      disabled
+                      readOnly
+                      className="checkbox-input"
+                    />
+                    <span className="checkbox-text">Deshabilitado</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Paso 9 */}
+          {step === 9 && (
+            <div className="confirmation-step">
+              <h2 className="step-title">Confirmar y guardar</h2>
+              <p className="confirmation-text">
+                Revisa tus datos y haz clic en Guardar para finalizar.
+              </p>
+            </div>
+          )}
+
+          <div className="wizard-nav">
+            <button
+              type="button"
+              onClick={prevStep}
+              disabled={step === 1}
+              className="nav-btn nav-btn-secondary"
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              onClick={nextStep}
+              disabled={step === totalSteps || !isStepValid}
+              className="nav-btn nav-btn-primary"
+            >
+              Siguiente
+            </button>
+            {step === totalSteps && (
+              <button
+                type="submit"
+                disabled={!isStepValid}
+                className="nav-btn nav-btn-success"
+              >
+                Guardar
+              </button>
             )}
           </div>
-        )}
-
-        {/* Paso 5 */}
-        {step === 5 && (
-          <div className="form-step">
-            <h2 className="step-title">Profesional y bancaria (1/3)</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Universidad</label>
-                <input
-                  value={user.university}
-                  onChange={(e) =>
-                    handleChange(["university"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Tipo de banco</label>
-                <input
-                  value={user.bank.cardType}
-                  onChange={(e) =>
-                    handleChange(["bank", "cardType"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Número de banco</label>
-                <input
-                  value={user.bank.cardNumber}
-                  onChange={(e) =>
-                    handleChange(["bank", "cardNumber"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Expiración del banco</label>
-                <input
-                  value={user.bank.cardExpire}
-                  onChange={(e) =>
-                    handleChange(["bank", "cardExpire"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Banco (IBAN)</label>
-                <input
-                  value={user.bank.iban}
-                  onChange={(e) =>
-                    handleChange(["bank", "iban"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Moneda del banco</label>
-                <input
-                  value={user.bank.currency}
-                  onChange={(e) =>
-                    handleChange(["bank", "currency"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Paso 6 */}
-        {step === 6 && (
-          <div className="form-step">
-            <h2 className="step-title">Profesional y bancaria (2/3)</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Compañía</label>
-                <input
-                  value={user.company.name}
-                  onChange={(e) =>
-                    handleChange(["company", "name"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Departamento</label>
-                <input
-                  value={user.company.department}
-                  onChange={(e) =>
-                    handleChange(["company", "department"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Título</label>
-                <input
-                  value={user.company.title}
-                  onChange={(e) =>
-                    handleChange(["company", "title"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Dirección Compañía</label>
-                <input
-                  value={user.company.address.address}
-                  onChange={(e) =>
-                    handleChange(
-                      ["company", "address", "address"],
-                      e.target.value
-                    )
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Ciudad Compañía</label>
-                <input
-                  value={user.company.address.city}
-                  onChange={(e) =>
-                    handleChange(
-                      ["company", "address", "city"],
-                      e.target.value
-                    )
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Estado Compañía</label>
-                <input
-                  value={user.company.address.state}
-                  onChange={(e) =>
-                    handleChange(
-                      ["company", "address", "state"],
-                      e.target.value
-                    )
-                  }
-                  className="form-input"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Paso 7 */}
-        {step === 7 && (
-          <div className="form-step">
-            <h2 className="step-title">Profesional y bancaria (3/3)</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Código Postal Compañía</label>
-                <input
-                  value={user.company.address.postalCode}
-                  onChange={(e) =>
-                    handleChange(
-                      ["company", "address", "postalCode"],
-                      e.target.value
-                    )
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">País Compañía</label>
-                <input
-                  value={user.company.address.country}
-                  onChange={(e) =>
-                    handleChange(
-                      ["company", "address", "country"],
-                      e.target.value
-                    )
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Latitud Compañía</label>
-                <input
-                  value={user.company.address.coordinates.lat}
-                  type="number"
-                  step="0.00001"
-                  onChange={(e) =>
-                    handleChange(
-                      ["company", "address", "coordinates", "lat"],
-                      e.target.value
-                    )
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Longitud Compañía</label>
-                <input
-                  value={user.company.address.coordinates.lng}
-                  type="number"
-                  step="0.00001"
-                  onChange={(e) =>
-                    handleChange(
-                      ["company", "address", "coordinates", "lng"],
-                      e.target.value
-                    )
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">EIN</label>
-                <input
-                  value={user.ein}
-                  onChange={(e) =>
-                    handleChange(["ein"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">SSN</label>
-                <input
-                  value={user.ssn}
-                  onChange={(e) =>
-                    handleChange(["ssn"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Paso 8 */}
-        {step === 8 && (
-          <div className="form-step">
-            <h2 className="step-title">Seguridad y otros datos (1/2)</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">User Agent</label>
-                <input
-                  value={user.userAgent}
-                  onChange={(e) =>
-                    handleChange(["userAgent"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Cripto (moneda)</label>
-                <input
-                  value={user.crypto.coin}
-                  onChange={(e) =>
-                    handleChange(["crypto", "coin"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Cripto (wallet)</label>
-                <input
-                  value={user.crypto.wallet}
-                  onChange={(e) =>
-                    handleChange(["crypto", "wallet"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Cripto (network)</label>
-                <input
-                  value={user.crypto.network}
-                  onChange={(e) =>
-                    handleChange(["crypto", "network"], e.target.value)
-                  }
-                  className="form-input"
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Rol</label>
-                <input
-                  value={user.type}
-                  className="form-input"
-                  readOnly
-                />
-              </div>
-              <div className="form-group checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={user.status === "inactive"}
-                    disabled
-                    readOnly
-                    className="checkbox-input"
-                  />
-                  <span className="checkbox-text">Deshabilitado</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Paso 9 */}
-        {step === 9 && (
-          <div className="confirmation-step">
-            <h2 className="step-title">Confirmar y guardar</h2>
-            <p className="confirmation-text">
-              Revisa tus datos y haz clic en Guardar para finalizar.
-            </p>
-          </div>
-        )}
-
-        <div className="wizard-nav">
-          <button
-            type="button"
-            onClick={prevStep}
-            disabled={step === 1}
-            className="nav-btn nav-btn-secondary"
-          >
-            Anterior
-          </button>
-          <button
-            type="button"
-            onClick={nextStep}
-            disabled={step === totalSteps || !isStepValid}
-            className="nav-btn nav-btn-primary"
-          >
-            Siguiente
-          </button>
-          {step === totalSteps && (
-            <button
-              type="submit"
-              disabled={!isStepValid}
-              className="nav-btn nav-btn-success"
-            >
-              Guardar
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 };
 

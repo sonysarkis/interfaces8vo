@@ -12,8 +12,9 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import Swal from 'sweetalert2';
 // Asegúrate de que la ruta de la imagen sea correcta
-import logo from './assets/image.png'; 
+import logo from './assets/image.png';
 import * as XLSX from 'xlsx';
+import Tangram from '../tangram/tangram.tsx';
 
 // @ts-ignore
 pdfMake.vfs = pdfFonts.vfs;
@@ -223,6 +224,27 @@ const UserList = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const tableRef = useRef(null);
   const navigate = useNavigate();
+  const [showLoader, setShowLoader] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    const loaderSetting = localStorage.getItem('showTangramLoader');
+    if (loaderSetting === null || loaderSetting === 'true') {
+      setShowLoader(true);
+    } else {
+      setShowLoader(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showLoader) {
+      const timer = setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(() => setShowLoader(false), 1000);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showLoader]);
 
   const getBase64Image = useCallback((imgUrl, callback) => {
     const img = new Image();
@@ -418,21 +440,21 @@ const UserList = () => {
 
     // Lógica de DataTables
     if ($.fn.dataTable) {
-        const table = $(tableRef.current).DataTable({
-            dom: 'Bfrtip',
-            buttons: [
-                { extend: 'excelHtml5', text: 'Exportar a Excel', title: 'Usuarios' },
-                { extend: 'pdfHtml5', text: 'Exportar a PDF', title: 'Usuarios', orientation: 'landscape', pageSize: 'A4' }
-            ],
-            language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
-            retrieve: true,
-        });
+      const table = $(tableRef.current).DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+          { extend: 'excelHtml5', text: 'Exportar a Excel', title: 'Usuarios' },
+          { extend: 'pdfHtml5', text: 'Exportar a PDF', title: 'Usuarios', orientation: 'landscape', pageSize: 'A4' }
+        ],
+        language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+        retrieve: true,
+      });
 
-        return () => {
-            if ($.fn.dataTable.isDataTable('#userTable')) {
-                table.destroy();
-            }
-        };
+      return () => {
+        if ($.fn.dataTable.isDataTable('#userTable')) {
+          table.destroy();
+        }
+      };
     }
   }, []);
 
@@ -447,124 +469,131 @@ const UserList = () => {
   }, []);
 
   return (
-    <div className="container">
-      <h1>Listado de Usuarios</h1>
-      <table id="userTable" ref={tableRef} className="display">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} onClick={() => goToUser(user.id)} style={{ cursor: 'pointer' }}>
-              <td>{user.id}</td>
-              <td>{user.firstName}</td>
-              <td>{user.lastName}</td>
-              <td>{user.email}</td>
-              <td>{user.role}</td>
-              <td>
-                <button onClick={(e) => { e.stopPropagation(); showDetails(user); }}>Ver más</button>
-                {user.disabled ? (
-                  <button onClick={(e) => { e.stopPropagation(); toggleUserStatus(user.id); }}>Habilitar</button>
-                ) : (
-                  <button onClick={(e) => { e.stopPropagation(); toggleUserStatus(user.id); }}>Deshabilitar</button>
-                )}
-                <button onClick={(e) => { e.stopPropagation(); downloadUserPDF(user); }}>Reporte en PDF</button>
-                <button onClick={(e) => { e.stopPropagation(); downloadUserExcel(user); }}>Reporte en EXCEL</button>
-              </td>
+    <>
+      {showLoader && (
+        <div className={`tangram-loader${fadeOut ? ' fade-out' : ''}`}>
+          <Tangram />
+        </div>
+      )}
+      <div className="container">
+        <h1>Listado de Usuarios</h1>
+        <table id="userTable" ref={tableRef} className="display">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Apellido</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id} onClick={() => goToUser(user.id)} style={{ cursor: 'pointer' }}>
+                <td>{user.id}</td>
+                <td>{user.firstName}</td>
+                <td>{user.lastName}</td>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+                <td>
+                  <button onClick={(e) => { e.stopPropagation(); showDetails(user); }}>Ver más</button>
+                  {user.disabled ? (
+                    <button onClick={(e) => { e.stopPropagation(); toggleUserStatus(user.id); }}>Habilitar</button>
+                  ) : (
+                    <button onClick={(e) => { e.stopPropagation(); toggleUserStatus(user.id); }}>Deshabilitar</button>
+                  )}
+                  <button onClick={(e) => { e.stopPropagation(); downloadUserPDF(user); }}>Reporte en PDF</button>
+                  <button onClick={(e) => { e.stopPropagation(); downloadUserExcel(user); }}>Reporte en EXCEL</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      {selectedUser && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="close-btn" onClick={closeModal}>&times;</button>
-            <h2>Detalles del Usuario</h2>
-            <div className="modal-scroll">
-              <div className="user-section">
-                <h3>Datos Personales</h3>
-                <ul>
-                  <li><b>ID:</b> {selectedUser.id}</li>
-                  <li><b>Nombre:</b> {selectedUser.firstName}</li>
-                  <li><b>Apellido:</b> {selectedUser.lastName}</li>
-                  <li><b>Segundo Apellido:</b> {selectedUser.maidenName}</li>
-                  <li><b>Edad:</b> {selectedUser.age}</li>
-                  <li><b>Género:</b> {selectedUser.gender}</li>
-                  <li><b>Email:</b> {selectedUser.email}</li>
-                  <li><b>Teléfono:</b> {selectedUser.phone}</li>
-                  <li><b>Username:</b> {selectedUser.username}</li>
-                  <li><b>Password:</b> {selectedUser.password}</li>
-                  <li><b>Fecha de nacimiento:</b> {selectedUser.birthDate}</li>
-                  <li><b>Grupo sanguíneo:</b> {selectedUser.bloodGroup}</li>
-                  <li><b>Altura:</b> {selectedUser.height}</li>
-                  <li><b>Peso:</b> {selectedUser.weight}</li>
-                  <li><b>Color de ojos:</b> {selectedUser.eyeColor}</li>
-                  <li><b>Pelo:</b> {selectedUser.hair.color} ({selectedUser.hair.type})</li>
-                  <li><b>IP:</b> {selectedUser.ip}</li>
-                  <li><b>Imagen:</b> <img src={selectedUser.image} alt="Foto" width="60" style={{ verticalAlign: 'middle', borderRadius: '50%' }} /></li>
-                </ul>
-              </div>
-              <div className="user-section">
-                <h3>Dirección</h3>
-                <ul>
-                  <li><b>Dirección:</b> {selectedUser.address.address}</li>
-                  <li><b>Ciudad:</b> {selectedUser.address.city}</li>
-                  <li><b>Estado:</b> {selectedUser.address.state} ({selectedUser.address.stateCode})</li>
-                  <li><b>País:</b> {selectedUser.address.country}</li>
-                  <li><b>Código Postal:</b> {selectedUser.address.postalCode}</li>
-                  <li><b>Coordenadas:</b> Lat: {selectedUser.address.coordinates.lat}, Lng: {selectedUser.address.coordinates.lng}</li>
-                </ul>
-              </div>
-              <div className="user-section">
-                <h3>Banco</h3>
-                <ul>
-                  <li><b>Tipo de tarjeta:</b> {selectedUser.bank.cardType}</li>
-                  <li><b>Número de tarjeta:</b> {selectedUser.bank.cardNumber}</li>
-                  <li><b>Expiración:</b> {selectedUser.bank.cardExpire}</li>
-                  <li><b>IBAN:</b> {selectedUser.bank.iban}</li>
-                  <li><b>Moneda:</b> {selectedUser.bank.currency}</li>
-                </ul>
-              </div>
-              <div className="user-section">
-                <h3>Compañía</h3>
-                <ul>
-                  <li><b>Nombre:</b> {selectedUser.company.name}</li>
-                  <li><b>Departamento:</b> {selectedUser.company.department}</li>
-                  <li><b>Título:</b> {selectedUser.company.title}</li>
-                  <li><b>Dirección:</b> {selectedUser.company.address.address}</li>
-                  <li><b>Ciudad:</b> {selectedUser.company.address.city}</li>
-                  <li><b>Estado:</b> {selectedUser.company.address.state} ({selectedUser.company.address.stateCode})</li>
-                  <li><b>País:</b> {selectedUser.company.address.country}</li>
-                  <li><b>Código Postal:</b> {selectedUser.company.address.postalCode}</li>
-                  <li><b>Coordenadas:</b> Lat: {selectedUser.company.address.coordinates.lat}, Lng: {selectedUser.company.address.coordinates.lng}</li>
-                </ul>
-              </div>
-              <div className="user-section">
-                <h3>Otros Datos</h3>
-                <ul>
-                  <li><b>MAC:</b> {selectedUser.macAddress}</li>
-                  <li><b>Universidad:</b> {selectedUser.university}</li>
-                  <li><b>EIN:</b> {selectedUser.ein}</li>
-                  <li><b>SSN:</b> {selectedUser.ssn}</li>
-                  <li><b>User Agent:</b> {selectedUser.userAgent}</li>
-                  <li><b>Cripto:</b> {selectedUser.crypto.coin} ({selectedUser.crypto.network}) - Wallet: {selectedUser.crypto.wallet}</li>
-                  <li><b>Rol:</b> {selectedUser.role}</li>
-                  <li><b>Estado:</b> <span className={selectedUser.disabled ? 'disabled' : 'enabled'}>{selectedUser.disabled ? 'Deshabilitado' : 'Activo'}</span></li>
-                </ul>
+        {selectedUser && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <button className="close-btn" onClick={closeModal}>&times;</button>
+              <h2>Detalles del Usuario</h2>
+              <div className="modal-scroll">
+                <div className="user-section">
+                  <h3>Datos Personales</h3>
+                  <ul>
+                    <li><b>ID:</b> {selectedUser.id}</li>
+                    <li><b>Nombre:</b> {selectedUser.firstName}</li>
+                    <li><b>Apellido:</b> {selectedUser.lastName}</li>
+                    <li><b>Segundo Apellido:</b> {selectedUser.maidenName}</li>
+                    <li><b>Edad:</b> {selectedUser.age}</li>
+                    <li><b>Género:</b> {selectedUser.gender}</li>
+                    <li><b>Email:</b> {selectedUser.email}</li>
+                    <li><b>Teléfono:</b> {selectedUser.phone}</li>
+                    <li><b>Username:</b> {selectedUser.username}</li>
+                    <li><b>Password:</b> {selectedUser.password}</li>
+                    <li><b>Fecha de nacimiento:</b> {selectedUser.birthDate}</li>
+                    <li><b>Grupo sanguíneo:</b> {selectedUser.bloodGroup}</li>
+                    <li><b>Altura:</b> {selectedUser.height}</li>
+                    <li><b>Peso:</b> {selectedUser.weight}</li>
+                    <li><b>Color de ojos:</b> {selectedUser.eyeColor}</li>
+                    <li><b>Pelo:</b> {selectedUser.hair.color} ({selectedUser.hair.type})</li>
+                    <li><b>IP:</b> {selectedUser.ip}</li>
+                    <li><b>Imagen:</b> <img src={selectedUser.image} alt="Foto" width="60" style={{ verticalAlign: 'middle', borderRadius: '50%' }} /></li>
+                  </ul>
+                </div>
+                <div className="user-section">
+                  <h3>Dirección</h3>
+                  <ul>
+                    <li><b>Dirección:</b> {selectedUser.address.address}</li>
+                    <li><b>Ciudad:</b> {selectedUser.address.city}</li>
+                    <li><b>Estado:</b> {selectedUser.address.state} ({selectedUser.address.stateCode})</li>
+                    <li><b>País:</b> {selectedUser.address.country}</li>
+                    <li><b>Código Postal:</b> {selectedUser.address.postalCode}</li>
+                    <li><b>Coordenadas:</b> Lat: {selectedUser.address.coordinates.lat}, Lng: {selectedUser.address.coordinates.lng}</li>
+                  </ul>
+                </div>
+                <div className="user-section">
+                  <h3>Banco</h3>
+                  <ul>
+                    <li><b>Tipo de tarjeta:</b> {selectedUser.bank.cardType}</li>
+                    <li><b>Número de tarjeta:</b> {selectedUser.bank.cardNumber}</li>
+                    <li><b>Expiración:</b> {selectedUser.bank.cardExpire}</li>
+                    <li><b>IBAN:</b> {selectedUser.bank.iban}</li>
+                    <li><b>Moneda:</b> {selectedUser.bank.currency}</li>
+                  </ul>
+                </div>
+                <div className="user-section">
+                  <h3>Compañía</h3>
+                  <ul>
+                    <li><b>Nombre:</b> {selectedUser.company.name}</li>
+                    <li><b>Departamento:</b> {selectedUser.company.department}</li>
+                    <li><b>Título:</b> {selectedUser.company.title}</li>
+                    <li><b>Dirección:</b> {selectedUser.company.address.address}</li>
+                    <li><b>Ciudad:</b> {selectedUser.company.address.city}</li>
+                    <li><b>Estado:</b> {selectedUser.company.address.state} ({selectedUser.company.address.stateCode})</li>
+                    <li><b>País:</b> {selectedUser.company.address.country}</li>
+                    <li><b>Código Postal:</b> {selectedUser.company.address.postalCode}</li>
+                    <li><b>Coordenadas:</b> Lat: {selectedUser.company.address.coordinates.lat}, Lng: {selectedUser.company.address.coordinates.lng}</li>
+                  </ul>
+                </div>
+                <div className="user-section">
+                  <h3>Otros Datos</h3>
+                  <ul>
+                    <li><b>MAC:</b> {selectedUser.macAddress}</li>
+                    <li><b>Universidad:</b> {selectedUser.university}</li>
+                    <li><b>EIN:</b> {selectedUser.ein}</li>
+                    <li><b>SSN:</b> {selectedUser.ssn}</li>
+                    <li><b>User Agent:</b> {selectedUser.userAgent}</li>
+                    <li><b>Cripto:</b> {selectedUser.crypto.coin} ({selectedUser.crypto.network}) - Wallet: {selectedUser.crypto.wallet}</li>
+                    <li><b>Rol:</b> {selectedUser.role}</li>
+                    <li><b>Estado:</b> <span className={selectedUser.disabled ? 'disabled' : 'enabled'}>{selectedUser.disabled ? 'Deshabilitado' : 'Activo'}</span></li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 

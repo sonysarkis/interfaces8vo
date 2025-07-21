@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import Tangram from '../tangram/tangram.tsx';
 
 interface SavedStyle {
   name: string;
@@ -50,6 +51,27 @@ const Personalization: React.FC = () => {
   const [colors, setColors] = useState({ ...defaultColors });
   const [fonts, setFonts] = useState({ ...defaultFonts });
   const fontFileInput = useRef<HTMLInputElement | null>(null);
+  const [showLoader, setShowLoader] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    const loaderSetting = localStorage.getItem('showTangramLoader');
+    if (loaderSetting === null || loaderSetting === 'true') {
+      setShowLoader(true);
+    } else {
+      setShowLoader(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showLoader) {
+      const timer = setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(() => setShowLoader(false), 1000);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showLoader]);
 
   useEffect(() => {
     loadSavedStyles();
@@ -400,357 +422,364 @@ const Personalization: React.FC = () => {
   } as React.CSSProperties;
 
   return (
-    <div className="personalization-root">
-      {/* Encabezado y pestañas */}
-      <div className="header-tabs">
-        <h1>Personalización</h1>
-        <div className="tabs">
-          <button
-            onClick={() => setActiveTab('colors')}
-            className={`tab-btn${activeTab === 'colors' ? ' active' : ''}`}
-          >
-            Colores
-          </button>
-          <button
-            onClick={() => setActiveTab('typography')}
-            className={`tab-btn${activeTab === 'typography' ? ' active' : ''}`}
-          >
-            Tipografía
-          </button>
-          <button
-            onClick={() => setActiveTab('saved')}
-            className={`tab-btn${activeTab === 'saved' ? ' active' : ''}`}
-          >
-            Estilos Guardados
-          </button>
+    <>
+      {showLoader && (
+        <div className={`tangram-loader${fadeOut ? ' fade-out' : ''}`}>
+          <Tangram />
         </div>
-      </div>
+      )}
+      <div className="personalization-root">
+        {/* Encabezado y pestañas */}
+        <div className="header-tabs">
+          <h1>Personalización</h1>
+          <div className="tabs">
+            <button
+              onClick={() => setActiveTab('colors')}
+              className={`tab-btn${activeTab === 'colors' ? ' active' : ''}`}
+            >
+              Colores
+            </button>
+            <button
+              onClick={() => setActiveTab('typography')}
+              className={`tab-btn${activeTab === 'typography' ? ' active' : ''}`}
+            >
+              Tipografía
+            </button>
+            <button
+              onClick={() => setActiveTab('saved')}
+              className={`tab-btn${activeTab === 'saved' ? ' active' : ''}`}
+            >
+              Estilos Guardados
+            </button>
+          </div>
+        </div>
 
-      <div className="panel-container">
-        {/* Panel de controles */}
-        <div className="overflow-y-auto pr-2 custom-scrollbar">
-          {/* Colores */}
-          {activeTab === 'colors' && (
-            <div className="card shadow-lg">
-              <div className="card-header">
-                <h2 className="card-title">Controles de Color</h2>
+        <div className="panel-container">
+          {/* Panel de controles */}
+          <div className="overflow-y-auto pr-2 custom-scrollbar">
+            {/* Colores */}
+            {activeTab === 'colors' && (
+              <div className="card shadow-lg">
+                <div className="card-header">
+                  <h2 className="card-title">Controles de Color</h2>
+                </div>
+                <div className="card-body space-y-4">
+                  {Object.entries(colorLabels).map(([key, label]) => (
+                    <div className="control-group" key={key}>
+                      <label>{label}</label>
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="color"
+                          value={colors[key as keyof typeof colors]}
+                          onChange={e => setColors({ ...colors, [key]: e.target.value })}
+                        />
+                        <span className="text-text">{colors[key as keyof typeof colors]}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="card-body space-y-4">
-                {Object.entries(colorLabels).map(([key, label]) => (
-                  <div className="control-group" key={key}>
-                    <label>{label}</label>
+            )}
+
+            {/* Tipografía */}
+            {activeTab === 'typography' && (
+              <div className="card shadow-lg">
+                <div className="card-header">
+                  <h2 className="card-title">Controles de Tipografía</h2>
+                </div>
+                {/* Subir Tipografía */}
+                <div className="card-body border-t border-text">
+                  <h3 className="text-lg font-medium text-primary mb-3">Subir Tipografía</h3>
+                  <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       <input
-                        type="color"
-                        value={colors[key as keyof typeof colors]}
-                        onChange={e => setColors({ ...colors, [key]: e.target.value })}
+                        ref={fontFileInput}
+                        type="file"
+                        accept=".ttf"
+                        onChange={onFontFileSelected}
+                        className="hidden"
                       />
-                      <span className="text-text">{colors[key as keyof typeof colors]}</span>
+                      <button
+                        onClick={() => fontFileInput.current && fontFileInput.current.click()}
+                        className="bg-primary text-background px-4 py-2 rounded hover:bg-opacity-80"
+                      >
+                        Seleccionar Archivo TTF
+                      </button>
+                      {selectedFontFile && (
+                        <span className="text-sm text-text">{selectedFontFile.name}</span>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tipografía */}
-          {activeTab === 'typography' && (
-            <div className="card shadow-lg">
-              <div className="card-header">
-                <h2 className="card-title">Controles de Tipografía</h2>
-              </div>
-              {/* Subir Tipografía */}
-              <div className="card-body border-t border-text">
-                <h3 className="text-lg font-medium text-primary mb-3">Subir Tipografía</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <input
-                      ref={fontFileInput}
-                      type="file"
-                      accept=".ttf"
-                      onChange={onFontFileSelected}
-                      className="hidden"
-                    />
-                    <button
-                      onClick={() => fontFileInput.current && fontFileInput.current.click()}
-                      className="bg-primary text-background px-4 py-2 rounded hover:bg-opacity-80"
-                    >
-                      Seleccionar Archivo TTF
-                    </button>
                     {selectedFontFile && (
-                      <span className="text-sm text-text">{selectedFontFile.name}</span>
+                      <div className="flex gap-2">
+                        <button onClick={uploadFont} className="bg-secondary text-background px-4 py-2 rounded hover:bg-opacity-80">
+                          Subir Tipografía
+                        </button>
+                        <button onClick={cancelFontUpload} className="bg-accent text-background px-4 py-2 rounded hover:bg-opacity-80">
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
+                    {uploadedFonts.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium text-primary mb-2">Tipografías Subidas:</h4>
+                        <div className="space-y-2">
+                          {uploadedFonts.map(font => (
+                            <div key={font.name} className="flex items-center justify-between p-2 bg-background rounded">
+                              <span className="text-sm text-text">{font.name}</span>
+                              <button onClick={() => deleteFont(font)} className="text-accent hover:text-opacity-80">
+                                Eliminar
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
-                  {selectedFontFile && (
-                    <div className="flex gap-2">
-                      <button onClick={uploadFont} className="bg-secondary text-background px-4 py-2 rounded hover:bg-opacity-80">
-                        Subir Tipografía
-                      </button>
-                      <button onClick={cancelFontUpload} className="bg-accent text-background px-4 py-2 rounded hover:bg-opacity-80">
-                        Cancelar
-                      </button>
-                    </div>
-                  )}
-                  {uploadedFonts.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="text-sm font-medium text-primary mb-2">Tipografías Subidas:</h4>
-                      <div className="space-y-2">
-                        {uploadedFonts.map(font => (
-                          <div key={font.name} className="flex items-center justify-between p-2 bg-background rounded">
-                            <span className="text-sm text-text">{font.name}</span>
-                            <button onClick={() => deleteFont(font)} className="text-accent hover:text-opacity-80">
-                              Eliminar
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
-              </div>
-              {/* Título */}
-              <div className="card-body border-t border-text">
-                <h3 className="text-lg font-medium text-primary mb-2">Título</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label>Fuente</label>
-                    <select
-                      value={fonts.title.family}
-                      onChange={e => setFonts({ ...fonts, title: { ...fonts.title, family: e.target.value } })}
-                    >
-                      <option value="Arial, sans-serif">Arial</option>
-                      <option value="'Times New Roman', serif">Times New Roman</option>
-                      <option value="'Courier New', monospace">Courier New</option>
-                      <option value="Georgia, serif">Georgia</option>
-                      <option value="Verdana, sans-serif">Verdana</option>
-                      {uploadedFonts.map(font => (
-                        <option key={font.name} value={font.name}>{font.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label>Tamaño (px)</label>
-                    <div className="flex items-center gap-4">
-                      <input
-                        type="range"
-                        min={24}
-                        max={48}
-                        step={1}
-                        value={fonts.title.size}
-                        onChange={e => setFonts({ ...fonts, title: { ...fonts.title, size: Number(e.target.value) } })}
-                        className="flex-1"
-                      />
-                      <span className="text-sm text-text w-16">{fonts.title.size}px</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Subtítulo */}
-              <div className="card-body border-t border-text">
-                <h3 className="text-lg font-medium text-primary mb-2">Subtítulo</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label>Fuente</label>
-                    <select
-                      value={fonts.subtitle.family}
-                      onChange={e => setFonts({ ...fonts, subtitle: { ...fonts.subtitle, family: e.target.value } })}
-                    >
-                      <option value="Arial, sans-serif">Arial</option>
-                      <option value="'Times New Roman', serif">Times New Roman</option>
-                      <option value="'Courier New', monospace">Courier New</option>
-                      <option value="Georgia, serif">Georgia</option>
-                      <option value="Verdana, sans-serif">Verdana</option>
-                      {uploadedFonts.map(font => (
-                        <option key={font.name} value={font.name}>{font.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label>Tamaño (px)</label>
-                    <div className="flex items-center gap-4">
-                      <input
-                        type="range"
-                        min={18}
-                        max={32}
-                        step={1}
-                        value={fonts.subtitle.size}
-                        onChange={e => setFonts({ ...fonts, subtitle: { ...fonts.subtitle, size: Number(e.target.value) } })}
-                        className="flex-1"
-                      />
-                      <span className="text-sm text-text w-16">{fonts.subtitle.size}px</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Texto */}
-              <div className="card-body border-t border-text">
-                <h3 className="text-lg font-medium text-primary mb-2">Texto</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label>Fuente</label>
-                    <select
-                      value={fonts.body.family}
-                      onChange={e => setFonts({ ...fonts, body: { ...fonts.body, family: e.target.value } })}
-                    >
-                      <option value="Arial, sans-serif">Arial</option>
-                      <option value="'Times New Roman', serif">Times New Roman</option>
-                      <option value="'Courier New', monospace">Courier New</option>
-                      <option value="Georgia, serif">Georgia</option>
-                      <option value="Verdana, sans-serif">Verdana</option>
-                      {uploadedFonts.map(font => (
-                        <option key={font.name} value={font.name}>{font.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label>Tamaño (px)</label>
-                    <div className="flex items-center gap-4">
-                      <input
-                        type="range"
-                        min={12}
-                        max={20}
-                        step={1}
-                        value={fonts.body.size}
-                        onChange={e => setFonts({ ...fonts, body: { ...fonts.body, size: Number(e.target.value) } })}
-                        className="flex-1"
-                      />
-                      <span className="text-sm text-text w-16">{fonts.body.size}px</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Estilos Guardados */}
-          {activeTab === 'saved' && (
-            <div className="card shadow-lg">
-              <div className="card-header">
-                <h2 className="card-title">Estilos Guardados</h2>
-              </div>
-              <div className="card-body space-y-4">
-                {/* Formulario para guardar estilo */}
-                <div className="border border-text rounded-lg p-4">
-                  <h3 className="text-lg font-medium text-primary mb-3">Guardar Estilo Actual</h3>
+                {/* Título */}
+                <div className="card-body border-t border-text">
+                  <h3 className="text-lg font-medium text-primary mb-2">Título</h3>
                   <div className="space-y-3">
                     <div>
-                      <label>Nombre del Estilo</label>
-                      <input
-                        type="text"
-                        value={newStyleName}
-                        onChange={e => setNewStyleName(e.target.value)}
-                        placeholder="Ej: Tema Oscuro"
-                      />
+                      <label>Fuente</label>
+                      <select
+                        value={fonts.title.family}
+                        onChange={e => setFonts({ ...fonts, title: { ...fonts.title, family: e.target.value } })}
+                      >
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                        <option value="'Courier New', monospace">Courier New</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                        {uploadedFonts.map(font => (
+                          <option key={font.name} value={font.name}>{font.name}</option>
+                        ))}
+                      </select>
                     </div>
-                    <button onClick={saveStyle} className="w-full">
-                      Guardar Estilo
-                    </button>
+                    <div>
+                      <label>Tamaño (px)</label>
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="range"
+                          min={24}
+                          max={48}
+                          step={1}
+                          value={fonts.title.size}
+                          onChange={e => setFonts({ ...fonts, title: { ...fonts.title, size: Number(e.target.value) } })}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-text w-16">{fonts.title.size}px</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                {/* Lista de estilos guardados */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-medium text-primary">Estilos Guardados</h3>
-                  {savedStyles.length === 0 ? (
-                    <div className="text-text text-center py-4">No hay estilos guardados</div>
-                  ) : (
-                    savedStyles.map(style => (
-                      <div key={style.name} className="border border-text rounded-lg p-4 space-y-3">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-medium text-primary">{style.name}</h4>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => applyStyle(style)}
-                              className="px-3 py-1 bg-secondary text-background rounded hover:bg-opacity-80 text-sm"
-                            >
-                              Aplicar
-                            </button>
-                            <button
-                              onClick={() => deleteStyle(style)}
-                              className="px-3 py-1 bg-accent text-background rounded hover:bg-opacity-80 text-sm"
-                            >
-                              Eliminar
-                            </button>
+                {/* Subtítulo */}
+                <div className="card-body border-t border-text">
+                  <h3 className="text-lg font-medium text-primary mb-2">Subtítulo</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label>Fuente</label>
+                      <select
+                        value={fonts.subtitle.family}
+                        onChange={e => setFonts({ ...fonts, subtitle: { ...fonts.subtitle, family: e.target.value } })}
+                      >
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                        <option value="'Courier New', monospace">Courier New</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                        {uploadedFonts.map(font => (
+                          <option key={font.name} value={font.name}>{font.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label>Tamaño (px)</label>
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="range"
+                          min={18}
+                          max={32}
+                          step={1}
+                          value={fonts.subtitle.size}
+                          onChange={e => setFonts({ ...fonts, subtitle: { ...fonts.subtitle, size: Number(e.target.value) } })}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-text w-16">{fonts.subtitle.size}px</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Texto */}
+                <div className="card-body border-t border-text">
+                  <h3 className="text-lg font-medium text-primary mb-2">Texto</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label>Fuente</label>
+                      <select
+                        value={fonts.body.family}
+                        onChange={e => setFonts({ ...fonts, body: { ...fonts.body, family: e.target.value } })}
+                      >
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                        <option value="'Courier New', monospace">Courier New</option>
+                        <option value="Georgia, serif">Georgia</option>
+                        <option value="Verdana, sans-serif">Verdana</option>
+                        {uploadedFonts.map(font => (
+                          <option key={font.name} value={font.name}>{font.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label>Tamaño (px)</label>
+                      <div className="flex items-center gap-4">
+                        <input
+                          type="range"
+                          min={12}
+                          max={20}
+                          step={1}
+                          value={fonts.body.size}
+                          onChange={e => setFonts({ ...fonts, body: { ...fonts.body, size: Number(e.target.value) } })}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-text w-16">{fonts.body.size}px</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Estilos Guardados */}
+            {activeTab === 'saved' && (
+              <div className="card shadow-lg">
+                <div className="card-header">
+                  <h2 className="card-title">Estilos Guardados</h2>
+                </div>
+                <div className="card-body space-y-4">
+                  {/* Formulario para guardar estilo */}
+                  <div className="border border-text rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-primary mb-3">Guardar Estilo Actual</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label>Nombre del Estilo</label>
+                        <input
+                          type="text"
+                          value={newStyleName}
+                          onChange={e => setNewStyleName(e.target.value)}
+                          placeholder="Ej: Tema Oscuro"
+                        />
+                      </div>
+                      <button onClick={saveStyle} className="w-full">
+                        Guardar Estilo
+                      </button>
+                    </div>
+                  </div>
+                  {/* Lista de estilos guardados */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-medium text-primary">Estilos Guardados</h3>
+                    {savedStyles.length === 0 ? (
+                      <div className="text-text text-center py-4">No hay estilos guardados</div>
+                    ) : (
+                      savedStyles.map(style => (
+                        <div key={style.name} className="border border-text rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-medium text-primary">{style.name}</h4>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => applyStyle(style)}
+                                className="px-3 py-1 bg-secondary text-background rounded hover:bg-opacity-80 text-sm"
+                              >
+                                Aplicar
+                              </button>
+                              <button
+                                onClick={() => deleteStyle(style)}
+                                className="px-3 py-1 bg-accent text-background rounded hover:bg-opacity-80 text-sm"
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-5 gap-2">
+                            <div className="h-8 rounded" style={{ backgroundColor: style.colors.primary }}></div>
+                            <div className="h-8 rounded" style={{ backgroundColor: style.colors.secondary }}></div>
+                            <div className="h-8 rounded" style={{ backgroundColor: style.colors.accent }}></div>
+                            <div className="h-8 rounded" style={{ backgroundColor: style.colors.background }}></div>
+                            <div className="h-8 rounded" style={{ backgroundColor: style.colors.text }}></div>
+                          </div>
+                          <div className="text-sm text-text">
+                            <div>Fuente Principal: {style.fonts.title.family}</div>
+                            <div>Tamaño Base: {style.fonts.body.size}px</div>
                           </div>
                         </div>
-                        <div className="grid grid-cols-5 gap-2">
-                          <div className="h-8 rounded" style={{ backgroundColor: style.colors.primary }}></div>
-                          <div className="h-8 rounded" style={{ backgroundColor: style.colors.secondary }}></div>
-                          <div className="h-8 rounded" style={{ backgroundColor: style.colors.accent }}></div>
-                          <div className="h-8 rounded" style={{ backgroundColor: style.colors.background }}></div>
-                          <div className="h-8 rounded" style={{ backgroundColor: style.colors.text }}></div>
-                        </div>
-                        <div className="text-sm text-text">
-                          <div>Fuente Principal: {style.fonts.title.family}</div>
-                          <div>Tamaño Base: {style.fonts.body.size}px</div>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        {/* Panel de vista previa */}
-        <div style={previewStyle} className="preview-content overflow-y-auto">
-          <div>
-            {/* Tipografía */}
-            <div className="mb-6">
-              <h3 style={{ color: colors.primary }} className="text-lg font-medium mb-3">Tipografía</h3>
-              <div className="space-y-4">
-                <div>
-                  <h1
-                    style={{
-                      fontFamily: fonts.title.family,
-                      fontSize: fonts.title.size + 'px',
-                      fontWeight: fonts.title.weight as any,
-                      color: colors.primary,
-                    }}
-                  >
-                    Título Principal
-                  </h1>
-                  <p style={{ color: colors.text }} className="text-sm mt-1">
-                    Fuente: {fonts.title.family} | Tamaño: {fonts.title.size}px | Peso: {fonts.title.weight}
-                  </p>
-                </div>
-                <div>
-                  <h2
-                    style={{
-                      fontFamily: fonts.subtitle.family,
-                      fontSize: fonts.subtitle.size + 'px',
-                      fontWeight: fonts.subtitle.weight as any,
-                      color: colors.primary,
-                    }}
-                  >
-                    Subtítulo
-                  </h2>
-                  <p style={{ color: colors.text }} className="text-sm mt-1">
-                    Fuente: {fonts.subtitle.family} | Tamaño: {fonts.subtitle.size}px | Peso: {fonts.subtitle.weight}
-                  </p>
-                </div>
-                <div>
-                  <p
-                    style={{
-                      fontFamily: fonts.body.family,
-                      fontSize: fonts.body.size + 'px',
-                      fontWeight: fonts.body.weight as any,
-                      color: colors.text,
-                    }}
-                  >
-                    Este es un párrafo de texto normal. Aquí puedes ver cómo se ve el texto con la fuente, tamaño y peso seleccionados.
-                  </p>
-                  <p style={{ color: colors.text }} className="text-sm mt-1">
-                    Fuente: {fonts.body.family} | Tamaño: {fonts.body.size}px | Peso: {fonts.body.weight}
-                  </p>
+          {/* Panel de vista previa */}
+          <div style={previewStyle} className="preview-content overflow-y-auto">
+            <div>
+              {/* Tipografía */}
+              <div className="mb-6">
+                <h3 style={{ color: colors.primary }} className="text-lg font-medium mb-3">Tipografía</h3>
+                <div className="space-y-4">
+                  <div>
+                    <h1
+                      style={{
+                        fontFamily: fonts.title.family,
+                        fontSize: fonts.title.size + 'px',
+                        fontWeight: fonts.title.weight as any,
+                        color: colors.primary,
+                      }}
+                    >
+                      Título Principal
+                    </h1>
+                    <p style={{ color: colors.text }} className="text-sm mt-1">
+                      Fuente: {fonts.title.family} | Tamaño: {fonts.title.size}px | Peso: {fonts.title.weight}
+                    </p>
+                  </div>
+                  <div>
+                    <h2
+                      style={{
+                        fontFamily: fonts.subtitle.family,
+                        fontSize: fonts.subtitle.size + 'px',
+                        fontWeight: fonts.subtitle.weight as any,
+                        color: colors.primary,
+                      }}
+                    >
+                      Subtítulo
+                    </h2>
+                    <p style={{ color: colors.text }} className="text-sm mt-1">
+                      Fuente: {fonts.subtitle.family} | Tamaño: {fonts.subtitle.size}px | Peso: {fonts.subtitle.weight}
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      style={{
+                        fontFamily: fonts.body.family,
+                        fontSize: fonts.body.size + 'px',
+                        fontWeight: fonts.body.weight as any,
+                        color: colors.text,
+                      }}
+                    >
+                      Este es un párrafo de texto normal. Aquí puedes ver cómo se ve el texto con la fuente, tamaño y peso seleccionados.
+                    </p>
+                    <p style={{ color: colors.text }} className="text-sm mt-1">
+                      Fuente: {fonts.body.family} | Tamaño: {fonts.body.size}px | Peso: {fonts.body.weight}
+                    </p>
+                  </div>
                 </div>
               </div>
+              {/* Aquí puedes agregar más previews de componentes si lo deseas */}
             </div>
-            {/* Aquí puedes agregar más previews de componentes si lo deseas */}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

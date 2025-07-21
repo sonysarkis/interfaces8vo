@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Tangram from '../tangram/tangram.tsx';
 
 // --- Definición de tipos ---
 type UserType = {
@@ -140,6 +141,27 @@ const UserDetail: React.FC = () => {
 
   const [user, setUser] = useState<UserType | null>(null);
   const [editableUser, setEditableUser] = useState<UserType | null>(null);
+  const [showLoader, setShowLoader] = useState(false);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    const loaderSetting = localStorage.getItem('showTangramLoader');
+    if (loaderSetting === null || loaderSetting === 'true') {
+      setShowLoader(true);
+    } else {
+      setShowLoader(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (showLoader) {
+      const timer = setTimeout(() => {
+        setFadeOut(true);
+        setTimeout(() => setShowLoader(false), 1000);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showLoader]);
 
   // --- Fetch de datos ---
   useEffect(() => {
@@ -196,8 +218,8 @@ const UserDetail: React.FC = () => {
         e.target.type === "number"
           ? Number(e.target.value)
           : e.target.type === "checkbox"
-          ? (e.target as HTMLInputElement).checked
-          : e.target.value;
+            ? (e.target as HTMLInputElement).checked
+            : e.target.value;
       return updated;
     });
   }
@@ -232,6 +254,11 @@ const UserDetail: React.FC = () => {
 
   return (
     <>
+      {showLoader && (
+        <div className={`tangram-loader${fadeOut ? ' fade-out' : ''}`}>
+          <Tangram />
+        </div>
+      )}
       <div className="container">
         <h1 className="page-title">Detalle de Usuario</h1>
         <div className="user-detail">
@@ -919,6 +946,22 @@ const css = `
   font-family: var(--font-body-family);
   font-size: var(--font-body-size);
   color: var(--color-text);
+}
+.tangram-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.5s ease-in-out;
+}
+.tangram-loader.fade-out {
+  opacity: 0;
 }
 @media (max-width: 768px) {
   .container {

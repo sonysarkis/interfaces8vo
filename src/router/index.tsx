@@ -8,6 +8,7 @@ const Personalization = lazy(() => import('../views/Personalization'));
 const UserList = lazy(() => import('../views/UserList'));
 const UserDetail = lazy(() => import('../views/UserDetail'));
 const UserProfile = lazy(() => import('../views/UserProfile'));
+const LoaderSwitch = lazy(() => import('../views/LoaderSwitch'));
 
 const RoutesList: React.FC = () => (
   <Routes>
@@ -18,6 +19,7 @@ const RoutesList: React.FC = () => (
     <Route path="/usuarios" element={<UserList />} />
     <Route path="/usuarios/:id" element={<UserDetail />} />
     <Route path="/perfil" element={<UserProfile />} />
+    <Route path="/loader-switch" element={<LoaderSwitch />} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
 );
