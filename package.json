@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.10.33",
     "datatables.net": "^2.3.2",
     "datatables.net-buttons": "^3.2.4",
     "datatables.net-buttons-dt": "^3.2.4",

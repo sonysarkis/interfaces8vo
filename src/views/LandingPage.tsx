@@ -5,6 +5,7 @@ import ServicesSection from '../components/ServicesSection';
 import Carousel from '../components/Carousel';
 import FormSection from '../components/FormSection';
 import Footer from '../components/Footer';
+import Tangram from '../tangram/tangram.tsx';
 
 const LandingPage: React.FC = () => {
   useEffect(() => {
@@ -64,6 +65,7 @@ const LandingPage: React.FC = () => {
         </section>
       </main>
       <Footer />
+      <Tangram />
     </>
   );
 };
