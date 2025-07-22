@@ -243,8 +243,8 @@ const UserDetail: React.FC = () => {
       <>
         <div className="container">
           <h1 className="page-title">Detalle de Usuario</h1>
-          <div className="not-found">
-            <p>Usuario no encontrado.</p>
+          <div>
+            <p className="not-found">Usuario no encontrado.</p>
           </div>
         </div>
         <style>{css}</style>

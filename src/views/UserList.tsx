@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import $ from 'jquery';
-import 'datatables.net-dt/css/jquery.dataTables.css';
-import 'datatables.net-buttons-dt/css/buttons.dataTables.css';
+// Estilos de DataTables ya están incluidos en el bloque CSS de abajo
 import dt from 'datatables.net-dt';
 import dtButtons from 'datatables.net-buttons-dt';
 import 'datatables.net-buttons/js/buttons.html5.js';
@@ -12,7 +11,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import Swal from 'sweetalert2';
 // Asegúrate de que la ruta de la imagen sea correcta
-import logo from './assets/image.png';
+import logo from '../assets/image.png';
 import * as XLSX from 'xlsx';
 import Tangram from '../tangram/tangram.tsx';
 
@@ -428,8 +427,15 @@ const UserList = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-          const data = await res.json();
-          setUsers(data.filter(u => u.id !== currentId).map(backendToUser));
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await res.json();
+            setUsers(data.filter(u => u.id !== currentId).map(backendToUser));
+          } else {
+            console.error("Respuesta no es JSON:", await res.text());
+          }
+        } else {
+          console.error("Respuesta no OK:", res.status, await res.text());
         }
       } catch (e) {
         console.error("Error fetching users:", e);
@@ -439,20 +445,20 @@ const UserList = () => {
     fetchUsers();
 
     // Lógica de DataTables
-    if ($.fn.dataTable) {
+    if ($.fn.dataTable && tableRef.current) {
       const table = $(tableRef.current).DataTable({
         dom: 'Bfrtip',
         buttons: [
           { extend: 'excelHtml5', text: 'Exportar a Excel', title: 'Usuarios' },
           { extend: 'pdfHtml5', text: 'Exportar a PDF', title: 'Usuarios', orientation: 'landscape', pageSize: 'A4' }
         ],
-        language: { url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
         retrieve: true,
       });
 
       return () => {
-        if ($.fn.dataTable.isDataTable('#userTable')) {
-          table.destroy();
+        if (tableRef.current && $.fn.dataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
         }
       };
     }
