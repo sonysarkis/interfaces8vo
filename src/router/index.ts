@@ -13,6 +13,11 @@ const router = createRouter({
       component: LandingPage
     },
     {
+      path: '/subir-imagen',
+      name: 'image-upload',
+      component: () => import('../views/ImageUpload.vue')
+    },
+    {
       path: '/login',
       name: 'login',
       component: Login
