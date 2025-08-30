@@ -1,0 +1,52 @@
+{
+  "name": "project2",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "migrate": "node migrate.js",
+    "start": "npm run build && node index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "datatables.net": "^2.3.2",
+    "datatables.net-buttons": "^3.2.3",
+    "datatables.net-buttons-dt": "^3.2.3",
+    "datatables.net-dt": "^2.3.2",
+    "dotenv": "^17.0.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "jszip": "^3.10.1",
+    "leaflet": "^1.9.4",
+    "multer": "^2.0.1",
+    "mysql2": "^3.14.1",
+    "node-fetch": "^3.3.2",
+    "pdfmake": "^0.2.20",
+    "sweetalert2": "^11.22.0",
+    "vue": "^3.5.13",
+    "xlsx": "^0.18.5",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.10",
+    "@types/node": "^24.0.3",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.5.1",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.29.0",
+    "eslint-plugin-vue": "^10.2.0",
+    "pinia": "^3.0.3",
+    "postcss": "^8.5.6",
+    "prettier": "^3.5.3",
+    "tailwindcss": "^4.1.10",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.4",
+    "vite-plugin-vue-devtools": "^7.7.2",
+    "vitest": "^3.2.4",
+    "vue-router": "^4.5.1"
+  }
+}
