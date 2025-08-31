@@ -42,6 +42,7 @@ import { ref, computed } from 'vue';
 import { Cropper } from 'vue-advanced-cropper';
 import 'vue-advanced-cropper/dist/style.css';
 import { useCarouselStore } from '@/store/carousel';
+import Swal from 'sweetalert2';
 
 
 const carouselStore = useCarouselStore();
@@ -83,6 +84,13 @@ function handleFiles(files) {
     reader.onload = (e) => {
       cropperImage.value = e.target.result;
       showCropper.value = true;
+      Swal.fire({
+        icon: 'info',
+        title: 'Recorta tu imagen',
+        text: 'Ajusta el recorte antes de añadirla al carrusel.',
+        timer: 1800,
+        showConfirmButton: false
+      });
     };
     reader.readAsDataURL(pendingFiles[0]);
   }
@@ -93,6 +101,13 @@ function confirmCrop() {
     const result = cropperRef.value.getResult();
     if (result && result.canvas) {
       carouselStore.addImage(result.canvas.toDataURL('image/png'));
+      Swal.fire({
+        icon: 'success',
+        title: '¡Imagen agregada!',
+        text: 'La imagen se añadió correctamente al carrusel.',
+        timer: 1800,
+        showConfirmButton: false
+      });
     }
   }
   // Si hay más archivos pendientes, recortar el siguiente
@@ -114,13 +129,40 @@ function cancelCrop() {
   showCropper.value = false;
   cropperImage.value = null;
   pendingFiles = [];
+  Swal.fire({
+    icon: 'info',
+    title: 'Cancelado',
+    text: 'El recorte de la imagen fue cancelado.',
+    timer: 1200,
+    showConfirmButton: false
+  });
 }
 
 function deleteImage(index) {
-  carouselStore.removeImage(index);
-  if (currentIndex.value > images.value.length - 1) {
-    currentIndex.value = Math.max(0, images.value.length - 1);
-  }
+  Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esta acción eliminará la imagen del carrusel.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      carouselStore.removeImage(index);
+      if (currentIndex.value > images.value.length - 1) {
+        currentIndex.value = Math.max(0, images.value.length - 1);
+      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Eliminada',
+        text: 'La imagen ha sido eliminada.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    }
+  });
 }
 
 function prev() {
