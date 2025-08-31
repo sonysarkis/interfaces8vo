@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useVideoCarouselStore } from '@/store/videoCarousel';
 
@@ -125,6 +125,46 @@ const formatSize = (size: number) => {
   if (size < 1024 * 1024) return (size / 1024).toFixed(1) + ' KB';
   return (size / (1024 * 1024)).toFixed(2) + ' MB';
 };
+
+// Sincronizar estilos de subtítulos personalizados
+function applySubtitleStyle(idx: number, color: string, fontSize: string) {
+  nextTick(() => {
+    const videoEls = document.querySelectorAll('.img-hover-group video');
+    const video = videoEls[idx];
+    if (video) {
+      const sheetId = `carousel-subtitle-style-${idx}`;
+      let styleEl = document.getElementById(sheetId);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = sheetId;
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = `
+        .carousel-slides .slide:nth-child(${idx + 1}) video::cue {
+          color: ${color} !important;
+          font-size: ${fontSize} !important;
+        }
+      `;
+    }
+  });
+}
+
+// Observar cambios en los videos del usuario para aplicar estilos
+watch(userVideos, (newVideos) => {
+  newVideos.forEach((video, idx) => {
+    // Prioridad: subtitle1, luego subtitle2
+    let color = '#fff';
+    let fontSize = '20px';
+    if (video && video.subtitle1 && video.subtitle1.color && video.subtitle1.fontSize) {
+      color = video.subtitle1.color;
+      fontSize = video.subtitle1.fontSize;
+    } else if (video && video.subtitle2 && video.subtitle2.color && video.subtitle2.fontSize) {
+      color = video.subtitle2.color;
+      fontSize = video.subtitle2.fontSize;
+    }
+    applySubtitleStyle(idx, color, fontSize);
+  });
+}, { deep: true, immediate: true });
 </script>
 
 <template>

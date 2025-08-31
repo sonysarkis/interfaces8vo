@@ -56,6 +56,21 @@
               <button v-if="video.audio2" @click="removeAudio(idx, 2)" class="remove-btn">Quitar</button>
             </div>
           </div>
+          <div class="subtitle-style-controls">
+            <label class="text-xs font-semibold mr-2">Color subtítulo
+              <input type="color" :value="(subtitleStyles[idx] && subtitleStyles[idx].color) || '#ffffff'" @input="e => updateSubtitleStyle(idx, 'color', e.target.value)" class="ml-2 align-middle" />
+            </label>
+            <label class="text-xs font-semibold ml-4">Tamaño
+              <select :value="(subtitleStyles[idx] && subtitleStyles[idx].fontSize) || '20px'" @change="e => updateSubtitleStyle(idx, 'fontSize', e.target.value)" class="ml-2 align-middle">
+                <option value="16px">16px</option>
+                <option value="18px">18px</option>
+                <option value="20px">20px</option>
+                <option value="24px">24px</option>
+                <option value="28px">28px</option>
+                <option value="32px">32px</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -75,6 +90,7 @@ const videoStore = useVideoCarouselStore();
 const currentIndex = ref(0);
 const subtitleInput = ref(null);
 const audioInput = ref(null);
+const subtitleStyles = ref([]); // [{ color, fontSize }]
 
 function openFileDialog() {
   fileInput.value.click();
@@ -301,6 +317,51 @@ function removeAudio(idx, num = 1) {
   }
 }
 
+function ensureSubtitleStyle(idx) {
+  if (!subtitleStyles.value[idx]) {
+    subtitleStyles.value[idx] = { color: '#fff', fontSize: '20px' };
+  }
+}
+
+function updateSubtitleStyle(idx, key, value) {
+  ensureSubtitleStyle(idx);
+  subtitleStyles.value[idx][key] = value;
+  // Guardar en el objeto del video para que el carrusel lo lea
+  if (key === 'color') {
+    if (videoStore.userVideos[idx].subtitle1) videoStore.userVideos[idx].subtitle1.color = value;
+    if (videoStore.userVideos[idx].subtitle2) videoStore.userVideos[idx].subtitle2.color = value;
+  }
+  if (key === 'fontSize') {
+    if (videoStore.userVideos[idx].subtitle1) videoStore.userVideos[idx].subtitle1.fontSize = value;
+    if (videoStore.userVideos[idx].subtitle2) videoStore.userVideos[idx].subtitle2.fontSize = value;
+  }
+  applySubtitleStyle(idx);
+}
+
+function applySubtitleStyle(idx) {
+  // Esperar a que el video esté en el DOM
+  setTimeout(() => {
+    const videoEls = document.querySelectorAll('.gallery-item video');
+    const video = videoEls[idx];
+    if (video) {
+      const style = subtitleStyles.value[idx];
+      const sheetId = `subtitle-style-${idx}`;
+      let styleEl = document.getElementById(sheetId);
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = sheetId;
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = `
+        .gallery-item:nth-child(${idx + 1}) video::cue {
+          color: ${style.color} !important;
+          font-size: ${style.fontSize} !important;
+        }
+      `;
+    }
+  }, 100);
+}
+
 const carouselStyle = computed(() => {
   const itemWidth = 250 + 15; // Ancho de la "imagen" (video) + gap
   const offset = -currentIndex.value * itemWidth;
@@ -411,6 +472,12 @@ const carouselStyle = computed(() => {
 }
 .remove-btn:hover {
   background: #fecaca;
+}
+.subtitle-style-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
 }
 </style>
 
