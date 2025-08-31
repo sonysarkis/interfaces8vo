@@ -1,7 +1,5 @@
 ## Comandos para correr el frontend
-```sh
-cd frontend-vue
-```
+
 ## Instala dependencias
 ```sh
 npm install
