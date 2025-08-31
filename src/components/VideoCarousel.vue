@@ -1,5 +1,8 @@
+
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useVideoCarouselStore } from '@/store/videoCarousel';
 
 
 import video1 from '@/assets/videos/video1.mp4';
@@ -7,7 +10,7 @@ import video2 from '@/assets/videos/video2.mp4';
 import video3 from '@/assets/videos/video3.mp4';
 import video4 from '@/assets/videos/video4.mp4';
 
-const videos = [
+const defaultVideos = [
   {
     src: video1,
     title: 'Video 1',
@@ -54,11 +57,11 @@ const currentSlide = ref(0);
 let interval: any = null;
 
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % videos.length;
+  currentSlide.value = (currentSlide.value + 1) % videos.value.length;
 };
 
 const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + videos.length) % videos.length;
+  currentSlide.value = (currentSlide.value - 1 + videos.value.length) % videos.value.length;
 };
 
 const goToSlide = (index: number) => {
@@ -68,13 +71,13 @@ const goToSlide = (index: number) => {
 const getVisibleSlides = () => {
   const visible = [];
   for (let i = 0; i < 3; i++) {
-    visible.push(videos[(currentSlide.value + i) % videos.length]);
+    visible.push(videos.value[(currentSlide.value + i) % videos.value.length]);
   }
   return visible;
 };
 
 const setVideoSizes = async () => {
-  for (const video of videos) {
+  for (const video of defaultVideos) {
     try {
       const response = await fetch(video.src, { method: 'HEAD' });
       const size = response.headers.get('content-length');
@@ -94,6 +97,14 @@ const stopAutoSlide = () => {
     clearInterval(interval);
   }
 };
+
+const videoStore = useVideoCarouselStore();
+const { userVideos } = storeToRefs(videoStore);
+
+const videos = computed(() => {
+  // Videos del usuario primero, luego los predeterminados
+  return [...userVideos.value, ...defaultVideos];
+});
 
 onMounted(() => {
   setVideoSizes();

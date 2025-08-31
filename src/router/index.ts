@@ -18,6 +18,11 @@ const router = createRouter({
       component: () => import('../views/ImageUpload.vue')
     },
     {
+      path: '/subir-video',
+      name: 'video-upload',
+      component: () => import('../views/VideoUpload.vue')
+    },
+    {
       path: '/login',
       name: 'login',
       component: Login

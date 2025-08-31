@@ -65,6 +65,7 @@ const scrollToSection = (sectionId: string) => {
         <a @click="handleNavClick('contacto')">Contacto</a>
         <a @click="handleNavClick('beneficios')">Beneficios</a>
   <router-link to="/subir-imagen" @click="closeMenu">Subir Imagen</router-link>
+  <router-link to="/subir-video" @click="closeMenu">Subir Video</router-link>
         <template v-if="!isLoggedIn">
           <router-link to="/login" @click="closeMenu">Iniciar Sesión</router-link>
           <router-link to="/registro" @click="closeMenu">Registrarse</router-link>
