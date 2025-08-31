@@ -97,11 +97,6 @@ const stopAutoSlide = () => {
 
 onMounted(() => {
   setVideoSizes();
-  startAutoSlide();
-});
-
-onUnmounted(() => {
-  stopAutoSlide();
 });
 
 const showInfo = ref(false);

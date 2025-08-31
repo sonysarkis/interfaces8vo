@@ -36,12 +36,16 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { Cropper } from 'vue-advanced-cropper';
 import 'vue-advanced-cropper/dist/style.css';
+import { useCarouselStore } from '@/store/carousel';
 
-const images = reactive([]);
+
+const carouselStore = useCarouselStore();
+const images = computed(() => carouselStore.userImages);
 const currentIndex = ref(0);
 const fileInput = ref(null);
 
@@ -88,7 +92,7 @@ function confirmCrop() {
   if (cropperRef.value) {
     const result = cropperRef.value.getResult();
     if (result && result.canvas) {
-      images.push(result.canvas.toDataURL('image/png'));
+      carouselStore.addImage(result.canvas.toDataURL('image/png'));
     }
   }
   // Si hay más archivos pendientes, recortar el siguiente
@@ -113,9 +117,9 @@ function cancelCrop() {
 }
 
 function deleteImage(index) {
-  images.splice(index, 1);
-  if (currentIndex.value > images.length - 1) {
-    currentIndex.value = Math.max(0, images.length - 1);
+  carouselStore.removeImage(index);
+  if (currentIndex.value > images.value.length - 1) {
+    currentIndex.value = Math.max(0, images.value.length - 1);
   }
 }
 

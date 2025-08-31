@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 
 import atencionCliente from '@/assets/images/atencion-cliente.png';
 import innovacion from '@/assets/images/innovacion.png';
@@ -7,7 +7,10 @@ import equipo from '@/assets/images/equipo.png';
 import crecimiento from '@/assets/images/crecimiento.png';
 import seguridad from '@/assets/images/seguridad.png';
 
-const slides = [
+import { storeToRefs } from 'pinia';
+import { useCarouselStore } from '@/store/carousel';
+
+const defaultSlides = [
   {
     image: atencionCliente,
     title: 'Atención al Cliente',
@@ -60,15 +63,43 @@ const slides = [
   }
 ];
 
+const carouselStore = useCarouselStore();
+const { userImages } = storeToRefs(carouselStore);
+
+const slides = computed(() => {
+  // Las imágenes del usuario primero, luego las predeterminadas
+  const userSlides = userImages.value.map((img, idx) => {
+    // Extraer el peso en bytes del base64
+    let size = 0;
+    let type = 'image/png';
+    if (img.startsWith('data:')) {
+      const matches = img.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/);
+      if (matches) {
+        type = matches[1];
+        // Calcular tamaño en bytes del base64
+        const base64str = matches[2];
+        size = Math.round((base64str.length * 3) / 4 - (base64str.endsWith('==') ? 2 : base64str.endsWith('=') ? 1 : 0));
+      }
+    }
+    return {
+      image: img,
+      title: `Imagen subida #${idx + 1}`,
+      description: 'Imagen agregada por el usuario',
+      file: { name: `user-image-${idx + 1}.png`, type, size }
+    };
+  });
+  return [...userSlides, ...defaultSlides];
+});
+
 const currentSlide = ref(0);
 let interval: any = null;
 
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % slides.length;
+  currentSlide.value = (currentSlide.value + 1) % slides.value.length;
 };
 
 const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + slides.length) % slides.length;
+  currentSlide.value = (currentSlide.value - 1 + slides.value.length) % slides.value.length;
 };
 
 const goToSlide = (index: number) => {
@@ -79,14 +110,14 @@ const getVisibleSlides = () => {
   // Devuelve un array con los 3 slides visibles (actual y dos siguientes, con wrap-around)
   const visible = [];
   for (let i = 0; i < 3; i++) {
-    visible.push(slides[(currentSlide.value + i) % slides.length]);
+    visible.push(slides.value[(currentSlide.value + i) % slides.value.length]);
   }
   return visible;
 };
 
 // Obtener el peso real de las imágenes (solo en entorno web, usando fetch HEAD)
 const setImageSizes = async () => {
-  for (const slide of slides) {
+  for (const slide of slides.value) {
     try {
       const response = await fetch(slide.image, { method: 'HEAD' });
       const size = response.headers.get('content-length');
@@ -109,11 +140,6 @@ const stopAutoSlide = () => {
 
 onMounted(() => {
   setImageSizes();
-  startAutoSlide();
-});
-
-onUnmounted(() => {
-  stopAutoSlide();
 });
 
 // Estado para mostrar el modal de info
