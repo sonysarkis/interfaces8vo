@@ -1,6 +1,8 @@
 <template>
   <div class="container">
     <h1>¡Sube tu video!</h1>
+    <div class="mt-4 flex flex-col sm:flex-row gap-3 items-center justify-center">
+    </div>
     <div class="drag-area" @click="openFileDialog" @dragover.prevent="onDragOver" @dragleave="onDragLeave" @drop.prevent="onDrop">
       <p>Arrastra y suelta un video o haz clic para seleccionar</p>
       <input type="file" id="file-input" ref="fileInput" accept="video/*" @change="onFileChange" style="display:none;">
@@ -15,18 +17,46 @@
 
     <div v-if="videoStore.userVideos.length" class="videos-list">
       <h2 class="mt-8 mb-4 text-lg font-bold">Videos subidos</h2>
-      <div class="carousel-container">
-        <div class="carousel" :style="carouselStyle">
-          <div v-for="(video, idx) in videoStore.userVideos" :key="idx" class="carousel-item">
-            <video :src="video.src" controls style="width:100%;height:100%;object-fit:cover;"></video>
-            <button class="delete-btn" @click="removeVideo(idx)">&times;</button>
-            <div class="video-info">
-              <span class="block text-xs text-gray-600 truncate">{{ video.file.name }}</span>
+      <div class="gallery-grid">
+        <div v-for="(video, idx) in videoStore.userVideos" :key="idx" class="gallery-item">
+          <video controls style="width:100%;height:160px;object-fit:cover;">
+            <source :src="video.src" :type="video.file.type" />
+            <track v-if="video.subtitle1" kind="subtitles" :src="video.subtitle1.src" :label="video.subtitle1.name" srclang="es" />
+            <track v-if="video.subtitle2" kind="subtitles" :src="video.subtitle2.src" :label="video.subtitle2.name" srclang="en" />
+            <source v-if="video.audio1" :src="video.audio1.src" :type="video.audio1.type" />
+            <source v-if="video.audio2" :src="video.audio2.src" :type="video.audio2.type" />
+          </video>
+          <button class="delete-btn" @click="removeVideo(idx)">&times;</button>
+          <div class="video-info mt-2 mb-2">
+            <span class="block text-xs text-gray-600 truncate">{{ video.file.name }}</span>
+          </div>
+          <div class="subtitle-audio-controls">
+            <div class="subtitle-group">
+              <label class="text-xs font-semibold">Subtítulo 1
+                <input type="file" accept=".vtt,.srt" @change="e => selectSubtitle(idx, e, 1)" class="input-file" />
+              </label>
+              <button v-if="video.subtitle1" @click="removeSubtitle(idx, 1)" class="remove-btn">Quitar</button>
+            </div>
+            <div class="subtitle-group">
+              <label class="text-xs font-semibold">Subtítulo 2
+                <input type="file" accept=".vtt,.srt" @change="e => selectSubtitle(idx, e, 2)" class="input-file" />
+              </label>
+              <button v-if="video.subtitle2" @click="removeSubtitle(idx, 2)" class="remove-btn">Quitar</button>
+            </div>
+            <div class="audio-group">
+              <label class="text-xs font-semibold">Audio 1
+                <input type="file" accept="audio/*" @change="e => selectAudio(idx, e, 1)" class="input-file" />
+              </label>
+              <button v-if="video.audio1" @click="removeAudio(idx, 1)" class="remove-btn">Quitar</button>
+            </div>
+            <div class="audio-group">
+              <label class="text-xs font-semibold">Audio 2
+                <input type="file" accept="audio/*" @change="e => selectAudio(idx, e, 2)" class="input-file" />
+              </label>
+              <button v-if="video.audio2" @click="removeAudio(idx, 2)" class="remove-btn">Quitar</button>
             </div>
           </div>
         </div>
-        <button class="prev-btn" @click="prev">&lt;</button>
-        <button class="next-btn" @click="next">&gt;</button>
       </div>
     </div>
   </div>
@@ -36,12 +66,15 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useVideoCarouselStore } from '@/store/videoCarousel';
+import Swal from 'sweetalert2';
 
 const fileInput = ref(null);
 const videoPreview = ref(null);
 const videoFile = ref(null);
 const videoStore = useVideoCarouselStore();
 const currentIndex = ref(0);
+const subtitleInput = ref(null);
+const audioInput = ref(null);
 
 function openFileDialog() {
   fileInput.value.click();
@@ -90,7 +123,14 @@ function addToCarousel() {
         name: videoFile.value.name,
         type: videoFile.value.type,
         size: videoFile.value.size
-      }
+      },
+    });
+    Swal.fire({
+      icon: 'success',
+      title: '¡Video agregado!',
+      text: 'El video se añadió correctamente al carrusel.',
+      timer: 1800,
+      showConfirmButton: false
     });
     reset();
   }
@@ -101,10 +141,29 @@ function reset() {
   videoFile.value = null;
 }
 
-function removeVideo(idx) {
-  videoStore.removeVideo(idx);
-  if (currentIndex.value > videoStore.userVideos.length - 1) {
-    currentIndex.value = Math.max(0, videoStore.userVideos.length - 1);
+async function removeVideo(idx) {
+  const result = await Swal.fire({
+    title: '¿Estás seguro?',
+    text: 'Esta acción eliminará el video y todos sus archivos asociados.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
+  if (result.isConfirmed) {
+    videoStore.removeVideo(idx);
+    if (currentIndex.value > videoStore.userVideos.length - 1) {
+      currentIndex.value = Math.max(0, videoStore.userVideos.length - 1);
+    }
+    Swal.fire({
+      icon: 'success',
+      title: 'Eliminado',
+      text: 'El video ha sido eliminado.',
+      timer: 1500,
+      showConfirmButton: false
+    });
   }
 }
 
@@ -117,6 +176,128 @@ function prev() {
 function next() {
   if (currentIndex.value < videoStore.userVideos.length - 1) {
     currentIndex.value++;
+  }
+}
+
+function selectSubtitle(idx, e, num) {
+  const file = e.target.files[0];
+  if (file && (file.name.endsWith('.vtt') || file.name.endsWith('.srt'))) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (num === 1) {
+        videoStore.userVideos[idx].subtitle1 = {
+          name: file.name,
+          src: ev.target.result,
+          type: file.type || 'text/vtt'
+        };
+      } else {
+        videoStore.userVideos[idx].subtitle2 = {
+          name: file.name,
+          src: ev.target.result,
+          type: file.type || 'text/vtt'
+        };
+      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Subtítulo agregado',
+        text: `El subtítulo ${file.name} se ha asociado correctamente.`,
+        timer: 1800,
+        showConfirmButton: false
+      });
+    };
+    reader.readAsDataURL(file);
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Archivo inválido',
+      text: 'Solo se permiten archivos .vtt o .srt',
+      timer: 1800,
+      showConfirmButton: false
+    });
+  }
+}
+
+function selectAudio(idx, e, num = 1) {
+  const file = e.target.files[0];
+  if (file && file.type.startsWith('audio/')) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (num === 1) {
+        videoStore.userVideos[idx].audio1 = {
+          name: file.name,
+          src: ev.target.result,
+          type: file.type
+        };
+      } else {
+        videoStore.userVideos[idx].audio2 = {
+          name: file.name,
+          src: ev.target.result,
+          type: file.type
+        };
+      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Audio agregado',
+        text: `La pista ${file.name} se ha asociado correctamente.`,
+        timer: 1800,
+        showConfirmButton: false
+      });
+    };
+    reader.readAsDataURL(file);
+  } else {
+    Swal.fire({
+      icon: 'error',
+      title: 'Archivo inválido',
+      text: 'Solo se permiten archivos de audio',
+      timer: 1800,
+      showConfirmButton: false
+    });
+  }
+}
+
+function removeSubtitle(idx, num) {
+  if (num === 1 && videoStore.userVideos[idx].subtitle1) {
+    videoStore.userVideos[idx].subtitle1 = null;
+    Swal.fire({
+      icon: 'info',
+      title: 'Subtítulo eliminado',
+      text: 'El subtítulo 1 ha sido quitado.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+  if (num === 2 && videoStore.userVideos[idx].subtitle2) {
+    videoStore.userVideos[idx].subtitle2 = null;
+    Swal.fire({
+      icon: 'info',
+      title: 'Subtítulo eliminado',
+      text: 'El subtítulo 2 ha sido quitado.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+}
+
+function removeAudio(idx, num = 1) {
+  if (num === 1 && videoStore.userVideos[idx].audio1) {
+    videoStore.userVideos[idx].audio1 = null;
+    Swal.fire({
+      icon: 'info',
+      title: 'Audio eliminado',
+      text: 'La pista de audio 1 ha sido quitada.',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+  if (num === 2 && videoStore.userVideos[idx].audio2) {
+    videoStore.userVideos[idx].audio2 = null;
+    Swal.fire({
+      icon: 'info',
+      title: 'Audio eliminado',
+      text: 'La pista de audio 2 ha sido quitada.',
+      timer: 1500,
+      showConfirmButton: false
+    });
   }
 }
 
@@ -133,36 +314,25 @@ const carouselStyle = computed(() => {
 .videos-list {
   margin-top: 30px;
 }
-.carousel-container {
-  position: relative;
-  overflow: hidden;
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
   margin-top: 20px;
-  border: 1px solid #363636;
-  border-radius: 8px;
-  padding: 10px;
 }
-.carousel {
-  display: flex;
-  transition: transform 0.5s ease;
-  gap: 15px;
-}
-.carousel-item {
-  min-width: 250px;
-  height: 200px;
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.gallery-item {
   background: #f7f7f7;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  padding: 16px 12px 12px 12px;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.carousel-item video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.gallery-item video {
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
 .delete-btn {
   position: absolute;
@@ -182,7 +352,7 @@ const carouselStyle = computed(() => {
   opacity: 0;
   transition: opacity 0.3s;
 }
-.carousel-item:hover .delete-btn {
+.gallery-item:hover .delete-btn {
   opacity: 1;
 }
 .video-info {
@@ -211,6 +381,37 @@ const carouselStyle = computed(() => {
 .next-btn {
   right: 10px;
 }
+.subtitle-audio-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 8px;
+}
+.subtitle-group, .audio-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.input-file {
+  margin-left: 8px;
+  font-size: 12px;
+  padding: 2px 0;
+}
+.remove-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 2px 8px;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.remove-btn:hover {
+  background: #fecaca;
+}
 </style>
 
 <style scoped>
@@ -236,7 +437,7 @@ const carouselStyle = computed(() => {
   background-color: #e9ecef;
 }
 input[type="file"] {
-  display: none;
+  display: initial;
 }
 .video-preview {
   margin-top: 20px;

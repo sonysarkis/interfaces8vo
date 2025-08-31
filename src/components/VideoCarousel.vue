@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { storeToRefs } from 'pinia';
@@ -138,7 +137,10 @@ const formatSize = (size: number) => {
           :key="video.title + '-' + i"
         >
           <div class="img-hover-group">
-            <video :src="video.src" controls :alt="video.title" style="width:100%;height:100%;object-fit:cover;"></video>
+            <video :src="video.src" controls :alt="video.title" style="width:100%;height:100%;object-fit:cover;">
+              <track v-if="video.subtitle1" kind="subtitles" :src="video.subtitle1.src" :label="video.subtitle1.name" srclang="es" />
+              <track v-if="video.subtitle2" kind="subtitles" :src="video.subtitle2.src" :label="video.subtitle2.name" srclang="en" />
+            </video>
             <button class="info-btn" @click="openInfo(video)" tabindex="0">
               ℹ️
             </button>
