@@ -146,8 +146,23 @@ onMounted(() => {
 const showInfo = ref(false);
 const infoData = ref<any>(null);
 const openInfo = (slide: any) => {
-  infoData.value = slide;
-  showInfo.value = true;
+  // Obtener dimensiones de la imagen
+  const img = new window.Image();
+  img.onload = function () {
+    infoData.value = {
+      ...slide,
+      dimensions: `${img.naturalWidth} x ${img.naturalHeight}`
+    };
+    showInfo.value = true;
+  };
+  img.onerror = function () {
+    infoData.value = {
+      ...slide,
+      dimensions: 'Desconocido'
+    };
+    showInfo.value = true;
+  };
+  img.src = slide.image;
 };
 const closeInfo = () => {
   showInfo.value = false;
@@ -205,6 +220,7 @@ const formatSize = (size: number) => {
             <li><b>Nombre:</b> {{ infoData.file.name }}</li>
             <li><b>Tipo:</b> {{ infoData.file.type }}</li>
             <li><b>Peso:</b> {{ formatSize(infoData.file.size) }}</li>
+            <li><b>Dimensión:</b> {{ infoData.dimensions || 'Desconocido' }}</li>
             <li><b>Título:</b> {{ infoData.title }}</li>
             <li><b>Descripción:</b> {{ infoData.description }}</li>
           </ul>
