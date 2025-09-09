@@ -5,10 +5,12 @@ import { useRoute, useRouter } from 'vue-router';
 const route = useRoute();
 const router = useRouter();
 
-const user = ref(null);
-const editableUser = ref(null);
+const user = ref<any>(null);
+const editableUser = ref<any>(null);
+const selectedFile = ref<File | null>(null);
+const previewUrl = ref<string>('');
 
-function backendToUser(data) {
+function backendToUser(data: any) {
   return {
     id: data.id,
     firstName: data.nombre || '',
@@ -17,83 +19,80 @@ function backendToUser(data) {
     age: data.edad || '',
     gender: data.genero || '',
     email: data.email || '',
-    phone: data.telefono || '',
-    username: data.username || '',
-    password: '', // nunca mostrar la contraseña real
-    birthDate: data.fecha_nacimiento || '',
-    image: data.imagen || '',
-    bloodGroup: data.grupo_sanguineo || '',
-    height: data.altura || '',
-    weight: data.peso || '',
-    eyeColor: data.color_ojos || '',
-    hair: {
-      color: data.pelo_color || '',
-      type: data.pelo_tipo || ''
-    },
-    address: {
-      address: data.direccion || '',
-      city: data.ciudad || '',
-      state: data.estado || '',
-      // stateCode removido
-      postalCode: data.codigo_postal || '',
-      coordinates: {
-        lat: data.coord_lat ?? 0,
-        lng: data.coord_lng ?? 0
-      },
-      country: data.pais || ''
-    },
-    macAddress: data.mac || '',
-    university: data.universidad || '',
-    bank: {
-      cardExpire: data.banco_expiracion || '',
-      cardNumber: data.banco_numero_tarjeta || '',
-      cardType: data.banco_tipo_tarjeta || '',
-      currency: data.banco_moneda || '',
-      iban: data.banco_iban || ''
-    },
-    company: {
-      department: data.compania_departamento || '',
-      name: data.compania_nombre || '',
-      title: data.compania_titulo || '',
-      address: {
-        address: data.compania_direccion || '',
-        city: data.compania_ciudad || '',
-        state: data.compania_estado || '',
-        // stateCode removido
-        postalCode: data.compania_codigo_postal || '',
-        coordinates: {
-          lat: data.compania_coord_lat ?? 0,
-          lng: data.compania_coord_lng ?? 0
+    ip: data.ip || '',
+        phone: data.telefono || '',
+        username: data.username || '',
+        password: '', // nunca mostrar la contraseña real
+        birthDate: data.fecha_nacimiento || '',
+        image: data.imagen || '',
+        bloodGroup: data.grupo_sanguineo || '',
+        height: data.altura || '',
+        weight: data.peso || '',
+        eyeColor: data.color_ojos || '',
+        hair: {
+          color: data.pelo_color || '',
+          type: data.pelo_tipo || ''
         },
-        country: data.compania_pais || ''
-      }
-    },
-    ein: data.ein || '',
-    ssn: data.ssn || '',
-    userAgent: data.user_agent || '',
-    crypto: {
-      coin: data.cripto_moneda || '',
-      wallet: data.cripto_wallet || '',
-      network: data.cripto_network || ''
-    },
-    role: data.type || '',
-    disabled: data.status === 'inactive'
-  };
+        address: {
+          address: data.direccion || '',
+          city: data.ciudad || '',
+          state: data.estado || '',
+          stateCode: data.estado_code || '',
+          postalCode: data.codigo_postal || '',
+          coordinates: {
+            lat: data.coord_lat ?? 0,
+            lng: data.coord_lng ?? 0
+          },
+          country: data.pais || ''
+        },
+        macAddress: data.mac || '',
+        university: data.universidad || '',
+        bank: {
+          cardExpire: data.banco_expiracion || '',
+          cardNumber: data.banco_numero_tarjeta || '',
+          cardType: data.banco_tipo_tarjeta || '',
+          currency: data.banco_moneda || '',
+          iban: data.banco_iban || ''
+        },
+        company: {
+          department: data.compania_departamento || '',
+          name: data.compania_nombre || '',
+          title: data.compania_titulo || '',
+          address: {
+            address: data.compania_direccion || '',
+            city: data.compania_ciudad || '',
+            state: data.compania_estado || '',
+            postalCode: data.compania_codigo_postal || '',
+            coordinates: {
+              lat: data.compania_coord_lat ?? 0,
+              lng: data.compania_coord_lng ?? 0
+            },
+            country: data.compania_pais || ''
+          }
+        },
+        ein: data.ein || '',
+        ssn: data.ssn || '',
+        userAgent: data.user_agent || '',
+        crypto: {
+          coin: data.cripto_moneda || '',
+          wallet: data.cripto_wallet || '',
+          network: data.cripto_network || ''
+        },
+        role: data.type || '',
+        disabled: data.status === 'inactive'
+      };
 }
 
 async function fetchUserDetail() {
   const id = route.params.id;
   const token = localStorage.getItem('token');
-  const currentId = localStorage.getItem('id');
-  if (currentId && String(currentId) === String(id)) {
-    router.replace('/perfil');
-    return;
-  }
+  
   if (!id || !token) {
     user.value = null;
     editableUser.value = null;
     return;
   }
+  
   try {
     const res = await fetch(`/admin-auth/user/${id}`, {
       headers: {
@@ -118,12 +117,167 @@ function disableUser() {
   if (editableUser.value) editableUser.value.disabled = true;
 }
 
-function applyChanges() {
-  // Aquí iría la lógica para guardar los cambios
-  console.log('Cambios aplicados:', editableUser.value);
-  // Por ahora solo actualizamos el usuario original
-  if (user.value && editableUser.value) {
-    Object.assign(user.value, editableUser.value);
+// Función para manejar la selección de archivo
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  
+  if (file) {
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+    
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('El archivo es demasiado grande. Máximo 5MB');
+      return;
+    }
+    
+    selectedFile.value = file;
+    
+    // Crear URL de vista previa
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewUrl.value = e.target?.result as string;
+      if (editableUser.value) {
+        editableUser.value.image = previewUrl.value;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Función para limpiar la selección de archivo
+function clearFileSelection() {
+  selectedFile.value = null;
+  previewUrl.value = '';
+  const fileInput = document.getElementById('file-input-detail') as HTMLInputElement;
+  if (fileInput) {
+    fileInput.value = '';
+  }
+}
+
+// Función para subir archivo (simulada)
+async function uploadFile(): Promise<string | null> {
+  if (!selectedFile.value) return null;
+  
+  try {
+    // Simulación: retornamos la URL de vista previa
+    // En producción aquí iría la lógica real de subida
+    return previewUrl.value;
+    
+  } catch (error) {
+    console.error('Error subiendo archivo:', error);
+    alert('Error al subir el archivo');
+    return null;
+  }
+}
+
+function userToBackend(userData: any) {
+  return {
+    email: userData.email,
+    type: userData.role,
+    status: userData.disabled ? 'inactive' : 'active',
+    nombre: userData.firstName,
+    apellido: userData.lastName,
+    segundo_apellido: userData.maidenName,
+    edad: userData.age,
+    genero: userData.gender,
+    telefono: userData.phone,
+    username: userData.username,
+    password: userData.password || '', // Solo si se proporciona nueva contraseña
+    fecha_nacimiento: userData.birthDate,
+    grupo_sanguineo: userData.bloodGroup,
+    altura: userData.height,
+    peso: userData.weight,
+    color_ojos: userData.eyeColor,
+    pelo_color: userData.hair?.color || '',
+    pelo_tipo: userData.hair?.type || '',
+    ip: userData.ip,
+    imagen: userData.image,
+    direccion: userData.address?.address || '',
+    ciudad: userData.address?.city || '',
+    estado: userData.address?.state || '',
+    estado_code: userData.address?.stateCode || '',
+    pais: userData.address?.country || '',
+    codigo_postal: userData.address?.postalCode || '',
+    coord_lat: userData.address?.coordinates?.lat || 0,
+    coord_lng: userData.address?.coordinates?.lng || 0,
+    banco_tipo_tarjeta: userData.bank?.cardType || '',
+    banco_numero_tarjeta: userData.bank?.cardNumber || '',
+    banco_expiracion: userData.bank?.cardExpire || '',
+    banco_iban: userData.bank?.iban || '',
+    banco_moneda: userData.bank?.currency || '',
+    compania_nombre: userData.company?.name || '',
+    compania_departamento: userData.company?.department || '',
+    compania_titulo: userData.company?.title || '',
+    compania_direccion: userData.company?.address?.address || '',
+    compania_ciudad: userData.company?.address?.city || '',
+    compania_estado: userData.company?.address?.state || '',
+    compania_codigo_postal: userData.company?.address?.postalCode || '',
+    compania_coord_lat: userData.company?.address?.coordinates?.lat || 0,
+    compania_coord_lng: userData.company?.address?.coordinates?.lng || 0,
+    compania_pais: userData.company?.address?.country || '',
+    mac: userData.macAddress,
+    universidad: userData.university,
+    ein: userData.ein,
+    ssn: userData.ssn,
+    user_agent: userData.userAgent,
+    cripto_moneda: userData.crypto?.coin || '',
+    cripto_wallet: userData.crypto?.wallet || '',
+    cripto_network: userData.crypto?.network || ''
+  };
+}
+
+async function applyChanges() {
+  if (!editableUser.value) return;
+  
+  const id = route.params.id;
+  const token = localStorage.getItem('token');
+  
+  if (!id || !token) {
+    alert('Error: No se puede actualizar el usuario');
+    return;
+  }
+  
+  try {
+    // Si hay un archivo seleccionado, subirlo primero
+    if (selectedFile.value) {
+      const uploadedUrl = await uploadFile();
+      if (uploadedUrl) {
+        editableUser.value.image = uploadedUrl;
+      }
+    }
+    
+    const backendData = userToBackend(editableUser.value);
+    
+    const res = await fetch(`/admin-auth/user/${id}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(backendData)
+    });
+    
+    if (res.ok) {
+      const result = await res.json();
+      console.log('Usuario actualizado correctamente:', result);
+      alert('Cambios guardados exitosamente');
+      // Actualizar el usuario original con los cambios
+      if (user.value && editableUser.value) {
+        Object.assign(user.value, editableUser.value);
+      }
+    } else {
+      const error = await res.json();
+      console.error('Error al actualizar usuario:', error);
+      alert('Error al guardar los cambios: ' + (error.error || 'Error desconocido'));
+    }
+  } catch (error) {
+    console.error('Error en la petición:', error);
+    alert('Error de conexión al guardar los cambios');
   }
 }
 
@@ -135,7 +289,7 @@ onMounted(fetchUserDetail);
     <h1 class="page-title">Detalle de Usuario</h1>
     <div v-if="editableUser" class="user-detail">
       <div class="user-header">
-        <img :src="editableUser.image" alt="Foto de usuario" class="user-image" />
+        <img :src="previewUrl || editableUser.image" alt="Foto de usuario" class="user-image" />
         <div class="user-basic-info">
           <input 
             v-model="editableUser.firstName" 
@@ -152,6 +306,40 @@ onMounted(fetchUserDetail);
             class="user-email-input"
             placeholder="Email"
           />
+          <div class="image-input-section">
+            <label class="info-label">Imagen de perfil:</label>
+            
+            <!-- Opción 1: Subir archivo -->
+            <div class="image-upload-section">
+              <label class="upload-label">
+                <input 
+                  id="file-input-detail"
+                  type="file" 
+                  accept="image/*" 
+                  @change="handleFileSelect"
+                  class="file-input"
+                />
+                <span class="upload-button">
+                  📁 Seleccionar archivo
+                </span>
+              </label>
+              
+              <div v-if="selectedFile" class="file-info">
+                <span class="file-name">{{ selectedFile.name }}</span>
+                <button type="button" @click="clearFileSelection" class="clear-file-btn">✕</button>
+              </div>
+            </div>
+            
+            <!-- Opción 2: URL -->
+            <div class="url-input-section">
+              <label class="form-label-small">O ingresar URL:</label>
+              <input 
+                v-model="editableUser.image" 
+                class="user-image-input"
+                placeholder="URL de la imagen de perfil"
+              />
+            </div>
+          </div>
         </div>
       </div>
       
@@ -240,7 +428,10 @@ onMounted(fetchUserDetail);
               <span class="info-label">Estado:</span>
               <input v-model="editableUser.address.state" class="info-input" />
             </div>
-            <!-- Código de Estado removido -->
+            <div class="info-item">
+              <span class="info-label">Código de Estado:</span>
+              <input v-model="editableUser.address.stateCode" class="info-input" />
+            </div>
             <div class="info-item">
               <span class="info-label">País:</span>
               <input v-model="editableUser.address.country" class="info-input" />
@@ -319,7 +510,10 @@ onMounted(fetchUserDetail);
         <div class="info-section">
           <h3 class="section-title">Información Técnica</h3>
           <div class="info-list">
-            <!-- IP removido -->
+            <div class="info-item">
+              <span class="info-label">IP:</span>
+              <input v-model="editableUser.ip" class="info-input" />
+            </div>
             <div class="info-item">
               <span class="info-label">MAC:</span>
               <input v-model="editableUser.macAddress" class="info-input" />
@@ -459,6 +653,108 @@ onMounted(fetchUserDetail);
   outline: none;
   border-color: var(--color-secondary);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.image-input-section {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.user-image-input {
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  color: var(--color-text);
+  border: 2px solid var(--color-accent);
+  border-radius: 6px;
+  padding: 0.5rem;
+  background: rgba(231, 76, 60, 0.05);
+  transition: border-color 0.2s ease;
+  width: 100%;
+}
+
+.user-image-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.image-upload-section {
+  margin-bottom: 1rem;
+}
+
+.upload-label {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-secondary);
+  color: white;
+  border-radius: 8px;
+  font-family: var(--font-paragraph-family);
+  font-size: var(--font-paragraph-size);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.upload-button:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #f0f8ff;
+  border-radius: 6px;
+  border: 1px solid var(--color-secondary);
+}
+
+.file-name {
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  color: var(--color-text);
+  flex: 1;
+}
+
+.clear-file-btn {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-file-btn:hover {
+  background: #c0392b;
+}
+
+.url-input-section {
+  margin-top: 1rem;
+}
+
+.form-label-small {
+  font-family: var(--font-paragraph-family);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 .user-info-grid {

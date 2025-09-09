@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Swal from 'sweetalert2';
 
-const user = ref({
+const user = ref<any>({
   id: 1,
   firstName: "Emily",
   lastName: "Johnson",
@@ -76,7 +76,15 @@ const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const step = ref(1);
 const totalSteps = 9;
 
-const errors = ref({});
+const errors = ref<any>({});
+const imageError = ref(false);
+const selectedFile = ref<File | null>(null);
+const previewUrl = ref<string>('');
+
+// Watcher para resetear el error de imagen cuando cambie la URL
+watch(() => user.value.image, () => {
+  imageError.value = false;
+});
 
 // Variables para el mapa
 let map: L.Map | null = null;
@@ -253,9 +261,37 @@ async function getAddressFromCoordinates(lat: number, lng: number) {
       
       user.value.address.city = address.city || address.town || address.village || address.county || '';
       user.value.address.state = address.state || address.province || '';
-      user.value.address.stateCode = address.state_code || '';
+      
+      // Extraer state code de manera más robusta
+      let stateCode = address.state_code || address['ISO3166-2-lvl4'] || '';
+      
+      // Si no hay state code directo, intentar generarlo
+      if (!stateCode && (address.state || address.province)) {
+        const stateName = address.state || address.province;
+        const country = address.country_code?.toUpperCase() || '';
+        
+        // Para Estados Unidos, generar códigos de estado comunes
+        if (country === 'US') {
+          stateCode = generateUSStateCode(stateName);
+        }
+        // Para otros países, tomar las primeras 2 letras del estado en mayúsculas
+        else if (stateName.length >= 2) {
+          stateCode = stateName.substring(0, 2).toUpperCase();
+        }
+      }
+      
+      user.value.address.stateCode = stateCode;
       user.value.address.postalCode = address.postcode || '';
       user.value.address.country = address.country || '';
+      
+      console.log('Dirección extraída del mapa:', {
+        address: user.value.address.address,
+        city: user.value.address.city,
+        state: user.value.address.state,
+        stateCode: user.value.address.stateCode,
+        country: user.value.address.country,
+        postalCode: user.value.address.postalCode
+      });
     }
   } catch (error) {
     console.error('Error obteniendo dirección:', error);
@@ -278,10 +314,107 @@ function updateMapFromCoordinates() {
   map.setView([lat, lng], 15);
 }
 
+// Función para generar códigos de estado de EE.UU.
+function generateUSStateCode(stateName: string): string {
+  const stateMap: { [key: string]: string } = {
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+    'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+    'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+    'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY',
+    'district of columbia': 'DC', 'puerto rico': 'PR'
+  };
+  
+  const normalizedName = stateName.toLowerCase().trim();
+  return stateMap[normalizedName] || stateName.substring(0, 2).toUpperCase();
+}
+
+// Función para manejar la selección de archivo
+function handleFileSelect(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  
+  if (file) {
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+    
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('El archivo es demasiado grande. Máximo 5MB');
+      return;
+    }
+    
+    selectedFile.value = file;
+    
+    // Crear URL de vista previa
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewUrl.value = e.target?.result as string;
+      user.value.image = previewUrl.value; // Actualizar la imagen del usuario temporalmente
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Función para limpiar la selección de archivo
+function clearFileSelection() {
+  selectedFile.value = null;
+  previewUrl.value = '';
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  if (fileInput) {
+    fileInput.value = '';
+  }
+}
+
+// Función para subir archivo (simulada - puedes implementar la subida real)
+async function uploadFile(): Promise<string | null> {
+  if (!selectedFile.value) return null;
+  
+  try {
+    // Aquí iría la lógica real de subida al servidor
+    // Por ahora simularemos que se sube y retornamos la URL de vista previa
+    
+    // Ejemplo de cómo sería con FormData para una API real:
+    /*
+    const formData = new FormData();
+    formData.append('image', selectedFile.value);
+    
+    const response = await fetch('/api/upload-image', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.imageUrl;
+    }
+    */
+    
+    // Simulación: retornamos la URL de vista previa
+    return previewUrl.value;
+    
+  } catch (error) {
+    console.error('Error subiendo archivo:', error);
+    alert('Error al subir el archivo');
+    return null;
+  }
+}
+
 // Observar cambios en el paso para inicializar el mapa
 const currentStep = computed(() => step.value);
 
-function validateField(field) {
+function validateField(field: any) {
   switch (field) {
     case 'firstName':
       if (!user.value.firstName || user.value.firstName.length < 2) return 'El nombre es obligatorio y debe tener al menos 2 letras.';
@@ -365,13 +498,13 @@ function validateStep() {
   errors.value = {};
   const fieldsByStep = [
     // Paso 1
-    ['firstName', 'lastName', 'maidenName', 'age', 'gender', 'email'],
+    ['firstName', 'lastName', 'maidenName', 'age', 'gender', 'email', 'image'],
     // Paso 2
     ['phone', 'username', 'password', 'birthDate', 'bloodGroup', 'height'],
     // Paso 3
     ['weight', 'eyeColor', 'hair.color', 'hair.type', 'address.address', 'address.city'],
     // Paso 4
-    ['address.state', 'address.postalCode', 'address.country', 'address.coordinates.lat', 'address.coordinates.lng', 'macAddress'],
+    ['address.state', 'address.stateCode', 'address.postalCode', 'address.country', 'address.coordinates.lat', 'address.coordinates.lng', 'ip', 'macAddress'],
     // Paso 5
     ['university', 'bank.cardType', 'bank.cardNumber', 'bank.cardExpire', 'bank.iban', 'bank.currency'],
     // Paso 6
@@ -419,7 +552,7 @@ function prevStep() {
   if (step.value > 1) step.value--;
 }
 
-function mapUserToBackend(user) {
+function mapUserToBackend(user: any) {
   let fecha_nacimiento = user.birthDate;
   if (fecha_nacimiento && fecha_nacimiento.length > 10) {
     // Si viene en formato ISO, recorta a YYYY-MM-DD
@@ -487,6 +620,14 @@ async function saveProfile() {
   const token = localStorage.getItem('token');
   if (!id || !token) return;
   try {
+    // Si hay un archivo seleccionado, subirlo primero
+    if (selectedFile.value) {
+      const uploadedUrl = await uploadFile();
+      if (uploadedUrl) {
+        user.value.image = uploadedUrl;
+      }
+    }
+    
     const payload = mapUserToBackend(user.value);
     const res = await fetch(`/admin-auth/user/${id}`, {
       method: 'POST',
@@ -521,7 +662,7 @@ async function saveProfile() {
 }
 
 // Función para transformar los datos del backend al formato esperado por el frontend
-function backendToUser(data) {
+function backendToUser(data: any) {
   return {
     id: data.id,
     firstName: data.nombre || '',
@@ -660,6 +801,50 @@ onMounted(async () => {
             <input v-model="user.email" class="form-input" />
             <span class="error-message" v-if="errors.email">{{ errors.email }}</span>
           </div>
+          <div class="form-group">
+            <label class="form-label">Imagen de perfil</label>
+            
+            <!-- Opción 1: Subir archivo -->
+            <div class="image-upload-section">
+              <label class="upload-label">
+                <input 
+                  id="file-input"
+                  type="file" 
+                  accept="image/*" 
+                  @change="handleFileSelect"
+                  class="file-input"
+                />
+                <span class="upload-button">
+                  📁 Seleccionar archivo
+                </span>
+              </label>
+              
+              <div v-if="selectedFile" class="file-info">
+                <span class="file-name">{{ selectedFile.name }}</span>
+                <button type="button" @click="clearFileSelection" class="clear-file-btn">✕</button>
+              </div>
+            </div>
+            
+            <!-- Opción 2: URL -->
+            <div class="url-input-section">
+              <label class="form-label-small">O ingresar URL:</label>
+              <input v-model="user.image" class="form-input" placeholder="URL de la imagen de perfil" />
+            </div>
+            
+            <span class="error-message" v-if="errors.image">{{ errors.image }}</span>
+          </div>
+        </div>
+        
+        <!-- Vista previa de la imagen -->
+        <div v-if="user.image || previewUrl" class="image-preview">
+          <label class="form-label">Vista previa:</label>
+          <img 
+            :src="previewUrl || user.image" 
+            alt="Imagen de perfil" 
+            class="preview-image" 
+            @error="imageError = true" 
+          />
+          <p v-if="imageError" class="error-message">No se pudo cargar la imagen</p>
         </div>
       </div>
 
@@ -765,6 +950,10 @@ onMounted(async () => {
                 <div class="readonly-field">{{ user.address.coordinates.lng || 'No seleccionada' }}</div>
               </div>
               <div class="info-group">
+                <label class="info-label">IP</label>
+                <input v-model="user.ip" placeholder="Ej: 192.168.1.1" class="form-input" />
+              </div>
+              <div class="info-group">
                 <label class="info-label">Dirección MAC</label>
                 <input v-model="user.macAddress" placeholder="Ej: 47:fa:41:18:ec:eb" class="form-input" />
               </div>
@@ -779,6 +968,16 @@ onMounted(async () => {
               <div class="info-group">
                 <label class="info-label">Estado</label>
                 <div class="readonly-field">{{ user.address.state || 'No seleccionado' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">Código de Estado</label>
+                <input 
+                  v-model="user.address.stateCode" 
+                  placeholder="Se extrae automáticamente del mapa" 
+                  class="form-input"
+                  title="Este campo se completa automáticamente al seleccionar una ubicación en el mapa"
+                />
+                <small class="field-hint">💡 Se completa automáticamente al hacer clic en el mapa</small>
               </div>
               <div class="info-group">
                 <label class="info-label">Código postal</label>
@@ -1189,6 +1388,14 @@ onMounted(async () => {
   word-break: break-all;
 }
 
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-secondary);
+  font-style: italic;
+}
+
 .close-btn {
   padding: 0.7rem 1.5rem;
   background: var(--color-accent);
@@ -1217,6 +1424,103 @@ onMounted(async () => {
   font-size: var(--font-body-size);
   color: var(--color-text);
   margin: 0;
+}
+
+.image-preview {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 2px solid var(--color-background);
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.preview-image {
+  max-width: 200px;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid var(--color-secondary);
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.image-upload-section {
+  margin-bottom: 1rem;
+}
+
+.upload-label {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-secondary);
+  color: white;
+  border-radius: 8px;
+  font-family: var(--font-paragraph-family);
+  font-size: var(--font-paragraph-size);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.upload-button:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #f0f8ff;
+  border-radius: 6px;
+  border: 1px solid var(--color-secondary);
+}
+
+.file-name {
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  color: var(--color-text);
+  flex: 1;
+}
+
+.clear-file-btn {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-file-btn:hover {
+  background: #c0392b;
+}
+
+.url-input-section {
+  margin-top: 1rem;
+}
+
+.form-label-small {
+  font-family: var(--font-paragraph-family);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 .wizard-nav {
