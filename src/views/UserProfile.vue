@@ -86,12 +86,18 @@ watch(() => user.value.image, () => {
   imageError.value = false;
 });
 
-// Variables para el mapa
+// Variables para el mapa personal
 let map: L.Map | null = null;
 let marker: L.Marker | null = null;
 let searchControl: any = null;
 
+// Variables para el mapa de la compañía
+let companyMap: L.Map | null = null;
+let companyMarker: L.Marker | null = null;
+let companySearchControl: any = null;
+
 const showModal = ref(false);
+const showCompanyModal = ref(false);
 
 // Función para inicializar el mapa
 async function initMap() {
@@ -204,6 +210,67 @@ function addSearchControl() {
   map.addControl(new searchControl());
 }
 
+// Función para inicializar el mapa de la compañía
+async function initCompanyMap() {
+  if (companyMap) return;
+  
+  await nextTick();
+  
+  // Capas base para el mapa de la compañía
+  const companyCalleLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  });
+
+  const companySateliteLayer = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution: 'Tiles © Esri'
+    }
+  );
+
+  // Inicializa el mapa de la compañía
+  companyMap = L.map('company-map', {
+    center: [user.value.company.address.coordinates.lat || 0, user.value.company.address.coordinates.lng || 0],
+    zoom: 13,
+    layers: [companyCalleLayer]
+  });
+
+  // Control de capas para el mapa de la compañía
+  L.control.layers(
+    {
+      'Calles': companyCalleLayer,
+      'Satélite': companySateliteLayer
+    }
+  ).addTo(companyMap);
+  
+  // Crear marcador inicial para la compañía
+  if (user.value.company.address.coordinates.lat && user.value.company.address.coordinates.lng) {
+    companyMarker = L.marker([user.value.company.address.coordinates.lat, user.value.company.address.coordinates.lng]).addTo(companyMap);
+  }
+  
+  // Evento de clic en el mapa de la compañía
+  companyMap.on('click', async (e) => {
+    const { lat, lng } = e.latlng;
+    
+    // Actualizar coordenadas de la compañía
+    user.value.company.address.coordinates.lat = lat;
+    user.value.company.address.coordinates.lng = lng;
+    
+    // Actualizar marcador de la compañía
+    if (companyMarker) {
+      companyMarker.setLatLng([lat, lng]);
+    } else {
+      companyMarker = L.marker([lat, lng]).addTo(companyMap!);
+    }
+    
+    // Obtener dirección completa desde coordenadas para la compañía
+    await getCompanyAddressFromCoordinates(lat, lng);
+  });
+  
+  // Agregar control de búsqueda para la compañía
+  addCompanySearchControl();
+}
+
 // Función para buscar ubicación
 async function searchLocation(query: string) {
   try {
@@ -237,6 +304,92 @@ async function searchLocation(query: string) {
     }
   } catch (error) {
     console.error('Error buscando ubicación:', error);
+  }
+}
+
+// Función para agregar control de búsqueda para la compañía
+function addCompanySearchControl() {
+  if (!companyMap) return;
+  
+  // Crear control de búsqueda personalizado para la compañía
+  const companySearchControl = L.Control.extend({
+    options: {
+      position: 'topleft'
+    },
+    
+    onAdd: function() {
+      const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+      container.innerHTML = `
+        <div style="background: white; padding: 10px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.4);">
+          <input type="text" id="company-search-input" placeholder="Buscar ubicación de compañía..." 
+                 style="width: 200px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+          <button type="button" id="company-search-btn" style="margin-left: 5px; padding: 5px 10px; background: var(--color-primary); color: white; border: none; border-radius: 3px; cursor: pointer;">
+            Buscar
+          </button>
+        </div>
+      `;
+      
+      const searchInput = container.querySelector('#company-search-input') as HTMLInputElement;
+      const searchBtn = container.querySelector('#company-search-btn') as HTMLButtonElement;
+      
+      // Evento de búsqueda para la compañía
+      const performSearch = async (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const query = searchInput.value.trim();
+        if (query) {
+          await searchCompanyLocation(query);
+        }
+      };
+      
+      searchBtn.addEventListener('click', performSearch);
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          performSearch(e);
+        }
+      });
+      
+      return container;
+    }
+  });
+  
+  companyMap.addControl(new companySearchControl());
+}
+
+// Función para buscar ubicación de la compañía
+async function searchCompanyLocation(query: string) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+    const response = await fetch(
+      `/admin-auth/nominatim?url=${encodeURIComponent(url)}`
+    );
+    const data = await response.json();
+    
+    if (data.length > 0) {
+      const result = data[0];
+      const lat = parseFloat(result.lat);
+      const lng = parseFloat(result.lon);
+      
+      // Actualizar coordenadas de la compañía
+      user.value.company.address.coordinates.lat = lat;
+      user.value.company.address.coordinates.lng = lng;
+      
+      // Actualizar marcador de la compañía
+      if (companyMarker) {
+        companyMarker.setLatLng([lat, lng]);
+      } else {
+        companyMarker = L.marker([lat, lng]).addTo(companyMap!);
+      }
+      
+      // Centrar mapa de la compañía
+      companyMap!.setView([lat, lng], 15);
+      
+      // Obtener dirección detallada de la compañía
+      await getCompanyAddressFromCoordinates(lat, lng);
+    }
+  } catch (error) {
+    console.error('Error buscando ubicación de compañía:', error);
   }
 }
 
@@ -295,6 +448,64 @@ async function getAddressFromCoordinates(lat: number, lng: number) {
     }
   } catch (error) {
     console.error('Error obteniendo dirección:', error);
+  }
+}
+
+// Función para obtener dirección completa de la compañía desde coordenadas
+async function getCompanyAddressFromCoordinates(lat: number, lng: number) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+    const response = await fetch(
+      `/admin-auth/nominatim?url=${encodeURIComponent(url)}`
+    );
+    const data = await response.json();
+    
+    if (data.address) {
+      const address = data.address;
+      
+      // Extraer y asignar todos los campos de dirección de la compañía automáticamente
+      user.value.company.address.address = [
+        address.house_number,
+        address.road,
+        address.suburb
+      ].filter(Boolean).join(' ');
+      
+      user.value.company.address.city = address.city || address.town || address.village || address.county || '';
+      user.value.company.address.state = address.state || address.province || '';
+      
+      // Extraer state code de manera más robusta para la compañía
+      let stateCode = address.state_code || address['ISO3166-2-lvl4'] || '';
+      
+      // Si no hay state code directo, intentar generarlo
+      if (!stateCode && (address.state || address.province)) {
+        const stateName = address.state || address.province;
+        const country = address.country_code?.toUpperCase() || '';
+        
+        // Para Estados Unidos, generar códigos de estado comunes
+        if (country === 'US') {
+          stateCode = generateUSStateCode(stateName);
+        }
+        // Para otros países, tomar las primeras 2 letras del estado en mayúsculas
+        else if (stateName.length >= 2) {
+          stateCode = stateName.substring(0, 2).toUpperCase();
+        }
+      }
+      
+      user.value.company.address.stateCode = stateCode;
+      user.value.company.address.postalCode = address.postcode || '';
+      user.value.company.address.country = address.country || '';
+      
+      console.log('Dirección de compañía extraída del mapa:', {
+        address: user.value.company.address.address,
+        city: user.value.company.address.city,
+        state: user.value.company.address.state,
+        stateCode: user.value.company.address.stateCode,
+        country: user.value.company.address.country,
+        postalCode: user.value.company.address.postalCode
+      });
+    }
+  } catch (error) {
+    console.error('Error obteniendo dirección de compañía:', error);
   }
 }
 
@@ -502,7 +713,7 @@ function validateStep() {
     // Paso 2
     ['phone', 'username', 'password', 'birthDate', 'bloodGroup', 'height'],
     // Paso 3
-    ['weight', 'eyeColor', 'hair.color', 'hair.type', 'address.address', 'address.city'],
+    ['weight', 'eyeColor', 'hair.color', 'hair.type'],
     // Paso 4
     ['address.state', 'address.stateCode', 'address.postalCode', 'address.country', 'address.coordinates.lat', 'address.coordinates.lng', 'ip', 'macAddress'],
     // Paso 5
@@ -546,6 +757,12 @@ function nextStep() {
         initMap();
       });
     }
+    // Inicializar mapa de la compañía cuando llegamos al paso 6
+    if (step.value === 6) {
+      nextTick(() => {
+        initCompanyMap();
+      });
+    }
   }
 }
 function prevStep() {
@@ -558,78 +775,142 @@ function mapUserToBackend(user: any) {
     // Si viene en formato ISO, recorta a YYYY-MM-DD
     fecha_nacimiento = fecha_nacimiento.slice(0, 10);
   }
-  return {
-    email: user.email,
-    type: user.type,
-    status: user.status,
-    nombre: user.firstName,
-    apellido: user.lastName,
-    segundo_apellido: user.maidenName,
-    edad: user.age,
-    genero: user.gender,
-    telefono: user.phone,
-    username: user.username,
-    fecha_nacimiento,
-    imagen: user.image,
-    grupo_sanguineo: user.bloodGroup,
-    altura: user.height,
-    peso: user.weight,
-    color_ojos: user.eyeColor,
-    pelo_color: user.hair?.color,
-    pelo_tipo: user.hair?.type,
-    ip: user.ip,
-    direccion: user.address?.address,
-    ciudad: user.address?.city,
-    estado: user.address?.state,
-    estado_code: user.address?.stateCode,
-    pais: user.address?.country,
-    codigo_postal: user.address?.postalCode,
-    coord_lat: user.address?.coordinates?.lat,
-    coord_lng: user.address?.coordinates?.lng,
-    mac: user.macAddress,
-    universidad: user.university,
-    banco_tipo_tarjeta: user.bank?.cardType,
-    banco_numero_tarjeta: user.bank?.cardNumber,
-    banco_expiracion: user.bank?.cardExpire,
-    banco_iban: user.bank?.iban,
-    banco_moneda: user.bank?.currency,
-    compania_nombre: user.company?.name,
-    compania_departamento: user.company?.department,
-    compania_titulo: user.company?.title,
-    compania_direccion: user.company?.address?.address,
-    compania_ciudad: user.company?.address?.city,
-    compania_estado: user.company?.address?.state,
-    compania_estado_code: user.company?.address?.stateCode,
-    compania_pais: user.company?.address?.country,
-    compania_codigo_postal: user.company?.address?.postalCode,
-    compania_coord_lat: user.company?.address?.coordinates?.lat,
-    compania_coord_lng: user.company?.address?.coordinates?.lng,
-    ein: user.ein,
-    ssn: user.ssn,
-    user_agent: user.userAgent,
-    cripto_moneda: user.crypto?.coin,
-    cripto_wallet: user.crypto?.wallet,
-    cripto_network: user.crypto?.network,
-    password: user.password ? user.password : undefined // solo si se modificó
+  
+  // Función helper para validar y limpiar valores
+  const cleanValue = (value: any, isImage = false) => {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value === 'string' && value.trim() === '') return undefined;
+    
+    // Manejo especial para imágenes
+    if (isImage && typeof value === 'string') {
+      // Si es una URL muy larga (posiblemente base64), mantenerla completa
+      // ya que cambiaremos la columna a TEXT
+      if (value.startsWith('data:image/') || value.length > 500) {
+        // Para base64 o URLs muy largas, truncar a un tamaño razonable
+        // pero manteniendo el formato válido
+        if (value.startsWith('data:image/')) {
+          return value; // Mantener base64 completo después de la migración
+        }
+      }
+      return value;
+    }
+    
+    if (typeof value === 'string' && value.length > 1000) {
+      // Truncar strings muy largos (excepto imágenes)
+      return value.slice(0, 1000);
+    }
+    return value;
   };
+  
+  const payload: any = {};
+  
+  // Solo agregar campos con valores válidos
+  if (cleanValue(user.email)) payload.email = cleanValue(user.email);
+  if (cleanValue(user.type)) payload.type = cleanValue(user.type);
+  if (cleanValue(user.status)) payload.status = cleanValue(user.status);
+  if (cleanValue(user.firstName)) payload.nombre = cleanValue(user.firstName);
+  if (cleanValue(user.lastName)) payload.apellido = cleanValue(user.lastName);
+  if (cleanValue(user.maidenName)) payload.segundo_apellido = cleanValue(user.maidenName);
+  if (cleanValue(user.age)) payload.edad = cleanValue(user.age);
+  if (cleanValue(user.gender)) payload.genero = cleanValue(user.gender);
+  if (cleanValue(user.phone)) payload.telefono = cleanValue(user.phone);
+  if (cleanValue(user.username)) payload.username = cleanValue(user.username);
+  if (cleanValue(fecha_nacimiento)) payload.fecha_nacimiento = cleanValue(fecha_nacimiento);
+  if (cleanValue(user.image, true)) payload.imagen = cleanValue(user.image, true);
+  if (cleanValue(user.bloodGroup)) payload.grupo_sanguineo = cleanValue(user.bloodGroup);
+  if (cleanValue(user.height)) payload.altura = cleanValue(user.height);
+  if (cleanValue(user.peso)) payload.peso = cleanValue(user.weight);
+  if (cleanValue(user.eyeColor)) payload.color_ojos = cleanValue(user.eyeColor);
+  if (cleanValue(user.hair?.color)) payload.pelo_color = cleanValue(user.hair.color);
+  if (cleanValue(user.hair?.type)) payload.pelo_tipo = cleanValue(user.hair.type);
+  if (cleanValue(user.ip)) payload.ip = cleanValue(user.ip);
+  if (cleanValue(user.address?.address)) payload.direccion = cleanValue(user.address.address);
+  if (cleanValue(user.address?.city)) payload.ciudad = cleanValue(user.address.city);
+  if (cleanValue(user.address?.state)) payload.estado = cleanValue(user.address.state);
+  if (cleanValue(user.address?.stateCode)) payload.estado_code = cleanValue(user.address.stateCode);
+  if (cleanValue(user.address?.country)) payload.pais = cleanValue(user.address.country);
+  if (cleanValue(user.address?.postalCode)) payload.codigo_postal = cleanValue(user.address.postalCode);
+  if (cleanValue(user.address?.coordinates?.lat)) payload.coord_lat = cleanValue(user.address.coordinates.lat);
+  if (cleanValue(user.address?.coordinates?.lng)) payload.coord_lng = cleanValue(user.address.coordinates.lng);
+  if (cleanValue(user.macAddress)) payload.mac = cleanValue(user.macAddress);
+  if (cleanValue(user.university)) payload.universidad = cleanValue(user.university);
+  if (cleanValue(user.bank?.cardType)) payload.banco_tipo_tarjeta = cleanValue(user.bank.cardType);
+  if (cleanValue(user.bank?.cardNumber)) payload.banco_numero_tarjeta = cleanValue(user.bank.cardNumber);
+  if (cleanValue(user.bank?.cardExpire)) payload.banco_expiracion = cleanValue(user.bank.cardExpire);
+  if (cleanValue(user.bank?.iban)) payload.banco_iban = cleanValue(user.bank.iban);
+  if (cleanValue(user.bank?.currency)) payload.banco_moneda = cleanValue(user.bank.currency);
+  if (cleanValue(user.company?.name)) payload.compania_nombre = cleanValue(user.company.name);
+  if (cleanValue(user.company?.department)) payload.compania_departamento = cleanValue(user.company.department);
+  if (cleanValue(user.company?.title)) payload.compania_titulo = cleanValue(user.company.title);
+  if (cleanValue(user.company?.address?.address)) payload.compania_direccion = cleanValue(user.company.address.address);
+  if (cleanValue(user.company?.address?.city)) payload.compania_ciudad = cleanValue(user.company.address.city);
+  if (cleanValue(user.company?.address?.state)) payload.compania_estado = cleanValue(user.company.address.state);
+  if (cleanValue(user.company?.address?.stateCode)) payload.compania_estado_code = cleanValue(user.company.address.stateCode);
+  if (cleanValue(user.company?.address?.country)) payload.compania_pais = cleanValue(user.company.address.country);
+  if (cleanValue(user.company?.address?.postalCode)) payload.compania_codigo_postal = cleanValue(user.company.address.postalCode);
+  if (cleanValue(user.company?.address?.coordinates?.lat)) payload.compania_coord_lat = cleanValue(user.company.address.coordinates.lat);
+  if (cleanValue(user.company?.address?.coordinates?.lng)) payload.compania_coord_lng = cleanValue(user.company.address.coordinates.lng);
+  if (cleanValue(user.ein)) payload.ein = cleanValue(user.ein);
+  if (cleanValue(user.ssn)) payload.ssn = cleanValue(user.ssn);
+  if (cleanValue(user.userAgent)) payload.user_agent = cleanValue(user.userAgent);
+  if (cleanValue(user.crypto?.coin)) payload.cripto_moneda = cleanValue(user.crypto.coin);
+  if (cleanValue(user.crypto?.wallet)) payload.cripto_wallet = cleanValue(user.crypto.wallet);
+  if (cleanValue(user.crypto?.network)) payload.cripto_network = cleanValue(user.crypto.network);
+  if (cleanValue(user.password)) payload.password = cleanValue(user.password);
+  
+  return payload;
 }
 
 async function saveProfile() {
-  if (!isStepValid.value) return;
+  console.log('🚀 Iniciando saveProfile()');
+  
+  if (!isStepValid.value) {
+    console.log('❌ Step no válido:', step.value);
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Datos incompletos',
+      text: 'Por favor, completa todos los campos requeridos antes de guardar.'
+    });
+    return;
+  }
+  
   const id = localStorage.getItem('id');
   const token = localStorage.getItem('token');
-  if (!id || !token) return;
+  
+  console.log('📋 Datos de autenticación:');
+  console.log('  - ID:', id);
+  console.log('  - Token presente:', !!token);
+  
+  if (!id || !token) {
+    console.log('❌ Faltan datos de autenticación');
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error de autenticación',
+      text: 'No se encontraron los datos de autenticación. Por favor, inicia sesión nuevamente.'
+    });
+    return;
+  }
+  
   try {
     // Si hay un archivo seleccionado, subirlo primero
     if (selectedFile.value) {
+      console.log('📁 Subiendo archivo:', selectedFile.value.name);
       const uploadedUrl = await uploadFile();
       if (uploadedUrl) {
         user.value.image = uploadedUrl;
+        console.log('✅ Archivo subido exitosamente:', uploadedUrl);
+      } else {
+        console.log('❌ Error al subir archivo');
       }
     }
     
     const payload = mapUserToBackend(user.value);
-    const res = await fetch(`/admin-auth/user/${id}`, {
+    console.log('📤 Payload a enviar:', payload);
+    
+    const url = `/admin-auth/user/${id}`;
+    console.log('🌐 URL de petición:', url);
+    
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -637,22 +918,38 @@ async function saveProfile() {
       },
       body: JSON.stringify(payload)
     });
+    
+    console.log('📨 Respuesta del servidor:');
+    console.log('  - Status:', res.status);
+    console.log('  - Status Text:', res.statusText);
+    console.log('  - OK:', res.ok);
+    
+    const responseData = await res.json();
+    console.log('📄 Datos de respuesta:', responseData);
+    
     if (res.ok) {
+      console.log('✅ Perfil guardado exitosamente');
       await Swal.fire({
         icon: 'success',
         title: 'Perfil guardado',
         text: 'Tus datos han sido actualizados correctamente.'
       });
-      window.location.reload();
+      
+      // Redirigir al inicio (paso 1) después de guardar
+      step.value = 1;
+      
+      // Opcional: también recargar los datos del usuario
+      // window.location.reload();
     } else {
-      const data = await res.json();
+      console.log('❌ Error del servidor:', responseData);
       await Swal.fire({
         icon: 'error',
         title: 'Error al guardar',
-        text: data.error || 'Error desconocido'
+        text: responseData.error || 'Error desconocido'
       });
     }
   } catch (e) {
+    console.log('💥 Error de excepción:', e);
     await Swal.fire({
       icon: 'error',
       title: 'Error',
@@ -911,16 +1208,7 @@ onMounted(async () => {
             <input v-model="user.hair.type" class="form-input" />
             <span class="error-message" v-if="errors['hair.type']">{{ errors['hair.type'] }}</span>
           </div>
-          <div class="form-group">
-            <label class="form-label">Dirección</label>
-            <input v-model="user.address.address" class="form-input" />
-            <span class="error-message" v-if="errors['address.address']">{{ errors['address.address'] }}</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Ciudad</label>
-            <input v-model="user.address.city" class="form-input" />
-            <span class="error-message" v-if="errors['address.city']">{{ errors['address.city'] }}</span>
-          </div>
+          <!-- Dirección y ciudad se extraen automáticamente del mapa en el paso 4 -->
         </div>
       </div>
 
@@ -930,8 +1218,13 @@ onMounted(async () => {
         <div class="map-container">
           <div id="map" class="map"></div>
           <div class="map-actions">
-            <button type="button" class="info-btn" @click="showModal = true">
-              Ver información de ubicación
+            <button 
+              type="button" 
+              class="info-btn" 
+              @click="showModal = true"
+              style="background: #e74c3c !important; color: white !important; font-size: 16px !important; font-weight: bold !important; padding: 1rem 2rem !important; border: 3px solid #c0392b !important;"
+            >
+              🗺️ Ver información de ubicación
             </button>
           </div>
         </div>
@@ -1024,33 +1317,128 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Paso 6: Profesional y bancaria 2/3 -->
-      <div v-if="step === 6" class="form-step">
-        <h2 class="step-title">Profesional y bancaria (2/3)</h2>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Compañía</label>
-            <input v-model="user.company.name" class="form-input" />
+      <!-- Paso 6: Ubicación de la Compañía con mapa -->
+      <div v-if="step === 6" class="map-step">
+        <h2 class="step-title">Ubicación de la Compañía</h2>
+        <div class="company-info-section">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Compañía</label>
+              <input v-model="user.company.name" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Departamento</label>
+              <input v-model="user.company.department" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Título</label>
+              <input v-model="user.company.title" class="form-input" />
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Departamento</label>
-            <input v-model="user.company.department" class="form-input" />
+        </div>
+        
+        <div class="map-container">
+          <div id="company-map" class="map"></div>
+          <div class="map-actions">
+            <button 
+              type="button" 
+              class="info-btn" 
+              @click="showCompanyModal = true"
+              style="background: #27ae60 !important; color: white !important; font-size: 16px !important; font-weight: bold !important; padding: 1rem 2rem !important; border: 3px solid #229954 !important;"
+            >
+              🏢 Ver información de ubicación de compañía
+            </button>
           </div>
-          <div class="form-group">
-            <label class="form-label">Título</label>
-            <input v-model="user.company.title" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Dirección Compañía</label>
-            <input v-model="user.company.address.address" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Ciudad Compañía</label>
-            <input v-model="user.company.address.city" class="form-input" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Estado Compañía</label>
-            <input v-model="user.company.address.state" class="form-input" />
+        </div>
+        
+        <!-- Modal de información de compañía -->
+        <div v-if="showCompanyModal" class="modal-overlay" @click.self="showCompanyModal = false">
+          <div class="modal-content">
+            <h2 class="modal-title">📍 Información de ubicación de compañía</h2>
+            
+            <!-- Información básica de la compañía -->
+            <div class="company-basic-info">
+              <div class="info-group">
+                <label class="info-label">🏢 Compañía</label>
+                <div class="readonly-field">{{ user.company.name || 'No especificada' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">🏬 Departamento</label>
+                <div class="readonly-field">{{ user.company.department || 'No especificado' }}</div>
+              </div>
+              <div class="info-group">
+                <label class="info-label">💼 Título/Cargo</label>
+                <div class="readonly-field">{{ user.company.title || 'No especificado' }}</div>
+              </div>
+            </div>
+            
+            <div class="modal-divider"></div>
+            
+            <!-- Coordenadas del mapa -->
+            <div class="coordinates-section">
+              <h3 class="section-subtitle">🗺️ Coordenadas del mapa</h3>
+              <div class="coordinates-grid">
+                <div class="info-group">
+                  <label class="info-label">Latitud</label>
+                  <div class="readonly-field coordinate-value">{{ user.company.address.coordinates.lat || 'No seleccionada' }}</div>
+                </div>
+                <div class="info-group">
+                  <label class="info-label">Longitud</label>
+                  <div class="readonly-field coordinate-value">{{ user.company.address.coordinates.lng || 'No seleccionada' }}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="modal-divider"></div>
+            
+            <!-- Información de dirección -->
+            <div class="address-section">
+              <h3 class="section-subtitle">🏠 Dirección completa</h3>
+              <div class="modal-grid">
+                <div class="info-group">
+                  <label class="info-label">Dirección</label>
+                  <input v-model="user.company.address.address" class="form-input" placeholder="Dirección manual o seleccionada" />
+                </div>
+                <div class="info-group">
+                  <label class="info-label">Ciudad</label>
+                  <div class="readonly-field">{{ user.company.address.city || 'No seleccionada' }}</div>
+                </div>
+                <div class="info-group">
+                  <label class="info-label">Estado/Provincia</label>
+                  <div class="readonly-field">{{ user.company.address.state || 'No seleccionado' }}</div>
+                </div>
+                <div class="info-group">
+                  <label class="info-label">Código de Estado</label>
+                  <input 
+                    v-model="user.company.address.stateCode" 
+                    placeholder="Se extrae automáticamente" 
+                    class="form-input auto-field"
+                    title="Este campo se completa automáticamente al seleccionar una ubicación en el mapa"
+                  />
+                  <small class="field-hint">💡 Se completa automáticamente al hacer clic en el mapa</small>
+                </div>
+                <div class="info-group">
+                  <label class="info-label">Código postal</label>
+                  <input v-model="user.company.address.postalCode" class="form-input" placeholder="Código postal manual o seleccionado" />
+                </div>
+                <div class="info-group">
+                  <label class="info-label">País</label>
+                  <div class="readonly-field">{{ user.company.address.country || 'No seleccionado' }}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Instrucciones de uso -->
+            <div class="usage-instructions">
+              <p class="instruction-text">
+                💡 <strong>Instrucciones:</strong> Haz clic en el mapa o usa la búsqueda para seleccionar la ubicación de tu compañía. 
+                Los datos se extraerán automáticamente y puedes editarlos si es necesario.
+              </p>
+            </div>
+            
+            <div class="modal-actions">
+              <button type="button" class="close-btn" @click="showCompanyModal = false">Cerrar</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1154,6 +1542,9 @@ onMounted(async () => {
   background: var(--color-background);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .page-title {
@@ -1170,10 +1561,15 @@ onMounted(async () => {
   border-radius: 8px;
   padding: 2rem;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .form-step, .map-step, .confirmation-step {
   margin-bottom: 2rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .step-title {
@@ -1284,49 +1680,81 @@ onMounted(async () => {
 }
 
 .map-step {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
-  height: calc(100vh - 300px);
+  height: auto;
   min-height: 500px;
+  width: 100%;
+  box-sizing: border-box;
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.company-info-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid var(--color-background);
 }
 
 .map-container {
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 1rem;
+  gap: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border: 2px solid var(--color-background, #ecf0f1);
+  border-radius: 8px;
+  background: white;
 }
 
 .map {
   flex: 1;
   min-height: 400px;
-  border-radius: 8px;
-  border: 2px solid var(--color-background);
+  border-radius: 8px 8px 0 0;
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
   max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .map-actions {
   display: flex;
   justify-content: center;
-  padding: 0.5rem 0;
+  padding: 1rem 0;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid #e0e0e0;
+  margin-top: 0.5rem;
+  border-radius: 0 0 8px 8px;
 }
 
 .info-btn {
   padding: 0.8rem 2rem;
-  background: var(--color-primary);
+  background: var(--color-primary, #2c3e50);
   color: white;
   border: none;
   border-radius: 8px;
-  font-family: var(--font-paragraph-family);
-  font-size: var(--font-paragraph-size);
+  font-family: var(--font-paragraph-family, Arial, sans-serif);
+  font-size: var(--font-paragraph-size, 1rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-block;
+  text-align: center;
+  min-width: 200px;
+  box-sizing: border-box;
 }
 
 .info-btn:hover {
-  background: var(--color-secondary);
+  background: var(--color-secondary, #3498db);
   transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .modal-overlay {
@@ -1394,6 +1822,81 @@ onMounted(async () => {
   font-size: 0.85rem;
   color: var(--color-secondary);
   font-style: italic;
+}
+
+/* Estilos para el modal de compañía mejorado */
+.company-basic-info {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--color-secondary);
+  margin-bottom: 1rem;
+}
+
+.modal-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-background), transparent);
+  margin: 1.5rem 0;
+}
+
+.section-subtitle {
+  font-family: var(--font-subtitle-family);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-background);
+}
+
+.coordinates-section {
+  margin-bottom: 1rem;
+}
+
+.coordinates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.coordinate-value {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--color-secondary);
+  background: #e3f2fd;
+  border-color: var(--color-secondary);
+}
+
+.address-section {
+  margin-bottom: 1rem;
+}
+
+.auto-field {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffffff 100%);
+  border-left: 3px solid #ff9800;
+}
+
+.usage-instructions {
+  background: #e8f5e8;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+  margin: 1.5rem 0;
+}
+
+.instruction-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #2e7d32;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-background);
 }
 
 .close-btn {
@@ -1582,8 +2085,16 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .container {
-    margin: 1rem;
+    margin: 0.5rem;
+    padding: 0.5rem;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .profile-form {
     padding: 1rem;
+    margin: 0;
+    box-sizing: border-box;
   }
   
   .form-grid {
@@ -1598,15 +2109,152 @@ onMounted(async () => {
   
   .wizard-nav {
     flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 1rem 0;
+  }
+  
+  .nav-btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
   
   .map-step {
-    height: calc(100vh - 200px);
-    min-height: 400px;
+    height: auto;
+    min-height: auto;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .map-container {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    min-height: 350px;
   }
   
   .map {
     min-height: 300px;
+    max-height: 400px;
+    width: 100%;
+    border-radius: 4px;
+  }
+  
+  .company-info-section {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+  }
+  
+  .step-title {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    padding: 1rem;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 2rem);
+    box-sizing: border-box;
+  }
+  
+  .modal-grid {
+    gap: 0.75rem;
+  }
+  
+  .coordinates-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .company-basic-info {
+    padding: 0.75rem;
+  }
+  
+  .usage-instructions {
+    padding: 0.75rem;
+    margin: 1rem 0;
+  }
+  
+  .info-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .map-actions {
+    padding: 1rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin: 0.25rem;
+    padding: 0.25rem;
+  }
+  
+  .profile-form {
+    padding: 0.75rem;
+  }
+  
+  .step-title {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+  
+  .company-info-section {
+    padding: 0.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-label {
+    font-size: 0.9rem;
+  }
+  
+  .form-input {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+  
+  .map {
+    min-height: 250px;
+    max-height: 300px;
+  }
+  
+  .modal-content {
+    margin: 0.5rem;
+    padding: 0.75rem;
+  }
+  
+  .modal-title {
+    font-size: 1.1rem;
+  }
+  
+  .section-subtitle {
+    font-size: 1rem;
+  }
+  
+  .company-basic-info {
+    padding: 0.5rem;
+  }
+  
+  .usage-instructions {
+    padding: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  
+  .instruction-text {
+    font-size: 0.8rem;
+  }
+  
+  .info-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
   }
 }
 </style>

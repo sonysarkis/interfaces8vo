@@ -144,7 +144,7 @@ class AdminsModel {
                     pelo_color VARCHAR(30) DEFAULT NULL,
                     pelo_tipo VARCHAR(30) DEFAULT NULL,
                     ip VARCHAR(45) DEFAULT NULL,
-                    imagen VARCHAR(500) DEFAULT NULL,
+                    imagen TEXT DEFAULT NULL,
                     direccion VARCHAR(200) DEFAULT NULL,
                     ciudad VARCHAR(100) DEFAULT NULL,
                     estado VARCHAR(100) DEFAULT NULL,

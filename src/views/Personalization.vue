@@ -77,13 +77,13 @@
               </div>
             </div>
           </div>
-          <!-- Título -->
+          <!-- Tipografía Unificada -->
           <div class="card-body border-t border-text">
-            <h3 class="text-lg font-medium text-primary mb-2">Título</h3>
+            <h3 class="text-lg font-medium text-primary mb-2">Tipografía</h3>
             <div class="space-y-3">
               <div>
                 <label>Fuente</label>
-                <select v-model="fonts.title.family">
+                <select v-model="unifiedFont.family" @change="updateAllFonts">
                   <option value="Arial, sans-serif">Arial</option>
                   <option value="'Times New Roman', serif">Times New Roman</option>
                   <option value="'Courier New', monospace">Courier New</option>
@@ -92,59 +92,41 @@
                   <option v-for="font in uploadedFonts" :key="font.name" :value="font.name">{{ font.name }}</option>
                 </select>
               </div>
-              <div>
-                <label>Tamaño (px)</label>
-                <div class="flex items-center gap-4">
-                  <input type="range" v-model="fonts.title.size" min="24" max="48" step="1" class="flex-1" />
-                  <span class="text-sm text-text w-16">{{ fonts.title.size }}px</span>
+              
+              <!-- Tamaños de texto -->
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label>Título (px)</label>
+                  <input 
+                    type="number" 
+                    v-model.number="fonts.title.size" 
+                    min="20" 
+                    max="60" 
+                    step="1"
+                    class="text-center"
+                  />
                 </div>
-              </div>
-            </div>
-          </div>
-          <!-- Subtítulo -->
-          <div class="card-body border-t border-text">
-            <h3 class="text-lg font-medium text-primary mb-2">Subtítulo</h3>
-            <div class="space-y-3">
-              <div>
-                <label>Fuente</label>
-                <select v-model="fonts.subtitle.family">
-                  <option value="Arial, sans-serif">Arial</option>
-                  <option value="'Times New Roman', serif">Times New Roman</option>
-                  <option value="'Courier New', monospace">Courier New</option>
-                  <option value="Georgia, serif">Georgia</option>
-                  <option value="Verdana, sans-serif">Verdana</option>
-                  <option v-for="font in uploadedFonts" :key="font.name" :value="font.name">{{ font.name }}</option>
-                </select>
-              </div>
-              <div>
-                <label>Tamaño (px)</label>
-                <div class="flex items-center gap-4">
-                  <input type="range" v-model="fonts.subtitle.size" min="18" max="32" step="1" class="flex-1" />
-                  <span class="text-sm text-text w-16">{{ fonts.subtitle.size }}px</span>
+                <div>
+                  <label>Subtítulo (px)</label>
+                  <input 
+                    type="number" 
+                    v-model.number="fonts.subtitle.size" 
+                    min="14" 
+                    max="40" 
+                    step="1"
+                    class="text-center"
+                  />
                 </div>
-              </div>
-            </div>
-          </div>
-          <!-- Texto -->
-          <div class="card-body border-t border-text">
-            <h3 class="text-lg font-medium text-primary mb-2">Texto</h3>
-            <div class="space-y-3">
-              <div>
-                <label>Fuente</label>
-                <select v-model="fonts.body.family">
-                  <option value="Arial, sans-serif">Arial</option>
-                  <option value="'Times New Roman', serif">Times New Roman</option>
-                  <option value="'Courier New', monospace">Courier New</option>
-                  <option value="Georgia, serif">Georgia</option>
-                  <option value="Verdana, sans-serif">Verdana</option>
-                  <option v-for="font in uploadedFonts" :key="font.name" :value="font.name">{{ font.name }}</option>
-                </select>
-              </div>
-              <div>
-                <label>Tamaño (px)</label>
-                <div class="flex items-center gap-4">
-                  <input type="range" v-model="fonts.body.size" min="12" max="20" step="1" class="flex-1" />
-                  <span class="text-sm text-text w-16">{{ fonts.body.size }}px</span>
+                <div>
+                  <label>Texto (px)</label>
+                  <input 
+                    type="number" 
+                    v-model.number="fonts.body.size" 
+                    min="10" 
+                    max="24" 
+                    step="1"
+                    class="text-center"
+                  />
                 </div>
               </div>
             </div>
@@ -199,8 +181,8 @@
                   <div class="h-8 rounded" :style="{ backgroundColor: style.colors.text }"></div>
                 </div>
                 <div class="text-sm text-text">
-                  <div>Fuente Principal: {{ style.fonts.title.family }}</div>
-                  <div>Tamaño Base: {{ style.fonts.body.size }}px</div>
+                  <div>Tipografía: {{ style.fonts.title.family }}</div>
+                  <div>Tamaños: {{ style.fonts.title.size }}px / {{ style.fonts.subtitle.size }}px / {{ style.fonts.body.size }}px</div>
                 </div>
               </div>
             </div>
@@ -319,6 +301,10 @@ const fonts = reactive({
   body: { family: 'Inter', size: 16, weight: '400' }
 })
 
+const unifiedFont = reactive({
+  family: 'Inter'
+})
+
 const colorLabels = {
   primary: 'Color 1',
   secondary: 'Color 2',
@@ -328,6 +314,12 @@ const colorLabels = {
 }
 
 const fontFileInput = ref<HTMLInputElement | null>(null)
+
+function updateAllFonts() {
+  fonts.title.family = unifiedFont.family
+  fonts.subtitle.family = unifiedFont.family
+  fonts.body.family = unifiedFont.family
+}
 
 onMounted(async () => {
   await loadSavedStyles()
@@ -400,6 +392,8 @@ async function applyStyle(style: SavedStyle) {
   Object.assign(fonts.title, style.fonts.title)
   Object.assign(fonts.subtitle, style.fonts.subtitle)
   Object.assign(fonts.body, style.fonts.body)
+  // Actualizar la tipografía unificada con la del título
+  unifiedFont.family = style.fonts.title.family
   try {
     const res = await fetch('/styles/apply', {
       method: 'POST',
@@ -444,6 +438,9 @@ async function saveStyle() {
     })
     return
   }
+  // Asegurar que todas las tipografías usen la fuente unificada
+  updateAllFonts()
+  
   const style = {
     name: newStyleName.value,
     primary: colors.primary,
@@ -451,13 +448,13 @@ async function saveStyle() {
     accent: colors.accent,
     background: colors.background,
     text: colors.text,
-    familyTitle: fonts.title.family,
+    familyTitle: unifiedFont.family,
     sizeTitle: fonts.title.size,
     weightTitle: fonts.title.weight,
-    familySubtitle: fonts.subtitle.family,
+    familySubtitle: unifiedFont.family,
     sizeSubtitle: fonts.subtitle.size,
     weightSubtitle: fonts.subtitle.weight,
-    familyBody: fonts.body.family,
+    familyBody: unifiedFont.family,
     sizeBody: fonts.body.size,
     weightBody: fonts.body.weight
   }
@@ -749,7 +746,7 @@ input[type="color"] {
   cursor: pointer;
 }
 
-input[type="text"], select {
+input[type="text"], input[type="number"], select {
   width: 100%;
   padding: 0.75rem;
   border: 1.5px solid var(--color-primary);
@@ -761,9 +758,27 @@ input[type="text"], select {
   margin-bottom: 0.5rem;
   transition: border-color 0.2s;
 }
-input[type="text"]:focus, select:focus {
+input[type="text"]:focus, input[type="number"]:focus, select:focus {
   outline: none;
   border-color: var(--color-secondary);
+}
+
+/* Estilos específicos para inputs numéricos */
+input[type="number"].text-center {
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Ocultar spinners en Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Ocultar spinners en Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 input[type="range"] {
@@ -846,11 +861,13 @@ button:hover, .btn:hover {
 .flex-none { flex: none; }
 .items-center { align-items: center; }
 .justify-between { justify-content: space-between; }
+.text-center { text-align: center; }
 .w-full { width: 100%; }
 .w-16 { width: 4rem; }
 .h-8 { height: 2rem; }
 .h-10 { height: 2.5rem; }
 .grid { display: grid; }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
 .lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
 .overflow-y-auto { overflow-y: auto; }
