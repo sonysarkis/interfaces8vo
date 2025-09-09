@@ -63,7 +63,7 @@ const handleSelectChange = () => {
   <nav class="navbar">
     <div class="navbar-container">
       <div class="logo">
-        <a @click="handleNavClick('inicio')" class="logo-text">Landing</a>
+        <a @click="handleNavClick('inicio')" class="logo-text">Ø=Þ</a>
       </div>
       <button class="hamburger" @click="toggleMenu" aria-label="Abrir menú">
         <span :class="{ open: isMenuOpen }"></span>
@@ -135,17 +135,22 @@ const handleSelectChange = () => {
 }
 
 .logo-text {
-  font-size: var(--font-title-size);
+  font-size: 2.5rem;
   font-family: var(--font-title-family);
   font-weight: var(--font-title-weight);
   color: var(--color-primary);
   text-decoration: none;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
+  display: inline-block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  user-select: none;
 }
 
 .logo-text:hover {
-  color: var(--color-accent);
+  color: var(--color-secondary);
+  transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .nav-links {
@@ -267,6 +272,10 @@ const handleSelectChange = () => {
     gap: 1rem;
   }
   
+  .logo-text {
+    font-size: var(--font-subtitle-size);
+  }
+  
   .hamburger {
     display: flex;
     position: absolute;
@@ -298,6 +307,17 @@ const handleSelectChange = () => {
   
   .select-container {
     width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: var(--font-body-size);
+    font-size: calc(var(--font-body-size) * 1.8);
+  }
+  
+  .navbar-container {
+    padding: 0.75rem;
   }
 }
 </style> 

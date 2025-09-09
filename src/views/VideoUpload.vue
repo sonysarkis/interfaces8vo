@@ -131,6 +131,7 @@
                  controls 
                  class="video-card-player"
                  preload="metadata"
+                 :muted="false"
                  @loadedmetadata="onVideoLoaded(idx)"
                >
             <source :src="video.src" :type="video.file.type" />
@@ -157,6 +158,7 @@
                    <select 
                      @change="changeAudioTrack(idx, $event)"
                      class="audio-track-select"
+                     :value="currentAudioTracks[idx] || 'original'"
                    >
                      <option value="original">Original</option>
                      <option v-if="video.audio1" value="audio1">{{ video.audio1.name }}</option>
@@ -303,20 +305,19 @@
                   <div class="style-control">
                     <label class="style-label">
                       <span>Tamaño</span>
-                                              <select 
-                          :value="getSubtitleStyle(idx, 'fontSize')" 
-                          @change="e => updateSubtitleStyle(idx, 'fontSize', (e.target as HTMLSelectElement).value)" 
-                          class="style-select"
-                        >
-                <option value="16px">16px</option>
-                <option value="18px">18px</option>
-                <option value="20px">20px</option>
-                <option value="24px">24px</option>
-                <option value="28px">28px</option>
-                <option value="32px">32px</option>
-              </select>
-            </label>
-          </div>
+                      <select 
+                        :value="getSubtitleStyle(idx, 'fontSize')" 
+                        @change="e => updateSubtitleStyle(idx, 'fontSize', (e.target as HTMLSelectElement).value)" 
+                        class="style-select"
+                      >
+                        <option :value="`calc(${getCSSVariable('--font-body-size', '1rem')} * 0.8)`">Pequeño</option>
+                        <option :value="getCSSVariable('--font-body-size', '1rem')">Normal</option>
+                        <option :value="`calc(${getCSSVariable('--font-body-size', '1rem')} * 1.2)`">Mediano</option>
+                        <option :value="`calc(${getCSSVariable('--font-body-size', '1rem')} * 1.5)`">Grande</option>
+                        <option :value="`calc(${getCSSVariable('--font-body-size', '1rem')} * 2)`">Muy Grande</option>
+                      </select>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -358,6 +359,14 @@ const videoStore = useVideoCarouselStore()
 
 // Computed
 const hasVideos = computed(() => videoStore.userVideos.length > 0)
+
+// Helper function to get CSS variables
+function getCSSVariable(property: string, fallback: string = ''): string {
+  if (typeof window !== 'undefined') {
+    return getComputedStyle(document.documentElement).getPropertyValue(property).trim() || fallback
+  }
+  return fallback
+}
 
 // Methods
 function openFileDialog() {
@@ -579,14 +588,20 @@ function removeAudio(idx: number, num: number) {
 
 function getSubtitleStyle(idx: number, key: 'color' | 'fontSize'): string {
   if (!subtitleStyles.value[idx]) {
-    subtitleStyles.value[idx] = { color: '#ffffff', fontSize: '20px' }
+    // Usar variables CSS dinámicas como valores por defecto
+    const defaultColor = getCSSVariable('--color-text', '#ffffff')
+    const defaultFontSize = getCSSVariable('--font-body-size', '20px')
+    subtitleStyles.value[idx] = { color: defaultColor, fontSize: defaultFontSize }
   }
   return subtitleStyles.value[idx][key]
 }
 
 function updateSubtitleStyle(idx: number, key: 'color' | 'fontSize', value: string) {
   if (!subtitleStyles.value[idx]) {
-    subtitleStyles.value[idx] = { color: '#ffffff', fontSize: '20px' }
+    // Usar variables CSS dinámicas como valores por defecto
+    const defaultColor = getCSSVariable('--color-text', '#ffffff')
+    const defaultFontSize = getCSSVariable('--font-body-size', '20px')
+    subtitleStyles.value[idx] = { color: defaultColor, fontSize: defaultFontSize }
   }
   
   subtitleStyles.value[idx][key] = value
@@ -637,7 +652,8 @@ function formatFileSize(bytes: number): string {
 
 // Audio track management functions
 function hasMultipleAudioTracks(video: any): boolean {
-  return !!(video.audio1 || video.audio2)
+  // Siempre mostrar el selector si hay audio original o pistas adicionales
+  return !!(video.audio1 || video.audio2 || video.src)
 }
 
 function onVideoLoaded(idx: number) {
@@ -647,6 +663,13 @@ function onVideoLoaded(idx: number) {
     videoPlayers.value[idx] = videoEl
     // Initialize with original audio track
     currentAudioTracks.value[idx] = 'original'
+    
+    // Asegurar que el audio esté habilitado por defecto
+    videoEl.muted = false
+    videoEl.volume = 1.0
+    
+    // Aplicar estilos de subtítulos si existen
+    applySubtitleStyle(idx)
   }
 }
 
@@ -668,8 +691,13 @@ function changeAudioTrack(idx: number, event: Event) {
     const audioSources = videoEl.querySelectorAll('source[type^="audio/"]')
     audioSources.forEach(source => source.remove())
     
-    // Add selected audio track
-    if (selectedTrack === 'audio1' && video.audio1) {
+    // Handle audio track selection
+    if (selectedTrack === 'original') {
+      // Para audio original, no agregamos fuentes adicionales
+      // El video ya tiene su audio integrado
+      videoEl.muted = false
+      videoEl.volume = 1.0
+    } else if (selectedTrack === 'audio1' && video.audio1) {
       const audioSource = document.createElement('source')
       audioSource.src = video.audio1.src
       audioSource.type = video.audio1.type
@@ -684,11 +712,22 @@ function changeAudioTrack(idx: number, event: Event) {
     // Update current audio track
     currentAudioTracks.value[idx] = selectedTrack
     
-    // Reload video to apply new audio track
-    videoEl.load()
-    
-    // Restore playback position and state
-    videoEl.addEventListener('loadedmetadata', () => {
+    // Solo recargar si no es audio original
+    if (selectedTrack !== 'original') {
+      videoEl.load()
+      
+      // Restore playback position and state
+      videoEl.addEventListener('loadedmetadata', () => {
+        videoEl.currentTime = currentTime
+        if (wasPlaying) {
+          videoEl.play().catch(() => {
+            // Handle autoplay restrictions
+            console.log('Autoplay prevented')
+          })
+        }
+      }, { once: true })
+    } else {
+      // Para audio original, solo restaurar la posición
       videoEl.currentTime = currentTime
       if (wasPlaying) {
         videoEl.play().catch(() => {
@@ -696,7 +735,7 @@ function changeAudioTrack(idx: number, event: Event) {
           console.log('Autoplay prevented')
         })
       }
-    }, { once: true })
+    }
     
     showSuccess('Pista de audio cambiada', `Ahora reproduciendo: ${getAudioTrackName(selectedTrack, video)}`)
   }
@@ -754,8 +793,14 @@ function showInfo(title: string, text: string) {
 
 // Lifecycle
 onMounted(() => {
-  // Inicializar estilos de subtítulos
-  subtitleStyles.value = videoStore.userVideos.map(() => ({ color: '#ffffff', fontSize: '20px' }))
+  // Inicializar estilos de subtítulos con variables CSS dinámicas
+  const defaultColor = getCSSVariable('--color-text', '#ffffff')
+  const defaultFontSize = getCSSVariable('--font-body-size', '20px')
+  
+  subtitleStyles.value = videoStore.userVideos.map(() => ({ 
+    color: defaultColor, 
+    fontSize: defaultFontSize 
+  }))
 })
 </script>
 
@@ -1034,9 +1079,10 @@ onMounted(() => {
 }
 
 .control-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
+  font-weight: var(--font-subtitle-weight);
+  color: var(--color-primary);
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -1058,9 +1104,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  color: #4b5563;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
+  color: var(--color-text);
   cursor: pointer;
+  font-weight: var(--font-body-weight);
 }
 
 .control-input {
@@ -1092,25 +1140,53 @@ onMounted(() => {
 }
 
 .style-label {
-  font-size: 14px;
-  color: #4b5563;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
+  color: var(--color-text);
   margin-bottom: 8px;
+  font-weight: var(--font-body-weight);
 }
 
 .style-color-input {
   width: 100%;
   height: 40px;
   border-radius: 4px;
-  border: 1px solid #d1d5db;
+  border: 2px solid var(--color-primary);
   cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.style-color-input:hover {
+  border-color: var(--color-secondary);
+}
+
+.style-color-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .style-select {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 2px solid var(--color-primary);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.style-select:hover {
+  border-color: var(--color-secondary);
+}
+
+.style-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 /* Page Layout */

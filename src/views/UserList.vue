@@ -1,609 +1,510 @@
-<script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
-import { useRouter } from 'vue-router';
-// import 'datatables.net-dt/css/jquery.dataTables.css';
-// import 'datatables.net-buttons-dt/css/buttons.dataTables.css';
-import $ from 'jquery';
-import dt from 'datatables.net-dt';
-import dtButtons from 'datatables.net-buttons-dt';
-// import 'datatables.net-buttons/js/buttons.html5.js';
-// import 'datatables.net-buttons/js/buttons.print.js';
-import jszip from 'jszip';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-import Swal from 'sweetalert2';
-import logo from '@/assets/image.png';
-import * as XLSX from 'xlsx';
-
-pdfMake.vfs = pdfFonts.vfs;
-// @ts-ignore
-window.JSZip = jszip;
-
-const router = useRouter();
-
-const users = ref([]);
-
-function backendToUser(data) {
-  return {
-    id: data.id,
-    firstName: data.nombre || '',
-    lastName: data.apellido || '',
-    maidenName: data.segundo_apellido || '',
-    age: data.edad || '',
-    gender: data.genero || '',
-    email: data.email || '',
-    phone: data.telefono || '',
-    username: data.username || '',
-    password: '', // nunca mostrar la contraseña real
-    birthDate: data.fecha_nacimiento || '',
-    image: data.imagen || '',
-    bloodGroup: data.grupo_sanguineo || '',
-    height: data.altura || '',
-    weight: data.peso || '',
-    eyeColor: data.color_ojos || '',
-    hair: {
-      color: data.pelo_color || '',
-      type: data.pelo_tipo || ''
-    },
-    ip: data.ip || '',
-    address: {
-      address: data.direccion || '',
-      city: data.ciudad || '',
-      state: data.estado || '',
-      stateCode: data.estado_code || '',
-      postalCode: data.codigo_postal || '',
-      coordinates: {
-        lat: data.coord_lat ?? 0,
-        lng: data.coord_lng ?? 0
-      },
-      country: data.pais || ''
-    },
-    macAddress: data.mac || '',
-    university: data.universidad || '',
-    bank: {
-      cardExpire: data.banco_expiracion || '',
-      cardNumber: data.banco_numero_tarjeta || '',
-      cardType: data.banco_tipo_tarjeta || '',
-      currency: data.banco_moneda || '',
-      iban: data.banco_iban || ''
-    },
-    company: {
-      department: data.compania_departamento || '',
-      name: data.compania_nombre || '',
-      title: data.compania_titulo || '',
-      address: {
-        address: data.compania_direccion || '',
-        city: data.compania_ciudad || '',
-        state: data.compania_estado || '',
-        stateCode: data.compania_estado_code || '',
-        postalCode: data.compania_codigo_postal || '',
-        coordinates: {
-          lat: data.compania_coord_lat ?? 0,
-          lng: data.compania_coord_lng ?? 0
-        },
-        country: data.compania_pais || ''
-      }
-    },
-    ein: data.ein || '',
-    ssn: data.ssn || '',
-    userAgent: data.user_agent || '',
-    crypto: {
-      coin: data.cripto_moneda || '',
-      wallet: data.cripto_wallet || '',
-      network: data.cripto_network || ''
-    },
-    role: data.type || '',
-    disabled: data.status === 'inactive'
-  };
-}
-
-const selectedUser = ref(null);
-
-function showDetails(user: any) {
-  selectedUser.value = user;
-}
-
-function closeModal() {
-  selectedUser.value = null;
-}
-
-async function toggleUserStatus(id: number) {
-  const token = localStorage.getItem('token');
-  try {
-    const res = await fetch(`/admin-auth/user/${id}/status`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const user = users.value.find(u => u.id === id);
-      if (user) {
-        user.disabled = data.result.status === 'inactive';
-        Swal.fire({
-          icon: 'success',
-          title: user.disabled ? 'Usuario deshabilitado' : 'Usuario habilitado',
-          text: user.disabled
-            ? 'El usuario ha sido deshabilitado correctamente.'
-            : 'El usuario ha sido habilitado correctamente.'
-        });
-      }
-    }
-  } catch (e) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo cambiar el estado del usuario.'
-    });
-  }
-}
-
-function disableUser(id: number) {
-  toggleUserStatus(id);
-}
-
-function enableUser(id: number) {
-  toggleUserStatus(id);
-}
-
-function getBase64Image(imgUrl: string, callback: (base64: string) => void) {
-  const img = new window.Image();
-  img.crossOrigin = 'Anonymous';
-  img.src = imgUrl;
-  img.onload = function () {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx && ctx.drawImage(img, 0, 0);
-    const dataURL = canvas.toDataURL('image/png');
-    callback(dataURL);
-  };
-}
-
-function downloadUserPDF(user: any) {
-  getBase64Image(logo, (logoBase64: string) => {
-    const docDefinition = {
-      content: [
-        {
-          columns: [
-            {
-              image: logoBase64,
-              fit: [60, 60],
-              margin: [0, 0, 10, 0]
-            },
-            [
-              { text: 'EMPRESA DEMO S.A.', style: 'header' },
-              { text: 'Av. Principal 123, Ciudad, País', style: 'subheader' },
-              { text: 'Tel: (000) 123-4567 | contacto@empresademo.com', style: 'subheader' },
-              { text: 'RIF: J-12345678-9', style: 'subheader' }
-            ]
-          ]
-        },
-        { text: ' ', margin: [0, 0, 0, 10] },
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#aaa' } ] },
-        { text: 'Reporte de Usuario', style: 'title', margin: [0, 15, 0, 10] },
-        {
-          columns: [
-            { width: 'auto', text: 'Fecha de generación:' },
-            { width: '*', text: new Date().toLocaleString() }
-          ],
-          margin: [0, 0, 0, 10]
-        },
-        { text: 'Datos Personales', style: 'section' },
-        {
-          ul: [
-            `ID: ${user.id}`,
-            `Nombre: ${user.firstName}`,
-            `Apellido: ${user.lastName}`,
-            `Segundo Apellido: ${user.maidenName}`,
-            `Edad: ${user.age}`,
-            `Género: ${user.gender}`,
-            `Email: ${user.email}`,
-            `Teléfono: ${user.phone}`,
-            `Username: ${user.username}`,
-            `Password: ${user.password}`,
-            `Fecha de nacimiento: ${user.birthDate}`,
-            `Grupo sanguíneo: ${user.bloodGroup}`,
-            `Altura: ${user.height}`,
-            `Peso: ${user.weight}`,
-            `Color de ojos: ${user.eyeColor}`,
-            `Pelo: ${user.hair.color} (${user.hair.type})`,
-            `IP: ${user.ip}`
-          ]
-        },
-        { text: 'Dirección', style: 'section' },
-        {
-          ul: [
-            `Dirección: ${user.address.address}`,
-            `Ciudad: ${user.address.city}`,
-            `Estado: ${user.address.state} (${user.address.stateCode})`,
-            `País: ${user.address.country}`,
-            `Código Postal: ${user.address.postalCode}`,
-            `Coordenadas: Lat: ${user.address.coordinates.lat}, Lng: ${user.address.coordinates.lng}`
-          ]
-        },
-        { text: 'Banco', style: 'section' },
-        {
-          ul: [
-            `Tipo de tarjeta: ${user.bank.cardType}`,
-            `Número de tarjeta: ${user.bank.cardNumber}`,
-            `Expiración: ${user.bank.cardExpire}`,
-            `IBAN: ${user.bank.iban}`,
-            `Moneda: ${user.bank.currency}`
-          ]
-        },
-        { text: 'Compañía', style: 'section' },
-        {
-          ul: [
-            `Nombre: ${user.company.name}`,
-            `Departamento: ${user.company.department}`,
-            `Título: ${user.company.title}`,
-            `Dirección: ${user.company.address.address}`,
-            `Ciudad: ${user.company.address.city}`,
-            `Estado: ${user.company.address.state} (${user.company.address.stateCode})`,
-            `País: ${user.company.address.country}`,
-            `Código Postal: ${user.company.address.postalCode}`,
-            `Coordenadas: Lat: ${user.company.address.coordinates.lat}, Lng: ${user.company.address.coordinates.lng}`
-          ]
-        },
-        { text: 'Otros Datos', style: 'section' },
-        {
-          ul: [
-            `MAC: ${user.macAddress}`,
-            `Universidad: ${user.university}`,
-            `EIN: ${user.ein}`,
-            `SSN: ${user.ssn}`,
-            `User Agent: ${user.userAgent}`,
-            `Cripto: ${user.crypto.coin} (${user.crypto.network}) - Wallet: ${user.crypto.wallet}`,
-            `Rol: ${user.role}`,
-            `Estado: ${user.disabled ? 'Deshabilitado' : 'Activo'}`
-          ]
-        }
-      ],
-      styles: {
-        header: { fontSize: 18, bold: true, color: '#2c3e50' },
-        subheader: { fontSize: 10, color: '#555' },
-        title: { fontSize: 16, bold: true, margin: [0, 10, 0, 10], color: '#2c3e50' },
-        section: { fontSize: 13, bold: true, margin: [0, 10, 0, 4], color: '#2c3e50' }
-      },
-      defaultStyle: {
-        fontSize: 11
-      }
-    };
-    pdfMake.createPdf(docDefinition).download(`usuario_${user.id}.pdf`);
-  });
-}
-
-function downloadUserExcel(user) {
-  // Prepara los datos en formato plano
-  const data = [
-    { Campo: 'ID', Valor: user.id },
-    { Campo: 'Nombre', Valor: user.firstName },
-    { Campo: 'Apellido', Valor: user.lastName },
-    { Campo: 'Segundo Apellido', Valor: user.maidenName },
-    { Campo: 'Edad', Valor: user.age },
-    { Campo: 'Género', Valor: user.gender },
-    { Campo: 'Email', Valor: user.email },
-    { Campo: 'Teléfono', Valor: user.phone },
-    { Campo: 'Username', Valor: user.username },
-    { Campo: 'Password', Valor: user.password },
-    { Campo: 'Fecha de nacimiento', Valor: user.birthDate },
-    { Campo: 'Grupo sanguíneo', Valor: user.bloodGroup },
-    { Campo: 'Altura', Valor: user.height },
-    { Campo: 'Peso', Valor: user.weight },
-    { Campo: 'Color de ojos', Valor: user.eyeColor },
-    { Campo: 'Pelo', Valor: `${user.hair.color} (${user.hair.type})` },
-    { Campo: 'IP', Valor: user.ip },
-    { Campo: 'Dirección', Valor: user.address.address },
-    { Campo: 'Ciudad', Valor: user.address.city },
-    { Campo: 'Estado', Valor: `${user.address.state} (${user.address.stateCode})` },
-    { Campo: 'País', Valor: user.address.country },
-    { Campo: 'Código Postal', Valor: user.address.postalCode },
-    { Campo: 'Coordenadas', Valor: `Lat: ${user.address.coordinates.lat}, Lng: ${user.address.coordinates.lng}` },
-    { Campo: 'Tipo de tarjeta', Valor: user.bank.cardType },
-    { Campo: 'Número de tarjeta', Valor: user.bank.cardNumber },
-    { Campo: 'Expiración', Valor: user.bank.cardExpire },
-    { Campo: 'IBAN', Valor: user.bank.iban },
-    { Campo: 'Moneda', Valor: user.bank.currency },
-    { Campo: 'Nombre Compañía', Valor: user.company.name },
-    { Campo: 'Departamento', Valor: user.company.department },
-    { Campo: 'Título', Valor: user.company.title },
-    { Campo: 'Dirección Compañía', Valor: user.company.address.address },
-    { Campo: 'Ciudad Compañía', Valor: user.company.address.city },
-    { Campo: 'Estado Compañía', Valor: `${user.company.address.state} (${user.company.address.stateCode})` },
-    { Campo: 'País Compañía', Valor: user.company.address.country },
-    { Campo: 'Código Postal Compañía', Valor: user.company.address.postalCode },
-    { Campo: 'Coordenadas Compañía', Valor: `Lat: ${user.company.address.coordinates.lat}, Lng: ${user.company.address.coordinates.lng}` },
-    { Campo: 'MAC', Valor: user.macAddress },
-    { Campo: 'Universidad', Valor: user.university },
-    { Campo: 'EIN', Valor: user.ein },
-    { Campo: 'SSN', Valor: user.ssn },
-    { Campo: 'User Agent', Valor: user.userAgent },
-    { Campo: 'Cripto', Valor: `${user.crypto.coin} (${user.crypto.network}) - Wallet: ${user.crypto.wallet}` },
-    { Campo: 'Rol', Valor: user.role },
-    { Campo: 'Estado', Valor: user.disabled ? 'Deshabilitado' : 'Activo' }
-  ];
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'ReporteUsuario');
-  XLSX.writeFile(wb, `usuario_${user.id}.xlsx`);
-}
-
-function goToUser(id: number) {
-  router.push(`/usuarios/${id}`);
-}
-
-onMounted(async () => {
-  await nextTick();
-
-  // Obtener usuarios del backend
-  try {
-    const token = localStorage.getItem('token');
-    const currentId = Number(localStorage.getItem('id'));
-    const res = await fetch('/admin-auth/users', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      users.value = data
-        .filter(u => u.id !== currentId)
-        .map(backendToUser);
-    }
-  } catch (e) {
-    // Puedes mostrar un error si lo deseas
-  }
-
-  // Importa dinámicamente los botones solo en el cliente
-  if (typeof window !== 'undefined') {
-    require('datatables.net-buttons/js/buttons.html5.js');
-    require('datatables.net-buttons/js/buttons.print.js');
-  }
-
-  setTimeout(() => {
-    if ($.fn.dataTable.isDataTable('#userTable')) {
-      $('#userTable').DataTable().destroy();
-    }
-    $('#userTable').DataTable({
-      dom: 'Bfrtip',
-      buttons: [
-        {
-          extend: 'excelHtml5',
-          text: 'Exportar a Excel',
-          title: 'Usuarios'
-        },
-        {
-          extend: 'pdfHtml5',
-          text: 'Exportar a PDF',
-          title: 'Usuarios',
-          orientation: 'landscape',
-          pageSize: 'A4'
-        }
-      ],
-      language: {
-        url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'
-      }
-    });
-  }, 0);
-});
-</script>
-
 <template>
-  <div class="container">
-    <h1>Listado de Usuarios</h1>
-    <table id="userTable" class="display">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Email</th>
-          <th>Rol</th>
-          <th>Ver más</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in users" :key="user.id" @click="goToUser(user.id)" style="cursor:pointer;">
-          <td>{{ user.id }}</td>
-          <td>{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
-          <td>
-            <button @click.stop="showDetails(user)">Ver más</button>
-            <button v-if="!user.disabled" @click.stop="disableUser(user.id)">Deshabilitar</button>
-            <button v-else @click.stop="enableUser(user.id)">Habilitar</button>
-            <button @click.stop="downloadUserPDF(user)">Reporte en PDF</button>
-            <button @click.stop="downloadUserExcel(user)">Reporte en EXCEL</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="user-list-container">
+    <div class="header-section">
+      <h1 class="page-title">Lista de Usuarios</h1>
+      <p class="page-subtitle">Gestiona y visualiza todos los usuarios de la plataforma</p>
+      <button @click="downloadPDF" class="btn-download-pdf" :disabled="users.length === 0">
+        📄 Descargar PDF
+      </button>
+    </div>
 
-    <div v-if="selectedUser" class="modal-overlay">
-      <div class="modal-content">
-        <button class="close-btn" @click="closeModal">&times;</button>
-        <h2>Detalles del Usuario</h2>
-        <div class="modal-scroll">
-          <div class="user-section">
-            <h3>Datos Personales</h3>
-            <ul>
-              <li><b>ID:</b> {{ selectedUser.id }}</li>
-              <li><b>Nombre:</b> {{ selectedUser.firstName }}</li>
-              <li><b>Apellido:</b> {{ selectedUser.lastName }}</li>
-              <li><b>Segundo Apellido:</b> {{ selectedUser.maidenName }}</li>
-              <li><b>Edad:</b> {{ selectedUser.age }}</li>
-              <li><b>Género:</b> {{ selectedUser.gender }}</li>
-              <li><b>Email:</b> {{ selectedUser.email }}</li>
-              <li><b>Teléfono:</b> {{ selectedUser.phone }}</li>
-              <li><b>Username:</b> {{ selectedUser.username }}</li>
-              <li><b>Password:</b> {{ selectedUser.password }}</li>
-              <li><b>Fecha de nacimiento:</b> {{ selectedUser.birthDate }}</li>
-              <li><b>Grupo sanguíneo:</b> {{ selectedUser.bloodGroup }}</li>
-              <li><b>Altura:</b> {{ selectedUser.height }}</li>
-              <li><b>Peso:</b> {{ selectedUser.weight }}</li>
-              <li><b>Color de ojos:</b> {{ selectedUser.eyeColor }}</li>
-              <li><b>Pelo:</b> {{ selectedUser.hair.color }} ({{ selectedUser.hair.type }})</li>
-              <li><b>IP:</b> {{ selectedUser.ip }}</li>
-              <li><b>Imagen:</b> <img :src="selectedUser.image" alt="Foto" width="60" style="vertical-align:middle; border-radius:50%;" /></li>
-            </ul>
-          </div>
-          <div class="user-section">
-            <h3>Dirección</h3>
-            <ul>
-              <li><b>Dirección:</b> {{ selectedUser.address.address }}</li>
-              <li><b>Ciudad:</b> {{ selectedUser.address.city }}</li>
-              <li><b>Estado:</b> {{ selectedUser.address.state }} ({{ selectedUser.address.stateCode }})</li>
-              <li><b>País:</b> {{ selectedUser.address.country }}</li>
-              <li><b>Código Postal:</b> {{ selectedUser.address.postalCode }}</li>
-              <li><b>Coordenadas:</b> Lat: {{ selectedUser.address.coordinates.lat }}, Lng: {{ selectedUser.address.coordinates.lng }}</li>
-            </ul>
-          </div>
-          <div class="user-section">
-            <h3>Banco</h3>
-            <ul>
-              <li><b>Tipo de tarjeta:</b> {{ selectedUser.bank.cardType }}</li>
-              <li><b>Número de tarjeta:</b> {{ selectedUser.bank.cardNumber }}</li>
-              <li><b>Expiración:</b> {{ selectedUser.bank.cardExpire }}</li>
-              <li><b>IBAN:</b> {{ selectedUser.bank.iban }}</li>
-              <li><b>Moneda:</b> {{ selectedUser.bank.currency }}</li>
-            </ul>
-          </div>
-          <div class="user-section">
-            <h3>Compañía</h3>
-            <ul>
-              <li><b>Nombre:</b> {{ selectedUser.company.name }}</li>
-              <li><b>Departamento:</b> {{ selectedUser.company.department }}</li>
-              <li><b>Título:</b> {{ selectedUser.company.title }}</li>
-              <li><b>Dirección:</b> {{ selectedUser.company.address.address }}</li>
-              <li><b>Ciudad:</b> {{ selectedUser.company.address.city }}</li>
-              <li><b>Estado:</b> {{ selectedUser.company.address.state }} ({{ selectedUser.company.address.stateCode }})</li>
-              <li><b>País:</b> {{ selectedUser.company.address.country }}</li>
-              <li><b>Código Postal:</b> {{ selectedUser.company.address.postalCode }}</li>
-              <li><b>Coordenadas:</b> Lat: {{ selectedUser.company.address.coordinates.lat }}, Lng: {{ selectedUser.company.address.coordinates.lng }}</li>
-            </ul>
-          </div>
-          <div class="user-section">
-            <h3>Otros Datos</h3>
-            <ul>
-              <li><b>MAC:</b> {{ selectedUser.macAddress }}</li>
-              <li><b>Universidad:</b> {{ selectedUser.university }}</li>
-              <li><b>EIN:</b> {{ selectedUser.ein }}</li>
-              <li><b>SSN:</b> {{ selectedUser.ssn }}</li>
-              <li><b>User Agent:</b> {{ selectedUser.userAgent }}</li>
-              <li><b>Cripto:</b> {{ selectedUser.crypto.coin }} ({{ selectedUser.crypto.network }}) - Wallet: {{ selectedUser.crypto.wallet }}</li>
-              <li><b>Rol:</b> {{ selectedUser.role }}</li>
-              <li><b>Estado:</b> <span v-if="selectedUser.disabled" class="disabled">Deshabilitado</span><span v-else class="enabled">Activo</span></li>
-            </ul>
-          </div>
-        </div>
-      </div>
+    <div class="table-container">
+      <table id="usersTable" class="display" style="width:100%">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Los datos se cargarán dinámicamente -->
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import DataTable from 'datatables.net-dt';
+import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+const router = useRouter();
+let dataTable: any = null;
+const users = ref<any[]>([]);
+const loading = ref(true);
+
+// Función para cargar usuarios desde la API
+const loadUsers = async () => {
+  try {
+    loading.value = true;
+    const token = localStorage.getItem('token');
+    console.log('Token obtenido:', token);
+    
+    if (!token) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error de autenticación',
+        text: 'No se encontró token de autenticación'
+      });
+      router.push('/login');
+      return;
+    }
+
+    const response = await fetch('/admin-auth/users', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('Respuesta del servidor:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.log('Error del servidor:', errorText);
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Datos recibidos del backend:', data);
+    users.value = Array.isArray(data) ? data : [];
+    console.log('Usuarios procesados:', users.value);
+    
+    // Inicializar DataTable después de cargar los datos
+    initializeDataTable();
+    
+  } catch (error) {
+    console.error('Error al cargar usuarios:', error);
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudieron cargar los usuarios. Inténtalo de nuevo.'
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Función para inicializar DataTable
+const initializeDataTable = () => {
+  if (dataTable) {
+    dataTable.destroy();
+  }
+
+  const tableData = users.value.map(user => [
+    user.id,
+    user.nombre || 'N/A',
+    user.email || 'N/A',
+    user.telefono || 'N/A',
+    user.type === 'admin' ? 'Administrador' : 'Usuario',
+    user.status === 'active' ? 'Activo' : 'Inactivo',
+    `<button class="btn-details" data-user-id="${user.id}">Ver Detalles</button>`
+  ]);
+  
+  console.log('Datos para DataTable:', tableData);
+
+  dataTable = new DataTable('#usersTable', {
+    data: tableData,
+    language: {
+      url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json'
+    },
+    columnDefs: [
+      {
+        targets: 6, // Columna de acciones
+        orderable: false,
+        searchable: false,
+        className: 'text-center'
+      }
+    ],
+    pageLength: 10,
+    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+    order: [[0, 'desc']] // Ordenar por ID descendente
+  });
+
+  // Agregar event listeners para los botones de detalles
+  document.addEventListener('click', handleDetailsClick);
+};
+
+// Función para manejar clics en botones de detalles
+const handleDetailsClick = (event: Event) => {
+  const target = event.target as HTMLElement;
+  if (target.classList.contains('btn-details')) {
+    const userId = target.getAttribute('data-user-id');
+    if (userId) {
+      goToUserDetails(userId);
+    }
+  }
+};
+
+// Función para ir a los detalles del usuario
+const goToUserDetails = (userId: string) => {
+  router.push(`/usuarios/${userId}`);
+};
+
+// Función para refrescar la tabla
+const refreshTable = async () => {
+  await loadUsers();
+};
+
+// Función para generar y descargar PDF
+const downloadPDF = () => {
+  if (users.value.length === 0) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Sin datos',
+      text: 'No hay usuarios para exportar'
+    });
+    return;
+  }
+
+  try {
+    // Crear nuevo documento PDF
+    const doc = new jsPDF();
+    
+    // Agregar logo de cara sonriente en la parte superior izquierda
+    const logoText = '😊';
+    doc.setFontSize(20);
+    doc.text(logoText, 20, 30);
+    
+    // Título del documento
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Lista de Usuarios de la Plataforma', 50, 30);
+    
+    // Fecha de generación
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const currentDate = new Date().toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    doc.text(`Generado el: ${currentDate}`, 50, 40);
+    
+    // Preparar datos para la tabla
+    const tableData = users.value.map(user => [
+      user.id,
+      user.nombre || 'N/A',
+      user.email || 'N/A',
+      user.telefono || 'N/A',
+      user.type === 'admin' ? 'Administrador' : 'Usuario',
+      user.status === 'active' ? 'Activo' : 'Inactivo'
+    ]);
+    
+    // Configurar la tabla
+    const tableConfig = {
+      head: [['ID', 'Nombre', 'Email', 'Teléfono', 'Tipo', 'Estado']],
+      body: tableData,
+      startY: 50,
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+        overflow: 'linebreak' as const
+      },
+      headStyles: {
+        fillColor: [52, 152, 219] as [number, number, number],
+        textColor: 255,
+        fontStyle: 'bold' as const
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245] as [number, number, number]
+      },
+      columnStyles: {
+        0: { cellWidth: 15 }, // ID
+        1: { cellWidth: 35 }, // Nombre
+        2: { cellWidth: 45 }, // Email
+        3: { cellWidth: 25 }, // Teléfono
+        4: { cellWidth: 25 }, // Tipo
+        5: { cellWidth: 20 }  // Estado
+      }
+    };
+    
+    // Agregar la tabla al PDF
+    autoTable(doc, tableConfig);
+    
+    // Agregar pie de página
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.text(`Página ${i} de ${pageCount}`, 20, doc.internal.pageSize.height - 10);
+      doc.text(`Total de usuarios: ${users.value.length}`, doc.internal.pageSize.width - 60, doc.internal.pageSize.height - 10);
+    }
+    
+    // Descargar el PDF
+    doc.save(`usuarios_${new Date().toISOString().split('T')[0]}.pdf`);
+    
+        Swal.fire({
+          icon: 'success',
+      title: 'PDF Generado',
+      text: 'El archivo PDF se ha descargado exitosamente'
+    });
+    
+  } catch (error) {
+    console.error('Error al generar PDF:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'No se pudo generar el PDF. Inténtalo de nuevo.'
+    });
+  }
+};
+
+onMounted(async () => {
+  await loadUsers();
+});
+
+onUnmounted(() => {
+  if (dataTable) {
+    dataTable.destroy();
+  }
+  document.removeEventListener('click', handleDetailsClick);
+});
+</script>
+
 <style scoped>
-.container {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 2rem;
+.user-list-container {
+  min-height: 100vh;
   background: var(--color-background);
+  padding: 2rem;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.page-title {
+  font-size: var(--font-title-size);
+  font-family: var(--font-title-family);
+  font-weight: var(--font-title-weight);
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+}
+
+.page-subtitle {
+  font-size: var(--font-subtitle-size);
+  font-family: var(--font-subtitle-family);
+  font-weight: var(--font-subtitle-weight);
+  color: var(--color-text);
+  margin-bottom: 1rem;
+}
+
+.btn-download-pdf {
+  background: var(--color-accent);
+  color: var(--color-background);
+  border: none;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
 }
-.display {
-  width: 100%;
-  border-collapse: collapse;
+
+.btn-download-pdf:hover:not(:disabled) {
+  background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-.display th, .display td {
-  border: 1px solid #ccc;
+
+.btn-download-pdf:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.table-container {
+  background: var(--color-background);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+/* Estilos para DataTable */
+:deep(.dataTables_wrapper) {
+  font-family: var(--font-body-family);
+}
+
+:deep(.dataTables_wrapper .dataTables_length),
+:deep(.dataTables_wrapper .dataTables_filter),
+:deep(.dataTables_wrapper .dataTables_info),
+:deep(.dataTables_wrapper .dataTables_processing),
+:deep(.dataTables_wrapper .dataTables_paginate) {
+  color: var(--color-text);
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+}
+
+:deep(.dataTables_wrapper .dataTables_length select),
+:deep(.dataTables_wrapper .dataTables_filter input) {
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 2px solid var(--color-primary);
+  border-radius: 6px;
   padding: 0.5rem;
-  text-align: left;
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
 }
-.display th {
+
+:deep(.dataTables_wrapper .dataTables_length select:focus),
+:deep(.dataTables_wrapper .dataTables_filter input:focus) {
+  outline: none;
+  border-color: var(--color-secondary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+:deep(.dataTables_wrapper table.dataTable) {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+:deep(.dataTables_wrapper table.dataTable thead th) {
   background: var(--color-primary);
   color: var(--color-background);
+  font-family: var(--font-subtitle-family);
+  font-size: var(--font-subtitle-size);
+  font-weight: var(--font-subtitle-weight);
+  padding: 1rem;
+  text-align: left;
+  border: 1px solid var(--color-secondary);
 }
-button {
-  margin-right: 0.5rem;
+
+:deep(.dataTables_wrapper table.dataTable tbody td) {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  padding: 1rem;
+  border: 1px solid var(--color-secondary);
+  vertical-align: middle;
 }
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+
+:deep(.dataTables_wrapper table.dataTable tbody tr:hover) {
+  background: rgba(52, 152, 219, 0.1);
 }
-.modal-content {
-  background: #fff;
-  padding: 2rem 2.5rem 2rem 2.5rem;
-  border-radius: 8px;
-  min-width: 350px;
-  max-width: 700px;
-  max-height: 90vh;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
-  display: flex;
-  flex-direction: column;
-}
-.modal-content .close-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 1.5rem;
+
+:deep(.dataTables_wrapper .dataTables_paginate .paginate_button) {
+  background: var(--color-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  margin: 0 0.25rem;
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
   cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
 }
-.close-btn:hover {
-  background: #c0392b;
+
+:deep(.dataTables_wrapper .dataTables_paginate .paginate_button:hover) {
+  background: var(--color-primary);
+  color: var(--color-background);
+  border-color: var(--color-primary);
 }
-.modal-content h2 {
-  margin-top: 0;
+
+:deep(.dataTables_wrapper .dataTables_paginate .paginate_button.current) {
+  background: var(--color-secondary);
+  color: var(--color-background);
+  border-color: var(--color-secondary);
 }
-.modal-content .modal-scroll {
-  overflow-y: auto;
-  flex: 1 1 auto;
-  padding-right: 0.5rem;
+
+/* Estilos para botones de exportación */
+:deep(.dt-buttons) {
+  margin-bottom: 1rem;
 }
-.user-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+
+:deep(.dt-buttons .btn-export) {
+  background: var(--color-primary);
+  color: var(--color-background);
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  margin-right: 0.5rem;
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.user-section:last-child {
-  border-bottom: none;
+
+:deep(.dt-buttons .btn-export:hover) {
+  background: var(--color-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
-.user-section h3 {
-  margin-bottom: 0.5rem;
-  color: var(--color-primary, #2c3e50);
-  font-size: 1.1rem;
+
+/* Estilos para botón de detalles */
+.btn-details {
+  background: var(--color-accent);
+  color: var(--color-background);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-.user-section ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+
+.btn-details:hover {
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-.user-section li {
-  margin-bottom: 0.3rem;
-  font-size: 1rem;
+
+/* Responsive */
+@media (max-width: 768px) {
+  .user-list-container {
+    padding: 1rem;
+  }
+  
+  .table-container {
+    padding: 1rem;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .page-subtitle {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-list-container {
+    padding: 0.5rem;
+  }
+  
+  .table-container {
+    padding: 0.5rem;
+  }
+  
+  :deep(.dataTables_wrapper table.dataTable thead th),
+  :deep(.dataTables_wrapper table.dataTable tbody td) {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

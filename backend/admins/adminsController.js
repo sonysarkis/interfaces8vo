@@ -91,6 +91,11 @@ class AdminsController {
     }
 
     getall = async (req, res) => {
+        const authResult = await this.auth(req);
+        if (!authResult.valid) {
+            return res.status(401).json({ error: "Token de autenticación requerido" });
+        }
+        
         try {
             const result = await AdminsModel.getallUsers();
             return res.json(result);
