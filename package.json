@@ -14,6 +14,7 @@
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
     "datatables.net": "^2.3.2",
     "datatables.net-buttons": "^3.2.3",
     "datatables.net-buttons-dt": "^3.2.3",

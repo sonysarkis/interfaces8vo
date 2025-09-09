@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 import { dirname } from 'path';
 import { createAdminsRouter } from './backend/admins/adminsRoutes.js';
 import { createStylesRouter } from './backend/styles/stylesRoutes.js';
