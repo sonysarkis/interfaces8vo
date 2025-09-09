@@ -56,11 +56,8 @@ const onSubmit = async (e: Event) => {
       title: 'Login exitoso',
       text: 'Has iniciado sesión correctamente.'
     });
-    if (data.type === 'admin') {
-      router.push('/personalization');
-    } else {
-      router.push('/perfil');
-    }
+    // Redirigir siempre al home después del login
+    router.push('/');
   } catch (e) {
     await Swal.fire({
       icon: 'error',

@@ -86,7 +86,23 @@ const onSubmit = () => {
   border: 2px solid var(--color-primary);
 }
 
-h2, .subtitle, label, .error-message {
+h2 {
+  color: var(--color-background);
+  font-size: var(--font-title-size);
+  font-family: var(--font-title-family);
+  font-weight: var(--font-title-weight);
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  color: var(--color-background);
+  font-size: var(--font-subtitle-size);
+  font-family: var(--font-subtitle-family);
+  font-weight: var(--font-subtitle-weight);
+  margin-bottom: 2rem;
+}
+
+label, .error-message {
   color: var(--color-background);
 }
 
@@ -98,6 +114,8 @@ label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
 }
 
 input, textarea {
@@ -105,7 +123,8 @@ input, textarea {
   padding: 0.75rem;
   border: 2px solid var(--color-background);
   border-radius: 0.375rem;
-  font-size: 1rem;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
   background: var(--color-primary);
   color: var(--color-background);
   transition: border-color 0.2s;
@@ -119,7 +138,8 @@ input:focus, textarea:focus {
 }
 
 .error-message {
-  font-size: 0.875rem;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
   margin-top: 0.25rem;
 }
 
@@ -130,7 +150,8 @@ button {
   color: var(--color-primary);
   border: 2px solid var(--color-background);
   border-radius: 0.375rem;
-  font-size: 1rem;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;

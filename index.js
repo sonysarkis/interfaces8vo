@@ -19,7 +19,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'dist/')));
 
 const FrontRoutes = ['/', '/login', '/registro', '/personalization', "/usuarios/:id", 
-  "/personalization/landing", "/personalization/login-preview", "/usuarios", "/perfil"];
+  "/personalization/landing", "/personalization/login-preview", "/usuarios", "/perfil", "/tangram"];
 FrontRoutes.forEach(route => {
   app.get(route, (req, res) => {
     res.sendFile(path.join(__dirname, 'dist/index.html'));

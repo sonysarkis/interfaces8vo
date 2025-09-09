@@ -236,10 +236,9 @@ const formatSize = (size: number) => {
   height: 600px;
   overflow: hidden;
   margin: 2rem 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--color-background) 0%, var(--color-secondary) 20%);
   border-radius: 24px;
   padding: 2rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
 .carousel-container {
@@ -269,15 +268,13 @@ const formatSize = (size: number) => {
   flex-direction: column;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
-  background: white;
+  background: var(--color-background);
   transform: scale(0.95);
   z-index: 1;
 }
 
 .slide.slide-multi:hover {
   transform: scale(1);
-  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.35);
   z-index: 10;
 }
 
@@ -304,8 +301,8 @@ const formatSize = (size: number) => {
   position: absolute;
   bottom: 16px;
   right: 16px;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: var(--color-background);
   border: none;
   border-radius: 50%;
   width: 44px;
@@ -318,7 +315,6 @@ const formatSize = (size: number) => {
   cursor: pointer;
   font-size: 1.2rem;
   z-index: 2;
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
   backdrop-filter: blur(10px);
 }
 
@@ -330,7 +326,6 @@ const formatSize = (size: number) => {
 
 .info-btn:hover {
   transform: translateY(-4px) scale(1.1);
-  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
 }
 
 /* Modal de información */
@@ -355,12 +350,11 @@ const formatSize = (size: number) => {
 }
 
 .modal-content {
-  background: white;
+  background: var(--color-background);
   padding: 2.5rem 3rem;
   border-radius: 20px;
   min-width: 400px;
   max-width: 90vw;
-  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.3);
   position: relative;
   animation: slideUp 0.3s ease;
 }
@@ -380,13 +374,13 @@ const formatSize = (size: number) => {
   position: absolute;
   top: 16px;
   right: 20px;
-  background: #f1f5f9;
+  background: var(--color-secondary);
   border: none;
   border-radius: 50%;
   width: 36px;
   height: 36px;
   font-size: 1.5rem;
-  color: #64748b;
+  color: var(--color-background);
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -395,15 +389,16 @@ const formatSize = (size: number) => {
 }
 
 .close-modal:hover {
-  background: #e2e8f0;
-  color: #475569;
+  background: var(--color-accent);
+  color: var(--color-background);
   transform: scale(1.1);
 }
 
 .modal-content h3 {
-  color: #1e293b;
-  font-size: 1.5rem;
-  font-weight: 600;
+  color: var(--color-primary);
+  font-size: var(--font-subtitle-size);
+  font-family: var(--font-subtitle-family);
+  font-weight: var(--font-subtitle-weight);
   margin-bottom: 1.5rem;
   text-align: center;
 }
@@ -415,8 +410,10 @@ const formatSize = (size: number) => {
 
 .modal-content li {
   padding: 0.75rem 0;
-  border-bottom: 1px solid #e2e8f0;
-  color: #475569;
+  border-bottom: 1px solid var(--color-secondary);
+  color: var(--color-text);
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
 }
 
 .modal-content li:last-child {
@@ -424,7 +421,7 @@ const formatSize = (size: number) => {
 }
 
 .modal-content b {
-  color: #1e293b;
+  color: var(--color-primary);
   font-weight: 600;
   margin-right: 0.5rem;
 }
@@ -435,27 +432,29 @@ const formatSize = (size: number) => {
   left: 0;
   right: 0;
   padding: 2rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  color: var(--color-background);
   backdrop-filter: blur(10px);
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
 }
 
 .slide-content h2, .slide-content p {
-  color: white;
+  color: var(--color-background);
   margin: 0;
 }
 
 .slide-content h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--font-subtitle-size);
+  font-family: var(--font-subtitle-family);
+  font-weight: var(--font-subtitle-weight);
   margin-bottom: 0.75rem;
   line-height: 1.3;
 }
 
 .slide-content p {
-  font-size: 0.95rem;
+  font-size: var(--font-body-size);
+  font-family: var(--font-body-family);
   line-height: 1.5;
   opacity: 0.95;
 }
@@ -464,7 +463,7 @@ const formatSize = (size: number) => {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   border: none;
   width: 56px;
   height: 56px;
@@ -474,8 +473,7 @@ const formatSize = (size: number) => {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  color: white;
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+  color: var(--color-background);
   backdrop-filter: blur(10px);
   font-size: 1.2rem;
   z-index: 20;
@@ -483,7 +481,6 @@ const formatSize = (size: number) => {
 
 .carousel-control:hover {
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
 }
 
 .carousel-control.prev {
@@ -501,11 +498,10 @@ const formatSize = (size: number) => {
   transform: translateX(-50%);
   display: flex;
   gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--color-background);
   padding: 1rem 1.5rem;
   border-radius: 50px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   z-index: 15;
 }
 
@@ -513,23 +509,22 @@ const formatSize = (size: number) => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid #3b82f6;
-  background: white;
+  border: 2px solid var(--color-primary);
+  background: var(--color-background);
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
 }
 
 .carousel-indicators button:hover {
-  background: #dbeafe;
+  background: var(--color-secondary);
   transform: scale(1.2);
 }
 
 .carousel-indicators button.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  border-color: var(--color-primary);
   transform: scale(1.3);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 /* Responsive */

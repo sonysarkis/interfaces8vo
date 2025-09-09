@@ -64,12 +64,14 @@ async function logout() {
   if (result.isConfirmed) {
     localStorage.removeItem('token')
     localStorage.removeItem('email')
+    localStorage.removeItem('type')
+    localStorage.removeItem('id')
     await Swal.fire({
       icon: 'success',
       title: 'Sesión cerrada',
       text: 'Has cerrado sesión correctamente.'
     })
-    window.location.href = '/login'
+    window.location.href = '/'
   }
 }
 </script>

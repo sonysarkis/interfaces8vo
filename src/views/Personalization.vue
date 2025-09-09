@@ -77,13 +77,13 @@
               </div>
             </div>
           </div>
-          <!-- Tipografía Unificada -->
+          <!-- Título -->
           <div class="card-body border-t border-text">
-            <h3 class="text-lg font-medium text-primary mb-2">Tipografía</h3>
+            <h3 class="text-lg font-medium text-primary mb-2">Título</h3>
             <div class="space-y-3">
               <div>
                 <label>Fuente</label>
-                <select v-model="unifiedFont.family" @change="updateAllFonts">
+                <select v-model="fonts.title.family">
                   <option value="Arial, sans-serif">Arial</option>
                   <option value="'Times New Roman', serif">Times New Roman</option>
                   <option value="'Courier New', monospace">Courier New</option>
@@ -92,42 +92,74 @@
                   <option v-for="font in uploadedFonts" :key="font.name" :value="font.name">{{ font.name }}</option>
                 </select>
               </div>
-              
-              <!-- Tamaños de texto -->
-              <div class="grid grid-cols-3 gap-4">
-                <div>
-                  <label>Título (px)</label>
-                  <input 
-                    type="number" 
-                    v-model.number="fonts.title.size" 
-                    min="20" 
-                    max="60" 
-                    step="1"
-                    class="text-center"
-                  />
-                </div>
-                <div>
-                  <label>Subtítulo (px)</label>
-                  <input 
-                    type="number" 
-                    v-model.number="fonts.subtitle.size" 
-                    min="14" 
-                    max="40" 
-                    step="1"
-                    class="text-center"
-                  />
-                </div>
-                <div>
-                  <label>Texto (px)</label>
-                  <input 
-                    type="number" 
-                    v-model.number="fonts.body.size" 
-                    min="10" 
-                    max="24" 
-                    step="1"
-                    class="text-center"
-                  />
-                </div>
+              <div>
+                <label>Tamaño (px)</label>
+                <input 
+                  type="number" 
+                  v-model.number="fonts.title.size" 
+                  min="20" 
+                  max="60" 
+                  step="1"
+                  class="text-center"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Subtítulo -->
+          <div class="card-body border-t border-text">
+            <h3 class="text-lg font-medium text-primary mb-2">Subtítulo</h3>
+            <div class="space-y-3">
+              <div>
+                <label>Fuente</label>
+                <select v-model="fonts.subtitle.family">
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="Verdana, sans-serif">Verdana</option>
+                  <option v-for="font in uploadedFonts" :key="font.name" :value="font.name">{{ font.name }}</option>
+                </select>
+              </div>
+              <div>
+                <label>Tamaño (px)</label>
+                <input 
+                  type="number" 
+                  v-model.number="fonts.subtitle.size" 
+                  min="14" 
+                  max="40" 
+                  step="1"
+                  class="text-center"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Texto -->
+          <div class="card-body border-t border-text">
+            <h3 class="text-lg font-medium text-primary mb-2">Texto</h3>
+            <div class="space-y-3">
+              <div>
+                <label>Fuente</label>
+                <select v-model="fonts.body.family">
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="Verdana, sans-serif">Verdana</option>
+                  <option v-for="font in uploadedFonts" :key="font.name" :value="font.name">{{ font.name }}</option>
+                </select>
+              </div>
+              <div>
+                <label>Tamaño (px)</label>
+                <input 
+                  type="number" 
+                  v-model.number="fonts.body.size" 
+                  min="10" 
+                  max="24" 
+                  step="1"
+                  class="text-center"
+                />
               </div>
             </div>
           </div>
@@ -181,8 +213,9 @@
                   <div class="h-8 rounded" :style="{ backgroundColor: style.colors.text }"></div>
                 </div>
                 <div class="text-sm text-text">
-                  <div>Tipografía: {{ style.fonts.title.family }}</div>
-                  <div>Tamaños: {{ style.fonts.title.size }}px / {{ style.fonts.subtitle.size }}px / {{ style.fonts.body.size }}px</div>
+                  <div>Título: {{ style.fonts.title.family }} ({{ style.fonts.title.size }}px)</div>
+                  <div>Subtítulo: {{ style.fonts.subtitle.family }} ({{ style.fonts.subtitle.size }}px)</div>
+                  <div>Texto: {{ style.fonts.body.family }} ({{ style.fonts.body.size }}px)</div>
                 </div>
               </div>
             </div>
@@ -301,9 +334,6 @@ const fonts = reactive({
   body: { family: 'Inter', size: 16, weight: '400' }
 })
 
-const unifiedFont = reactive({
-  family: 'Inter'
-})
 
 const colorLabels = {
   primary: 'Color 1',
@@ -315,11 +345,6 @@ const colorLabels = {
 
 const fontFileInput = ref<HTMLInputElement | null>(null)
 
-function updateAllFonts() {
-  fonts.title.family = unifiedFont.family
-  fonts.subtitle.family = unifiedFont.family
-  fonts.body.family = unifiedFont.family
-}
 
 onMounted(async () => {
   await loadSavedStyles()
@@ -392,8 +417,6 @@ async function applyStyle(style: SavedStyle) {
   Object.assign(fonts.title, style.fonts.title)
   Object.assign(fonts.subtitle, style.fonts.subtitle)
   Object.assign(fonts.body, style.fonts.body)
-  // Actualizar la tipografía unificada con la del título
-  unifiedFont.family = style.fonts.title.family
   try {
     const res = await fetch('/styles/apply', {
       method: 'POST',
@@ -438,9 +461,6 @@ async function saveStyle() {
     })
     return
   }
-  // Asegurar que todas las tipografías usen la fuente unificada
-  updateAllFonts()
-  
   const style = {
     name: newStyleName.value,
     primary: colors.primary,
@@ -448,13 +468,13 @@ async function saveStyle() {
     accent: colors.accent,
     background: colors.background,
     text: colors.text,
-    familyTitle: unifiedFont.family,
+    familyTitle: fonts.title.family,
     sizeTitle: fonts.title.size,
     weightTitle: fonts.title.weight,
-    familySubtitle: unifiedFont.family,
+    familySubtitle: fonts.subtitle.family,
     sizeSubtitle: fonts.subtitle.size,
     weightSubtitle: fonts.subtitle.weight,
-    familyBody: unifiedFont.family,
+    familyBody: fonts.body.family,
     sizeBody: fonts.body.size,
     weightBody: fonts.body.weight
   }

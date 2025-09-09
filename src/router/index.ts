@@ -69,6 +69,11 @@ const router = createRouter({
       component: () => import('../views/UserProfile.vue')
     },
     {
+      path: '/tangram',
+      name: 'tangram',
+      component: () => import('../views/Tangram.vue')
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/'
     }

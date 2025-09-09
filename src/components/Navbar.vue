@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 
 const emit = defineEmits(['logout']);
-
+const router = useRouter();
 
 const isLoggedIn = ref(false);
 const userType = ref('');
 const isMenuOpen = ref(false);
+const selectedOption = ref('');
+const userId = ref('');
 
 const checkLogin = () => {
   isLoggedIn.value = !!localStorage.getItem('token');
   userType.value = localStorage.getItem('type') || '';
+  userId.value = localStorage.getItem('id') || '1';
 };
 
 onMounted(() => {
@@ -46,6 +49,14 @@ const scrollToSection = (sectionId: string) => {
     element.scrollIntoView({ behavior: 'smooth' });
   }
 };
+
+const handleSelectChange = () => {
+  if (selectedOption.value) {
+    router.push(selectedOption.value);
+    selectedOption.value = ''; // Reset select
+    closeMenu();
+  }
+};
 </script>
 
 <template>
@@ -60,25 +71,35 @@ const scrollToSection = (sectionId: string) => {
         <span :class="{ open: isMenuOpen }"></span>
       </button>
       <div class="nav-links" :class="{ open: isMenuOpen }">
+        <!-- Enlaces de navegación básica -->
         <a @click="handleNavClick('inicio')">Inicio</a>
         <a @click="handleNavClick('servicios')">Servicios</a>
         <a @click="handleNavClick('contacto')">Contacto</a>
         <a @click="handleNavClick('beneficios')">Beneficios</a>
-  <router-link to="/subir-imagen" @click="closeMenu">Subir Imagen</router-link>
-  <router-link to="/subir-video" @click="closeMenu">Subir Video</router-link>
+        
+        <!-- Select con opciones adicionales (solo para usuarios logueados) -->
+        <div v-if="isLoggedIn" class="select-container">
+          <select 
+            v-model="selectedOption" 
+            @change="handleSelectChange"
+            class="nav-select"
+          >
+            <option value="">Más opciones...</option>
+            <option value="/subir-imagen">Subir Imagen</option>
+            <option value="/subir-video">Subir Video</option>
+            <option value="/personalization">Personalización</option>
+            <option value="/usuarios">Lista de usuarios</option>
+            <option :value="`/usuarios/${userId}`">Detalles del usuario</option>
+          </select>
+        </div>
+        
+        <!-- Autenticación y perfil -->
         <template v-if="!isLoggedIn">
           <router-link to="/login" @click="closeMenu">Iniciar Sesión</router-link>
           <router-link to="/registro" @click="closeMenu">Registrarse</router-link>
         </template>
         <template v-else>
-          <template v-if="userType === 'admin'">
-            <router-link to="/personalization" @click="closeMenu">Personalización</router-link>
-            <router-link to="/usuarios" @click="closeMenu">Usuarios</router-link>
-            <router-link to="/perfil" @click="closeMenu">Perfil</router-link>
-          </template>
-          <template v-else>
-            <router-link to="/perfil" @click="closeMenu">Perfil</router-link>
-          </template>
+          <router-link to="/perfil" @click="closeMenu">Perfil</router-link>
           <button class="logout-btn" @click="onLogoutClick(); closeMenu()">Cerrar sesión</button>
         </template>
       </div>
@@ -102,9 +123,15 @@ const scrollToSection = (sectionId: string) => {
   margin: 0 auto;
   padding: 1rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   position: relative;
+  gap: 2rem;
+}
+
+.logo {
+  position: absolute;
+  left: 1rem;
 }
 
 .logo-text {
@@ -163,6 +190,46 @@ const scrollToSection = (sectionId: string) => {
   color: var(--color-accent);
 }
 
+.select-container {
+  position: relative;
+}
+
+.nav-select {
+  background-color: transparent;
+  color: var(--color-text);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-family: var(--font-body-family);
+  font-size: var(--font-body-size);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
+  padding-right: 2rem;
+  min-width: 140px;
+}
+
+.nav-select:hover {
+  background-color: rgba(var(--color-primary-rgb, 44, 62, 80), 0.1);
+  color: var(--color-primary);
+}
+
+.nav-select:focus {
+  outline: none;
+  background-color: rgba(var(--color-primary-rgb, 44, 62, 80), 0.1);
+}
+
+.nav-select option {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  padding: 0.5rem;
+}
+
 .hamburger {
   display: none;
   flex-direction: column;
@@ -195,9 +262,17 @@ const scrollToSection = (sectionId: string) => {
 }
 
 @media (max-width: 900px) {
+  .navbar-container {
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  
   .hamburger {
     display: flex;
+    position: absolute;
+    right: 1rem;
   }
+  
   .nav-links {
     position: absolute;
     top: 100%;
@@ -213,6 +288,16 @@ const scrollToSection = (sectionId: string) => {
   }
   .nav-links.open {
     display: flex;
+  }
+  
+  .nav-select {
+    width: 200px;
+    text-align: center;
+    background-color: rgba(var(--color-primary-rgb, 44, 62, 80), 0.05);
+  }
+  
+  .select-container {
+    width: 200px;
   }
 }
 </style> 
